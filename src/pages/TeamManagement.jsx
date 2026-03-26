@@ -1,0 +1,142 @@
+import { useQuery } from "@tanstack/react-query";
+import { base44 } from "@/api/base44Client";
+import { useState } from "react";
+import { Plus, Trash2, UserCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
+
+const roleConfig = {
+  admin: { label: "Admin / Estrategista", color: "bg-violet-100 text-violet-700" },
+  redator: { label: "Redator", color: "bg-blue-100 text-blue-700" },
+  designer: { label: "Designer", color: "bg-pink-100 text-pink-700" },
+  social_media: { label: "Social Media", color: "bg-emerald-100 text-emerald-700" },
+  cliente: { label: "Cliente", color: "bg-orange-100 text-orange-700" },
+};
+
+export default function TeamManagement() {
+  const [formOpen, setFormOpen] = useState(false);
+  const [form, setForm] = useState({ name: "", email: "", role: "redator", client_id: "" });
+
+  const { data: members = [], refetch } = useQuery({ queryKey: ["team_members"], queryFn: () => base44.entities.TeamMember.list() });
+  const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: () => base44.entities.Client.list() });
+
+  const handleAdd = async () => {
+    if (!form.name || !form.email) return;
+    await base44.entities.TeamMember.create(form);
+    setForm({ name: "", email: "", role: "redator", client_id: "" });
+    setFormOpen(false);
+    refetch();
+  };
+
+  const handleDelete = async (id) => {
+    await base44.entities.TeamMember.delete(id);
+    refetch();
+  };
+
+  const grouped = Object.keys(roleConfig).reduce((acc, role) => {
+    acc[role] = members.filter((m) => m.role === role);
+    return acc;
+  }, {});
+
+  return (
+    <div className="space-y-6 pb-20 lg:pb-0">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Equipe</h1>
+          <p className="text-sm text-muted-foreground">Gerencie membros e acesso de clientes</p>
+        </div>
+        <Button size="sm" onClick={() => setFormOpen(true)}>
+          <Plus className="w-4 h-4 mr-1" /> Adicionar
+        </Button>
+      </div>
+
+      {Object.entries(grouped).map(([role, roleMembers]) =>
+        roleMembers.length > 0 ? (
+          <div key={role}>
+            <div className="flex items-center gap-2 mb-3">
+              <Badge className={cn("text-xs", roleConfig[role].color)}>{roleConfig[role].label}</Badge>
+              <span className="text-xs text-muted-foreground">({roleMembers.length})</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {roleMembers.map((m) => (
+                <div key={m.id} className="bg-card rounded-xl border border-border p-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center">
+                      <span className="text-sm font-bold text-primary">{m.name.charAt(0)}</span>
+                    </div>
+                    <div>
+                      <p className="font-semibold text-sm">{m.name}</p>
+                      <p className="text-xs text-muted-foreground">{m.email}</p>
+                      {m.role === "cliente" && m.client_id && (
+                        <p className="text-[10px] text-orange-600 mt-0.5">
+                          {clients.find((c) => c.id === m.client_id)?.name || "cliente"}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => handleDelete(m.id)}>
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null
+      )}
+
+      {members.length === 0 && (
+        <div className="text-center py-16 text-muted-foreground">
+          <UserCircle className="w-12 h-12 mx-auto mb-3 opacity-30" />
+          <p className="text-sm">Nenhum membro cadastrado</p>
+        </div>
+      )}
+
+      <Dialog open={formOpen} onOpenChange={setFormOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader><DialogTitle>Novo Membro</DialogTitle></DialogHeader>
+          <div className="space-y-3 py-2">
+            <div className="space-y-1.5">
+              <Label>Nome *</Label>
+              <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Nome completo" />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Email *</Label>
+              <Input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="email@exemplo.com" />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Função</Label>
+              <Select value={form.role} onValueChange={(v) => setForm({ ...form, role: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {Object.entries(roleConfig).map(([k, v]) => (
+                    <SelectItem key={k} value={k}>{v.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {form.role === "cliente" && (
+              <div className="space-y-1.5">
+                <Label>Cliente Vinculado</Label>
+                <Select value={form.client_id} onValueChange={(v) => setForm({ ...form, client_id: v })}>
+                  <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                  <SelectContent>
+                    {clients.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setFormOpen(false)}>Cancelar</Button>
+            <Button onClick={handleAdd} disabled={!form.name || !form.email}>Adicionar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
