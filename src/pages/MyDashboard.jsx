@@ -1,13 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { useCurrentMember } from "@/lib/useCurrentMember";
-import { getStepsForRole, getStepLabel, getStepLight, STEPS } from "@/lib/flowConfig";
-import DemandCardV2 from "@/components/demands/DemandCardV2";
+import { getStepsForRole, getStepLabel, STEPS } from "@/lib/flowConfig";
+import MyTaskCard from "@/components/demands/MyTaskCard";
 import DemandDetailModal from "@/components/demands/DemandDetailModal";
 import { useState } from "react";
-import { cn } from "@/lib/utils";
-import { Loader2, Inbox } from "lucide-react";
+import { Loader2, Inbox, CheckCircle2, Clock, AlertTriangle } from "lucide-react";
 import { isPast, isToday } from "date-fns";
+import { cn } from "@/lib/utils";
 
 export default function MyDashboard() {
   const { member, isLoading: loadingMember } = useCurrentMember();
@@ -34,7 +34,7 @@ export default function MyDashboard() {
 
   const mySteps = getStepsForRole(member.role);
 
-  // Para clientes: ver demandas na etapa aprovacao_cliente com o client_id deles
+  // Filtrar demandas que são minhas
   let myDemands;
   if (member.role === "cliente") {
     myDemands = demands.filter(
@@ -42,51 +42,109 @@ export default function MyDashboard() {
     );
   } else {
     myDemands = demands.filter((d) => {
+      if (d.current_step === "publicado") return false;
       if (!mySteps.includes(d.current_step)) return false;
+      // Se tem responsável definido, filtra pelo email
       if (d.assignees?.[d.current_step] && d.assignees[d.current_step] !== member.email) return false;
       return true;
     });
   }
 
-  const urgent = myDemands.filter((d) => {
+  // Separar em urgentes/atrasadas e normais
+  const isUrgent = (d) => {
     const dl = d.step_deadlines?.[d.current_step] || d.deadline;
     if (!dl) return false;
     const date = new Date(dl);
     return (isPast(date) && !isToday(date)) || d.priority === "urgente";
+  };
+
+  const overdue = myDemands.filter((d) => {
+    const dl = d.step_deadlines?.[d.current_step] || d.deadline;
+    if (!dl) return false;
+    return isPast(new Date(dl)) && !isToday(new Date(dl));
   });
 
-  const normal = myDemands.filter((d) => !urgent.includes(d));
+  const urgent = myDemands.filter((d) => d.priority === "urgente" && !overdue.includes(d));
+  const normal = myDemands.filter((d) => !overdue.includes(d) && !urgent.includes(d));
+
+  // Stats
+  const total = myDemands.length;
+  const overdueCount = overdue.length;
+  const dueToday = myDemands.filter((d) => {
+    const dl = d.step_deadlines?.[d.current_step] || d.deadline;
+    return dl && isToday(new Date(dl));
+  }).length;
+
+  const roleLabel = member.role === "cliente"
+    ? "Aprovações"
+    : STEPS[mySteps[0]]?.label || member.role;
 
   return (
     <div className="space-y-6 pb-20 lg:pb-0">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">
-          Olá, {member.name.split(" ")[0]} 👋
-        </h1>
-        <p className="text-sm text-muted-foreground mt-0.5">
-          {member.role === "cliente"
-            ? "Demandas aguardando sua aprovação"
-            : `Suas tarefas em aberto — ${STEPS[mySteps[0]]?.label || member.role}`}
-        </p>
+      {/* Header */}
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">
+            Olá, {member.name.split(" ")[0]} 👋
+          </h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            {member.role === "cliente"
+              ? "Demandas aguardando sua aprovação"
+              : `Suas tarefas como ${roleLabel}`}
+          </p>
+        </div>
       </div>
 
-      {/* Urgentes */}
-      {urgent.length > 0 && (
+      {/* Stats rápidas */}
+      {total > 0 && (
+        <div className="grid grid-cols-3 gap-3">
+          <div className="bg-card rounded-xl border border-border p-3 text-center">
+            <p className="text-2xl font-bold text-foreground">{total}</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">Em aberto</p>
+          </div>
+          <div className={cn("rounded-xl border p-3 text-center", overdueCount > 0 ? "bg-red-50 border-red-200" : "bg-card border-border")}>
+            <p className={cn("text-2xl font-bold", overdueCount > 0 ? "text-red-600" : "text-foreground")}>{overdueCount}</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">Atrasadas</p>
+          </div>
+          <div className={cn("rounded-xl border p-3 text-center", dueToday > 0 ? "bg-amber-50 border-amber-200" : "bg-card border-border")}>
+            <p className={cn("text-2xl font-bold", dueToday > 0 ? "text-amber-600" : "text-foreground")}>{dueToday}</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">Vencem hoje</p>
+          </div>
+        </div>
+      )}
+
+      {/* Atrasadas */}
+      {overdue.length > 0 && (
         <section>
           <div className="flex items-center gap-2 mb-3">
-            <div className="w-2 h-2 rounded-full bg-red-500" />
-            <h2 className="text-sm font-semibold text-red-600">Urgente / Atrasado ({urgent.length})</h2>
+            <AlertTriangle className="w-4 h-4 text-red-500" />
+            <h2 className="text-sm font-semibold text-red-600">Atrasadas ({overdue.length})</h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
-            {urgent.map((d) => (
-              <DemandCardV2 key={d.id} demand={d} onClick={setSelectedDemand} />
+            {overdue.map((d) => (
+              <MyTaskCard key={d.id} demand={d} member={member} onUpdated={refetch} onOpenDetail={setSelectedDemand} />
             ))}
           </div>
         </section>
       )}
 
-      {/* Normais por cliente */}
-      {normal.length > 0 ? (
+      {/* Urgentes (prioridade urgente mas não atrasadas) */}
+      {urgent.length > 0 && (
+        <section>
+          <div className="flex items-center gap-2 mb-3">
+            <Clock className="w-4 h-4 text-orange-500" />
+            <h2 className="text-sm font-semibold text-orange-600">Urgentes ({urgent.length})</h2>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+            {urgent.map((d) => (
+              <MyTaskCard key={d.id} demand={d} member={member} onUpdated={refetch} onOpenDetail={setSelectedDemand} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Normais agrupadas por cliente */}
+      {normal.length > 0 && (
         (() => {
           const byClient = {};
           normal.forEach((d) => {
@@ -98,20 +156,24 @@ export default function MyDashboard() {
             <section key={clientName}>
               <div className="flex items-center gap-2 mb-3">
                 <div className="w-2 h-2 rounded-full bg-primary" />
-                <h2 className="text-sm font-semibold">{clientName} ({clientDemands.length})</h2>
+                <h2 className="text-sm font-semibold">{clientName} <span className="text-muted-foreground font-normal">({clientDemands.length})</span></h2>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
                 {clientDemands.map((d) => (
-                  <DemandCardV2 key={d.id} demand={d} onClick={setSelectedDemand} />
+                  <MyTaskCard key={d.id} demand={d} member={member} onUpdated={refetch} onOpenDetail={setSelectedDemand} />
                 ))}
               </div>
             </section>
           ));
         })()
-      ) : urgent.length === 0 && (
-        <div className="text-center py-16 text-muted-foreground">
-          <Inbox className="w-10 h-10 mx-auto mb-3 opacity-30" />
-          <p className="text-sm">Nenhuma demanda aguardando sua ação.</p>
+      )}
+
+      {/* Estado vazio */}
+      {myDemands.length === 0 && (
+        <div className="text-center py-20 text-muted-foreground">
+          <CheckCircle2 className="w-12 h-12 mx-auto mb-3 opacity-20" />
+          <p className="text-sm font-medium">Tudo em dia!</p>
+          <p className="text-xs mt-1">Nenhuma demanda aguardando sua ação.</p>
         </div>
       )}
 
