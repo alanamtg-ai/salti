@@ -45,6 +45,7 @@ const AuthenticatedApp = () => {
         <Route path="/kanban-cliente" element={<ClientKanban />} />
         <Route path="/equipe" element={<TeamManagement />} />
         <Route path="/relatorios" element={<Reports />} />
+        <Route path="/minhas-tarefas" element={<MyDashboard />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
