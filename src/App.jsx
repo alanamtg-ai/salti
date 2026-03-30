@@ -8,6 +8,8 @@ import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import AppLayout from '@/components/layout/AppLayout';
 import AdminDashboard from '@/pages/AdminDashboard';
 import MyDashboard from '@/pages/MyDashboard';
+import ClientDashboard from '@/pages/ClientDashboard';
+import CollaboratorDashboard from '@/pages/CollaboratorDashboard';
 import ClientsOverview from '@/pages/ClientsOverview';
 import ClientKanban from '@/pages/ClientKanban';
 import TeamManagement from '@/pages/TeamManagement';
@@ -18,7 +20,8 @@ const RootPage = () => {
   const { member, isLoading } = useCurrentMember();
   if (isLoading) return null;
   if (member?.role === 'admin') return <AdminDashboard />;
-  return <MyDashboard />;
+  if (member?.role === 'cliente') return <ClientDashboard />;
+  return <CollaboratorDashboard />;
 };
 
 const AuthenticatedApp = () => {
