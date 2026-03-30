@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
 import {
@@ -10,10 +10,12 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import DemandDetailModal from "@/components/demands/DemandDetailModal";
 import TodayCalendar from "@/components/dashboard/TodayCalendar";
+import ReportsSummary from "@/components/dashboard/ReportsSummary";
+import ProductivitySummary from "@/components/dashboard/ProductivitySummary";
+import LiveClock from "@/components/dashboard/LiveClock";
 import NewDemandForm from "@/components/demands/NewDemandForm";
 import { useCurrentMember } from "@/lib/useCurrentMember";
 import { isPast, isToday } from "date-fns";
@@ -76,6 +78,7 @@ function AddClientModal({ open, onClose, onSaved }) {
 export default function AdminDashboard() {
   const { member } = useCurrentMember();
   const qc = useQueryClient();
+  const sessionStart = useRef(new Date()).current;
   const [selectedDemand, setSelectedDemand] = useState(null);
   const [formOpen, setFormOpen] = useState(false);
   const [clientFormOpen, setClientFormOpen] = useState(false);
@@ -134,6 +137,9 @@ export default function AdminDashboard() {
         </div>
       </div>
 
+      {/* Relógio ao vivo + sessão */}
+      <LiveClock sessionStart={sessionStart} />
+
       {/* KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
@@ -153,6 +159,12 @@ export default function AdminDashboard() {
           </div>
         ))}
       </div>
+
+      {/* Resumo de Relatórios */}
+      <ReportsSummary demands={demands} />
+
+      {/* Produtividade dos colaboradores */}
+      <ProductivitySummary demands={demands} members={members} />
 
       {/* Calendário do dia */}
       <TodayCalendar demands={demands} onOpenDetail={setSelectedDemand} />
