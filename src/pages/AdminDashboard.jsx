@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 import { format } from "date-fns";
 import {
   Plus, AlertTriangle, CheckCircle2, Users, Layers,
-  ChevronRight, Trash2, ExternalLink, Zap, UserPlus, X
+  Trash2, ExternalLink, UserPlus
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,13 +13,12 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import DemandDetailModal from "@/components/demands/DemandDetailModal";
+import TodayCalendar from "@/components/dashboard/TodayCalendar";
 import NewDemandForm from "@/components/demands/NewDemandForm";
 import { useCurrentMember } from "@/lib/useCurrentMember";
 import { isPast, isToday } from "date-fns";
 import { cn } from "@/lib/utils";
 import { getStepLabel, getStepLight, STEPS } from "@/lib/flowConfig";
-
-const STEP_ORDER = ["estrategista", "redator", "designer", "aprovacao_interna", "aprovacao_cliente", "social_media"];
 
 const CLIENT_COLORS = [
   "bg-violet-500", "bg-blue-500", "bg-emerald-500", "bg-pink-500",
@@ -27,73 +26,6 @@ const CLIENT_COLORS = [
   "bg-cyan-500", "bg-orange-500", "bg-lime-500", "bg-purple-500",
   "bg-fuchsia-500", "bg-sky-500", "bg-red-500",
 ];
-
-// ── Card de demanda com ação rápida de avanço ──────────────────────────────
-function AdminDemandRow({ demand, member, onOpenDetail, onAdvanced }) {
-  const [loading, setLoading] = useState(false);
-  const stepsFlow = demand.steps_flow || [];
-  const currentIndex = demand.current_step_index ?? 0;
-  const nextStep = stepsFlow[currentIndex + 1];
-  const isLast = currentIndex >= stepsFlow.length - 1;
-
-  const isOverdue = (() => {
-    const dl = demand.step_deadlines?.[demand.current_step] || demand.deadline;
-    return dl && isPast(new Date(dl)) && !isToday(new Date(dl));
-  })();
-
-  const handleAdvance = async (e) => {
-    e.stopPropagation();
-    setLoading(true);
-    const now = format(new Date(), "yyyy-MM-dd'T'HH:mm:ss");
-    const newIndex = currentIndex + 1;
-    const newStep = stepsFlow[newIndex] || "publicado";
-    await base44.entities.Demand.update(demand.id, {
-      current_step: newStep,
-      current_step_index: newIndex,
-      status: newStep === "publicado" ? "publicado" : "ativo",
-      rejection_note: "",
-      history: [
-        ...(demand.history || []),
-        { step: demand.current_step, action: "avançado", by: member?.email, by_name: member?.name, date: now, note: "Admin avançou" },
-      ],
-    });
-    setLoading(false);
-    onAdvanced();
-  };
-
-  return (
-    <div
-      onClick={() => onOpenDetail(demand)}
-      className={cn(
-        "flex items-center gap-3 px-4 py-2.5 hover:bg-muted/40 cursor-pointer transition-colors group",
-        isOverdue && "bg-red-50/40"
-      )}
-    >
-      {isOverdue && <AlertTriangle className="w-3 h-3 text-red-500 shrink-0" />}
-      <span className="text-xs font-medium flex-1 truncate text-foreground group-hover:text-primary transition-colors">
-        {demand.title}
-      </span>
-      <span className="text-[10px] text-muted-foreground shrink-0 hidden sm:block">{demand.client_name}</span>
-      {nextStep && (
-        <div className="flex items-center gap-1 shrink-0">
-          <ChevronRight className="w-3 h-3 text-muted-foreground" />
-          <span className={cn("text-[9px] px-1.5 py-0.5 rounded-full", getStepLight(nextStep))}>
-            {getStepLabel(nextStep)}
-          </span>
-        </div>
-      )}
-      <Button
-        size="sm"
-        variant="ghost"
-        className="h-6 text-[10px] px-2 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 hover:bg-primary hover:text-primary-foreground"
-        onClick={handleAdvance}
-        disabled={loading || isLast}
-      >
-        {loading ? "..." : <><Zap className="w-3 h-3 mr-0.5" />{isLast ? "Fim" : "Avançar"}</>}
-      </Button>
-    </div>
-  );
-}
 
 // ── Modal de adicionar cliente ─────────────────────────────────────────────
 function AddClientModal({ open, onClose, onSaved }) {
@@ -165,11 +97,7 @@ export default function AdminDashboard() {
   });
   const published = demands.filter((d) => d.status === "publicado");
 
-  // Demandas por etapa
-  const byStep = STEP_ORDER.map((step) => ({
-    step,
-    demands: demands.filter((d) => d.current_step === step),
-  })).filter((s) => s.demands.length > 0);
+
 
   // Stats de cliente
   const clientStats = (clientId) => {
@@ -226,45 +154,8 @@ export default function AdminDashboard() {
         ))}
       </div>
 
-      {/* Fila de produção por etapa */}
-      <div className="bg-card rounded-xl border border-border">
-        <div className="p-5 border-b border-border flex items-center justify-between">
-          <div>
-            <h2 className="font-semibold">Fila de Produção</h2>
-            <p className="text-xs text-muted-foreground mt-0.5">Clique em uma demanda para detalhes · Passe o mouse para avançar etapa</p>
-          </div>
-          <Link to="/clientes" className="text-xs text-primary hover:underline flex items-center gap-1">
-            Ver por cliente <ExternalLink className="w-3 h-3" />
-          </Link>
-        </div>
-        <div className="divide-y divide-border">
-          {byStep.map(({ step, demands: stepDemands }) => (
-            <div key={step}>
-              <div className="flex items-center gap-3 px-4 py-2 bg-muted/30">
-                <span className={cn("text-[10px] font-bold px-2 py-0.5 rounded-full", getStepLight(step))}>
-                  {getStepLabel(step)}
-                </span>
-                <span className="text-xs text-muted-foreground">{stepDemands.length} demanda{stepDemands.length !== 1 ? "s" : ""}</span>
-              </div>
-              {stepDemands.map((d) => (
-                <AdminDemandRow
-                  key={d.id}
-                  demand={d}
-                  member={member}
-                  onOpenDetail={setSelectedDemand}
-                  onAdvanced={refetchDemands}
-                />
-              ))}
-            </div>
-          ))}
-          {byStep.length === 0 && (
-            <div className="p-10 text-center text-sm text-muted-foreground">
-              <CheckCircle2 className="w-8 h-8 mx-auto mb-2 opacity-20" />
-              Nenhuma demanda em produção
-            </div>
-          )}
-        </div>
-      </div>
+      {/* Calendário do dia */}
+      <TodayCalendar demands={demands} onOpenDetail={setSelectedDemand} />
 
       {/* Gestão de Clientes */}
       <div className="bg-card rounded-xl border border-border">
