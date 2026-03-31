@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect, useCallback } from "react";
-import { Trash2, Minus } from "lucide-react";
+import { Trash2, Minus, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { base44 } from "@/api/base44Client";
 
 const COLORS = ["#1e293b", "#ef4444", "#f97316", "#eab308", "#22c55e", "#3b82f6", "#8b5cf6", "#ec4899", "#ffffff"];
 const SIZES = [2, 5, 10, 18];
@@ -11,8 +12,10 @@ export default function SketchPad({ value, onChange }) {
   const [color, setColor] = useState("#1e293b");
   const [size, setSize] = useState(5);
   const [tool, setTool] = useState("pen");
+  const [uploading, setUploading] = useState(false);
   const lastPos = useRef(null);
   const initialized = useRef(false);
+  const uploadTimer = useRef(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -62,11 +65,24 @@ export default function SketchPad({ value, onChange }) {
     lastPos.current = pos;
   }, [drawing, color, size, tool]);
 
+  const uploadCanvas = useCallback(async () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    setUploading(true);
+    canvas.toBlob(async (blob) => {
+      const file = new File([blob], "sketch.png", { type: "image/png" });
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      onChange(file_url);
+      setUploading(false);
+    }, "image/png");
+  }, [onChange]);
+
   const endDraw = () => {
     if (!drawing) return;
     setDrawing(false);
     lastPos.current = null;
-    onChange(canvasRef.current.toDataURL("image/png"));
+    clearTimeout(uploadTimer.current);
+    uploadTimer.current = setTimeout(() => uploadCanvas(), 800);
   };
 
   const clear = () => {
@@ -125,6 +141,12 @@ export default function SketchPad({ value, onChange }) {
         >
           <Minus className="w-3 h-3" /> Borracha
         </button>
+
+        {uploading && (
+          <span className="flex items-center gap-1 text-xs text-muted-foreground ml-1">
+            <Loader2 className="w-3 h-3 animate-spin" /> Salvando...
+          </span>
+        )}
 
         <button
           type="button"
