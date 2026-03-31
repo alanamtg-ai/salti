@@ -1,0 +1,37 @@
+{
+  "name": "TeamMember",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "admin",
+        "estrategista",
+        "redator",
+        "designer",
+        "social_media",
+        "midia",
+        "cliente"
+      ],
+      "default": "redator"
+    },
+    "client_id": {
+      "type": "string",
+      "description": "Preenchido quando role=cliente"
+    },
+    "avatar_color": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "name",
+    "email",
+    "role"
+  ]
+}

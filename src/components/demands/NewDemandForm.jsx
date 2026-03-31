@@ -77,7 +77,7 @@ const defaultForm = {
   category: "social_media",
   priority: "media",
   deadline: "",
-  flow_template: "social_media",
+  flow_template: "padrao",
   steps_flow: [],
   assignees: {},
   step_deadlines: {},
@@ -112,7 +112,7 @@ export default function NewDemandForm({ open, onClose, onSave, preselectedClient
   const getMembersForRole = (role) => members.filter((m) => m.role === role);
 
   const stepsNeedingAssignee = (form.steps_flow || []).filter(
-    (s) => STEPS[s]?.role && STEPS[s].role !== "admin" && STEPS[s].role !== "cliente" && s !== "publicado"
+    (s) => STEPS[s]?.role && STEPS[s].role !== "admin" && STEPS[s].role !== "cliente" && s !== "finalizado"
   );
 
   const handleClientChange = (id) => {
@@ -157,7 +157,16 @@ export default function NewDemandForm({ open, onClose, onSave, preselectedClient
       current_step: form.steps_flow[0],
       current_step_index: 0,
       status: "ativo",
-      history: [{ step: form.steps_flow[0], action: "criado", by: "admin", by_name: "Admin", date: now }],
+      step_started_at: now,
+      history: [{
+        etapa_origem: null,
+        etapa_destino: form.steps_flow[0],
+        acao: "criado",
+        by: "admin",
+        by_name: "Admin",
+        date: now,
+        observacao: "",
+      }],
     });
     setSaving(false);
     onSave();

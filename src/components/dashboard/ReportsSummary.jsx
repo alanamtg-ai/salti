@@ -17,7 +17,7 @@ export default function ReportsSummary({ demands }) {
       return {
         name: format(d, "MMM/yy", { locale: ptBR }),
         Criadas: monthDems.length,
-        Publicadas: monthDems.filter((dem) => dem.status === "publicado").length,
+        Publicadas: monthDems.filter((dem) => dem.status === "finalizado").length,
       };
     });
   }, [demands]);

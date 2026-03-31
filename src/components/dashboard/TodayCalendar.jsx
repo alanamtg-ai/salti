@@ -25,7 +25,7 @@ export default function TodayCalendar({ demands, onOpenDetail }) {
     const map = {}; // "YYYY-MM-DD" -> []
 
     demands
-      .filter((d) => d.current_step !== "publicado")
+      .filter((d) => d.current_step !== "finalizado")
       .forEach((d) => {
         const dl = getDeadlineForDemand(d);
         if (!dl) return;
@@ -42,7 +42,7 @@ export default function TodayCalendar({ demands, onOpenDetail }) {
 
   // Separa atrasadas
   const overdue = demands.filter((d) => {
-    if (d.current_step === "publicado") return false;
+    if (d.current_step === "finalizado") return false;
     const dl = getDeadlineForDemand(d);
     if (!dl) return false;
     const date = parseISO(dl);

@@ -11,7 +11,7 @@ import { useCurrentMember } from "@/lib/useCurrentMember";
 import { getStepLabel, getStepColor, STEPS } from "@/lib/flowConfig";
 import { cn } from "@/lib/utils";
 
-const STEP_ORDER = ["estrategista", "redator", "designer", "aprovacao_interna", "aprovacao_cliente", "social_media", "publicado"];
+const STEP_ORDER = ["briefing", "estrategia", "redacao", "design", "aprovacao_cliente", "distribuicao", "finalizado"];
 
 export default function ClientKanban() {
   const urlParams = new URLSearchParams(window.location.search);

@@ -30,7 +30,7 @@ export default function CollaboratorDashboard() {
   const myDemands = useMemo(() => {
     if (!member) return [];
     return demands.filter((d) => {
-      if (d.current_step === "publicado") return false;
+      if (d.current_step === "finalizado") return false;
       if (!mySteps.includes(d.current_step)) return false;
       if (d.assignees?.[d.current_step] && d.assignees[d.current_step] !== member.email) return false;
       return true;
@@ -47,7 +47,7 @@ export default function CollaboratorDashboard() {
     demands.forEach((d) => {
       const history = d.history || [];
       history.forEach((h, i) => {
-        if (h.by !== member.email || h.action !== "avançado") return;
+        if (h.by !== member.email || (h.acao !== "aprovado" && h.action !== "avançado")) return;
         delivered++;
         // Calcula tempo nessa etapa
         const prev = history[i - 1];
@@ -69,7 +69,7 @@ export default function CollaboratorDashboard() {
     const scores = {};
     demands.forEach((d) => {
       (d.history || []).forEach((h) => {
-        if (h.action !== "avançado" || !h.by) return;
+        if ((h.acao !== "aprovado" && h.action !== "avançado") || !h.by) return;
         if (!scores[h.by]) scores[h.by] = { name: h.by_name || h.by, count: 0 };
         scores[h.by].count++;
       });

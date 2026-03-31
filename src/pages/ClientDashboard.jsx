@@ -39,7 +39,7 @@ export default function ClientDashboard() {
   );
 
   const approved = demands.filter(
-    (d) => d.status === "publicado" && d.client_id === member?.client_id
+    (d) => d.status === "finalizado" && d.client_id === member?.client_id
   );
 
   return (

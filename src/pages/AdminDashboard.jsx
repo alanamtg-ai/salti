@@ -93,12 +93,12 @@ export default function AdminDashboard() {
 
   const refetchAll = () => { refetchDemands(); qc.invalidateQueries(["clients"]); };
 
-  const active = demands.filter((d) => d.current_step !== "publicado");
+  const active = demands.filter((d) => d.current_step !== "finalizado");
   const overdue = active.filter((d) => {
     const dl = d.step_deadlines?.[d.current_step] || d.deadline;
     return dl && isPast(new Date(dl)) && !isToday(new Date(dl));
   });
-  const published = demands.filter((d) => d.status === "publicado");
+  const published = demands.filter((d) => d.status === "finalizado");
 
 
 
