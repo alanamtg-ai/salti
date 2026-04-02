@@ -109,7 +109,7 @@ export default function NewDemandForm({ open, onClose, onSave, preselectedClient
     if (template) setForm((f) => ({ ...f, steps_flow: template.steps }));
   }, [form.flow_template]);
 
-  const getMembersForRole = (role) => members.filter((m) => m.role === role);
+  const getMembersForRole = (role) => members.filter((m) => m.role === role || m.role === "admin");
 
   const stepsNeedingAssignee = (form.steps_flow || []).filter(
     (s) => STEPS[s]?.role && STEPS[s].role !== "admin" && STEPS[s].role !== "cliente" && s !== "finalizado"
