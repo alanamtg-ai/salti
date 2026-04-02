@@ -41,8 +41,11 @@ export default function MyDashboard() {
       (d) => d.current_step === "aprovacao_cliente" && d.client_id === member.client_id
     );
   } else if (member.role === "admin") {
-    // Admin vê todas as demandas ativas (qualquer etapa, qualquer responsável)
-    myDemands = demands.filter((d) => d.current_step !== "finalizado" && d.status === "ativo");
+    // Admin vê demandas onde está atribuído como responsável da etapa atual
+    myDemands = demands.filter((d) => {
+      if (d.current_step === "finalizado" || d.status !== "ativo") return false;
+      return d.assignees?.[d.current_step] === member.email;
+    });
   } else {
     myDemands = demands.filter((d) => {
       if (d.current_step === "finalizado") return false;
