@@ -40,9 +40,12 @@ export default function MyDashboard() {
     myDemands = demands.filter(
       (d) => d.current_step === "aprovacao_cliente" && d.client_id === member.client_id
     );
+  } else if (member.role === "admin") {
+    // Admin vê todas as demandas ativas (qualquer etapa, qualquer responsável)
+    myDemands = demands.filter((d) => d.current_step !== "finalizado" && d.status === "ativo");
   } else {
     myDemands = demands.filter((d) => {
-      if (d.current_step === "publicado") return false;
+      if (d.current_step === "finalizado") return false;
       if (!mySteps.includes(d.current_step)) return false;
       // Se tem responsável definido, filtra pelo email
       if (d.assignees?.[d.current_step] && d.assignees[d.current_step] !== member.email) return false;
