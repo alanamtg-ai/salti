@@ -5,8 +5,8 @@ import { getStepsForRole, getStepLabel, STEPS } from "@/lib/flowConfig";
 import MyTaskCard from "@/components/demands/MyTaskCard";
 import DemandDetailModal from "@/components/demands/DemandDetailModal";
 import { useState } from "react";
-import { Loader2, Inbox, CheckCircle2, Clock, AlertTriangle } from "lucide-react";
-import { isPast, isToday } from "date-fns";
+import { Loader2, Inbox, CheckCircle2, Clock, AlertTriangle, Trophy } from "lucide-react";
+import { isPast, isToday, startOfMonth, startOfYear } from "date-fns";
 import { cn } from "@/lib/utils";
 
 export default function MyDashboard() {
@@ -79,13 +79,44 @@ export default function MyDashboard() {
     ? "Aprovações"
     : STEPS[mySteps[0]]?.label || member.role;
 
+  // Ranking: contar aprovações por colaborador no histórico
+  const rankingMap = {};
+  demands.forEach((d) => {
+    (d.history || []).forEach((h) => {
+      if (h.acao === "aprovado" && h.by) {
+        rankingMap[h.by] = (rankingMap[h.by] || 0) + 1;
+      }
+    });
+  });
+  const rankingSorted = Object.entries(rankingMap).sort((a, b) => b[1] - a[1]);
+  const myRankPos = rankingSorted.findIndex(([email]) => email === member.email) + 1;
+
+  // Concluídas no mês e no ano
+  const now = new Date();
+  const monthStart = startOfMonth(now);
+  const yearStart = startOfYear(now);
+  const concludedThisMonth = demands.filter((d) =>
+    d.status === "finalizado" &&
+    (d.history || []).some((h) => h.acao === "aprovado" && h.by === member.email && h.date && new Date(h.date) >= monthStart)
+  ).length;
+  const concludedThisYear = demands.filter((d) =>
+    d.status === "finalizado" &&
+    (d.history || []).some((h) => h.acao === "aprovado" && h.by === member.email && h.date && new Date(h.date) >= yearStart)
+  ).length;
+
   return (
     <div className="space-y-6 pb-20 lg:pb-0">
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">
+          <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
             Olá, {member.name.split(" ")[0]} 👋
+            {myRankPos > 0 && (
+              <span className="flex items-center gap-1 text-sm font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 border border-amber-200">
+                <Trophy className="w-3.5 h-3.5" />
+                #{myRankPos} ranking
+              </span>
+            )}
           </h1>
           <p className="text-sm text-muted-foreground mt-0.5">
             {member.role === "cliente"
@@ -97,7 +128,7 @@ export default function MyDashboard() {
 
       {/* Stats rápidas */}
       {total > 0 && (
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
           <div className="bg-card rounded-xl border border-border p-3 text-center">
             <p className="text-2xl font-bold text-foreground">{total}</p>
             <p className="text-[11px] text-muted-foreground mt-0.5">Em aberto</p>
@@ -109,6 +140,14 @@ export default function MyDashboard() {
           <div className={cn("rounded-xl border p-3 text-center", dueToday > 0 ? "bg-amber-50 border-amber-200" : "bg-card border-border")}>
             <p className={cn("text-2xl font-bold", dueToday > 0 ? "text-amber-600" : "text-foreground")}>{dueToday}</p>
             <p className="text-[11px] text-muted-foreground mt-0.5">Vencem hoje</p>
+          </div>
+          <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-center">
+            <p className="text-2xl font-bold text-emerald-600">{concludedThisMonth}</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">Concluídas/mês</p>
+          </div>
+          <div className="bg-violet-50 border border-violet-200 rounded-xl p-3 text-center">
+            <p className="text-2xl font-bold text-violet-600">{concludedThisYear}</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">Concluídas/ano</p>
           </div>
         </div>
       )}
