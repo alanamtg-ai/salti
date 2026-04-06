@@ -65,18 +65,31 @@ export default function ClientsOverview() {
           return (
             <Link key={client.id} to={`/kanban-cliente?id=${client.id}`}>
               <div className="bg-card rounded-xl border border-border p-5 hover:shadow-md hover:border-primary/20 transition-all cursor-pointer group">
-                <div className="flex items-start justify-between mb-4">
+                <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-3">
-                    <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-sm", color)}>
+                    <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-sm shrink-0", color)}>
                       {client.name.charAt(0).toUpperCase()}
                     </div>
                     <div>
                       <p className="font-semibold text-sm group-hover:text-primary transition-colors">{client.name}</p>
-                      {client.company && <p className="text-xs text-muted-foreground">{client.company}</p>}
+                      {(client.city || client.state) && (
+                        <p className="text-[11px] text-muted-foreground">{[client.city, client.state].filter(Boolean).join(" - ")}</p>
+                      )}
+                      {client.company && !client.city && <p className="text-xs text-muted-foreground">{client.company}</p>}
                     </div>
                   </div>
-                  <ExternalLink className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <ExternalLink className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
                 </div>
+
+                {client.contents_count && (
+                  <div className="mb-3 px-2.5 py-1.5 bg-primary/8 rounded-lg flex items-center gap-1.5">
+                    <span className="text-xs font-bold text-primary">{client.contents_count}</span>
+                    <span className="text-[11px] text-muted-foreground">
+                      conteúdos por {client.contents_period === "mes" ? "mês" : "semana"}
+                    </span>
+                  </div>
+                )}
+
                 <div className="flex gap-3">
                   <div className="text-center flex-1 bg-muted/50 rounded-lg py-2">
                     <p className="text-lg font-bold">{stats.active}</p>

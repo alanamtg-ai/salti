@@ -1,0 +1,53 @@
+{
+  "name": "Client",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "company": {
+      "type": "string"
+    },
+    "instagram": {
+      "type": "string"
+    },
+    "logo_url": {
+      "type": "string"
+    },
+    "color": {
+      "type": "string",
+      "description": "Cor de identifica\u00e7\u00e3o do cliente"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true
+    },
+    "city": {
+      "type": "string",
+      "description": "Cidade do cliente"
+    },
+    "state": {
+      "type": "string",
+      "description": "Estado do cliente"
+    },
+    "contents_count": {
+      "type": "number",
+      "description": "Quantidade de conte\u00fados contratados"
+    },
+    "contents_period": {
+      "type": "string",
+      "enum": [
+        "semana",
+        "mes"
+      ],
+      "default": "semana",
+      "description": "Periodicidade dos conte\u00fados"
+    }
+  },
+  "required": [
+    "name"
+  ]
+}
