@@ -28,8 +28,7 @@
       "type": "string"
     },
     "dados_compliance": {
-      "type": "string",
-      "description": "Informa\u00e7\u00f5es protegidas por compliance"
+      "type": "string"
     },
     "socios": {
       "type": "array",
@@ -119,8 +118,52 @@
         }
       }
     },
+    "selos": {
+      "type": "array",
+      "description": "Selos da marca",
+      "items": {
+        "type": "object",
+        "properties": {
+          "nome": {
+            "type": "string"
+          },
+          "descricao": {
+            "type": "string"
+          },
+          "image_url": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "campanhas_permanentes": {
+      "type": "array",
+      "description": "Campanhas permanentes",
+      "items": {
+        "type": "object",
+        "properties": {
+          "nome": {
+            "type": "string"
+          },
+          "descricao": {
+            "type": "string"
+          },
+          "image_url": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "selos_links": {
+      "type": "array",
+      "description": "Links relacionados a selos e campanhas",
+      "items": {
+        "type": "string"
+      }
+    },
     "selos_campanhas": {
       "type": "array",
+      "description": "Legado \u2014 selos e campanhas unificados",
       "items": {
         "type": "object",
         "properties": {
