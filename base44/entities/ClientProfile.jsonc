@@ -1,0 +1,186 @@
+{
+  "name": "ClientProfile",
+  "type": "object",
+  "properties": {
+    "client_id": {
+      "type": "string"
+    },
+    "contrato_conteudos": {
+      "type": "number",
+      "description": "Qtd de conte\u00fados por semana"
+    },
+    "contrato_artes_avulsas": {
+      "type": "number"
+    },
+    "contrato_campanhas": {
+      "type": "number"
+    },
+    "contrato_contato_nome": {
+      "type": "string"
+    },
+    "contrato_contato_email": {
+      "type": "string"
+    },
+    "contrato_contato_telefone": {
+      "type": "string"
+    },
+    "cnpj": {
+      "type": "string"
+    },
+    "dados_compliance": {
+      "type": "string",
+      "description": "Informa\u00e7\u00f5es protegidas por compliance"
+    },
+    "socios": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "nome": {
+            "type": "string"
+          },
+          "aniversario": {
+            "type": "string"
+          },
+          "telefone": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "branding_manifesto": {
+      "type": "string"
+    },
+    "branding_valores": {
+      "type": "string"
+    },
+    "branding_palavras_chave": {
+      "type": "string"
+    },
+    "branding_tom_de_voz": {
+      "type": "string"
+    },
+    "branding_links": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "branding_logo_url": {
+      "type": "string"
+    },
+    "branding_mascote_url": {
+      "type": "string"
+    },
+    "branding_cores": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "publico_descricao": {
+      "type": "string"
+    },
+    "publico_idade": {
+      "type": "string"
+    },
+    "publico_genero": {
+      "type": "string"
+    },
+    "publico_interesses": {
+      "type": "string"
+    },
+    "publico_localizacao": {
+      "type": "string"
+    },
+    "logins": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "plataforma": {
+            "type": "string"
+          },
+          "usuario": {
+            "type": "string"
+          },
+          "senha": {
+            "type": "string"
+          },
+          "link": {
+            "type": "string"
+          },
+          "nota": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "selos_campanhas": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "nome": {
+            "type": "string"
+          },
+          "descricao": {
+            "type": "string"
+          },
+          "image_url": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "datas_importantes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "titulo": {
+            "type": "string"
+          },
+          "data": {
+            "type": "string"
+          },
+          "recorrente": {
+            "type": "boolean"
+          },
+          "nota": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "gestao_crise_passos": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "ordem": {
+            "type": "number"
+          },
+          "titulo": {
+            "type": "string"
+          },
+          "descricao": {
+            "type": "string"
+          },
+          "responsavel": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "gestao_crise_contatos": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "client_id"
+  ]
+}
