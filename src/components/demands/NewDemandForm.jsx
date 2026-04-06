@@ -109,6 +109,22 @@ export default function NewDemandForm({ open, onClose, onSave, preselectedClient
     if (template) setForm((f) => ({ ...f, steps_flow: template.steps }));
   }, [form.flow_template]);
 
+  // Pré-calcula prazos sugeridos por etapa a partir de hoje
+  const getSuggestedDeadlines = () => {
+    const addDays = (date, days) => {
+      const d = new Date(date);
+      d.setDate(d.getDate() + days);
+      return format(d, "yyyy-MM-dd");
+    };
+    const today = new Date();
+    const estrategia  = addDays(today, 2);
+    const redacao     = addDays(today, 4);   // +2
+    const design      = addDays(today, 7);   // +3 (inclui aprovação interna 2d + revisão 2d = 4d no total após redação, simplificado em +3)
+    const aprovacao   = addDays(today, 11);  // design +2 aprovação +2 revisão
+    const distribuicao = addDays(today, 13); // +2
+    return { estrategia, redacao, design, aprovacao_cliente: aprovacao, distribuicao };
+  };
+
   const UNIVERSAL_MEMBERS = ["pamela"]; // nomes (lowercase) que aparecem em todas as etapas
 
   const getMembersForRole = (role) => {
@@ -297,7 +313,19 @@ export default function NewDemandForm({ open, onClose, onSave, preselectedClient
         {/* ── PASSO 2: Fluxo e Responsáveis ── */}
         {step === 2 && (
           <div className="space-y-4 py-2">
-            <p className="text-xs text-muted-foreground">Atribua responsáveis e prazos para cada etapa do fluxo.</p>
+            <div className="flex items-center justify-between">
+              <p className="text-xs text-muted-foreground">Atribua responsáveis e prazos para cada etapa do fluxo.</p>
+              <button
+                type="button"
+                onClick={() => {
+                  const suggested = getSuggestedDeadlines();
+                  setForm((f) => ({ ...f, step_deadlines: { ...suggested, ...Object.fromEntries(Object.entries(f.step_deadlines).filter(([,v]) => v)) } }));
+                }}
+                className="text-xs text-primary underline hover:opacity-70"
+              >
+                ✨ Sugerir prazos
+              </button>
+            </div>
             {stepsNeedingAssignee.map((s) => {
               const roleMembers = getMembersForRole(STEPS[s].role);
               return (
@@ -443,7 +471,20 @@ export default function NewDemandForm({ open, onClose, onSave, preselectedClient
           <Button variant="outline" onClick={onClose}>Cancelar</Button>
 
           {step < 3 && (
-            <Button onClick={() => setStep(step + 1)} disabled={step === 1 && !canGoStep2}>
+            <Button onClick={() => {
+              if (step === 1) {
+                // Ao entrar no passo 2, pré-preenche prazos sugeridos onde ainda não há valor
+                const suggested = getSuggestedDeadlines();
+                setForm((f) => ({
+                  ...f,
+                  step_deadlines: {
+                    ...suggested,
+                    ...Object.fromEntries(Object.entries(f.step_deadlines).filter(([,v]) => v))
+                  }
+                }));
+              }
+              setStep(step + 1);
+            }} disabled={step === 1 && !canGoStep2}>
               Próximo →
             </Button>
           )}
