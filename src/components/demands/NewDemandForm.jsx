@@ -109,7 +109,15 @@ export default function NewDemandForm({ open, onClose, onSave, preselectedClient
     if (template) setForm((f) => ({ ...f, steps_flow: template.steps }));
   }, [form.flow_template]);
 
-  const getMembersForRole = (role) => members.filter((m) => m.role === role || m.role === "admin");
+  const UNIVERSAL_MEMBERS = ["pamela"]; // nomes (lowercase) que aparecem em todas as etapas
+
+  const getMembersForRole = (role) => {
+    return members.filter((m) => {
+      if (m.role === role || m.role === "admin") return true;
+      if (UNIVERSAL_MEMBERS.some((name) => m.name?.toLowerCase().includes(name))) return true;
+      return false;
+    });
+  };
 
   const stepsNeedingAssignee = (form.steps_flow || []).filter(
     (s) => STEPS[s]?.role && STEPS[s].role !== "admin" && STEPS[s].role !== "cliente" && s !== "finalizado"
