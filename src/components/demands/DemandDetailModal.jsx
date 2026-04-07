@@ -211,8 +211,8 @@ export default function DemandDetailModal({ demand, member, onClose, onUpdated }
     onClose();
   };
 
-  // Apenas estrategia pode deletar após envio para redação
-  const canDelete = myRole === "admin" || (myRole === "estrategista" && demand.current_step === "redacao");
+  // Admin pode deletar sempre; estrategista pode deletar em briefing/estratégia ou logo após envio para redação
+  const canDelete = myRole === "admin" || (myRole === "estrategista" && (demand.current_step === "estrategia" || demand.current_step === "redacao"));
 
   // Label do botão de aprovação por contexto
   const approveLabel = () => {
@@ -290,8 +290,46 @@ export default function DemandDetailModal({ demand, member, onClose, onUpdated }
 
           {/* Cards de conteúdo — apenas na etapa estratégia */}
           {currentStep === "estrategia" && (
-            <div className="border-t pt-4">
+            <div className="border-t pt-4 space-y-4">
               <ContentCardsEditor demand={demand} onUpdated={onUpdated} canEdit={canAct} />
+
+              {/* Botão de exclusão em estratégia */}
+              {canDelete && !showDeleteConfirm && (
+                <div className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowDeleteConfirm(true)}
+                    className="text-red-600 border-red-200 hover:bg-red-100 w-full"
+                  >
+                    🗑️ Excluir Demanda
+                  </Button>
+                </div>
+              )}
+              {showDeleteConfirm && (
+                <div className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg p-3 space-y-3">
+                  <p className="text-sm text-red-700 dark:text-red-400">
+                    Tem certeza que deseja excluir esta demanda? Esta ação não pode ser desfeita.
+                  </p>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowDeleteConfirm(false)}
+                    >
+                      Cancelar
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={handleDelete}
+                      disabled={deleting}
+                    >
+                      {deleting ? "Excluindo..." : "Confirmar Exclusão"}
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
