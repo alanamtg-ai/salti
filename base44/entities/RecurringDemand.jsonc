@@ -44,6 +44,7 @@
         "foto_produto",
         "foto_editorial",
         "servicos_administrativos",
+        "cotacao",
         "outro"
       ]
     },

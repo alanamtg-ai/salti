@@ -13,6 +13,7 @@ import { Loader2, Repeat } from "lucide-react";
 const PRODUCT_TYPES = [
   { value: "outro", label: "Outro" },
   { value: "servicos_administrativos", label: "Serviços Administrativos" },
+  { value: "cotacao", label: "Cotação" },
   { value: "copy_email", label: "E-mail Marketing" },
   { value: "relatorio", label: "Relatório" },
   { value: "apresentacao", label: "Apresentação" },
