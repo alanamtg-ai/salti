@@ -38,6 +38,10 @@ export const FLOW_TEMPLATES = {
     label: "Só Estratégia",
     steps: ["briefing", "estrategia", "aprovacao_cliente", "finalizado"],
   },
+  administrativo: {
+    label: "Fluxo Administrativo",
+    steps: ["briefing", "aprovacao_cliente", "finalizado"],
+  },
 };
 
 // Etapa de rejeição total — sempre volta para estrategia
