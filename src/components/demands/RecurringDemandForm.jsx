@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
-import { FLOW_TEMPLATES } from "@/lib/flowConfig";
+import StepBuilder from "@/components/demands/StepBuilder";
 import { Loader2, Repeat } from "lucide-react";
 
 const PRODUCT_TYPES = [
@@ -49,8 +49,7 @@ const defaultForm = {
   client_id: "",
   client_name: "",
   priority: "media",
-  flow_template: "padrao",
-  steps_flow: FLOW_TEMPLATES["padrao"].steps,
+  steps_flow: ["briefing", "finalizado"],
   assignees: {},
   recurrence_type: "monthly",
   recurrence_day_of_month: 1,
@@ -74,28 +73,10 @@ export default function RecurringDemandForm({ open, onClose, onSave, editing = n
   }, [editing, open]);
 
   useEffect(() => {
-    const template = FLOW_TEMPLATES[form.flow_template];
-    if (template) {
-      // Se fluxo administrativo, preenche responsável com assistente financeira automaticamente
-      if (form.flow_template === "administrativo" || form.flow_template === "financeiro") {
-        const assistente = members.find((m) => m.role === "assistente_financeira");
-        setForm((f) => ({
-          ...f,
-          steps_flow: template.steps,
-          assignees: assistente ? { briefing: assistente.email, revisao_financeira: assistente.email } : f.assignees,
-        }));
-      } else if (form.flow_template === "relatorio_trafego") {
-        const gestor = members.find((m) => m.role === "gestor_trafego");
-        setForm((f) => ({
-          ...f,
-          steps_flow: template.steps,
-          assignees: gestor ? { briefing: gestor.email, trafego: gestor.email } : f.assignees,
-        }));
-      } else {
-        setForm((f) => ({ ...f, steps_flow: template.steps }));
-      }
+    if (!form.steps_flow || form.steps_flow.length === 0) {
+      setForm((f) => ({ ...f, steps_flow: ["briefing", "finalizado"] }));
     }
-  }, [form.flow_template, members]);
+  }, []);
 
   const ALL_CLIENTS_ID = "__todos__";
 
@@ -221,31 +202,27 @@ export default function RecurringDemandForm({ open, onClose, onSave, editing = n
             </div>
           </div>
 
-          {/* Prioridade + Fluxo */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label>Prioridade</Label>
-              <Select value={form.priority} onValueChange={(v) => setForm({ ...form, priority: v })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="baixa">🟢 Baixa</SelectItem>
-                  <SelectItem value="media">🟡 Média</SelectItem>
-                  <SelectItem value="alta">🟠 Alta</SelectItem>
-                  <SelectItem value="urgente">🔴 Urgente</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label>Fluxo</Label>
-              <Select value={form.flow_template} onValueChange={(v) => setForm({ ...form, flow_template: v })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {Object.entries(FLOW_TEMPLATES).map(([k, v]) => (
-                    <SelectItem key={k} value={k}>{v.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+          {/* Prioridade */}
+          <div className="space-y-1.5">
+            <Label>Prioridade</Label>
+            <Select value={form.priority} onValueChange={(v) => setForm({ ...form, priority: v })}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="baixa">🟢 Baixa</SelectItem>
+                <SelectItem value="media">🟡 Média</SelectItem>
+                <SelectItem value="alta">🟠 Alta</SelectItem>
+                <SelectItem value="urgente">🔴 Urgente</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Construtor de Fluxo */}
+          <div className="space-y-1.5">
+            <Label>Etapas do Fluxo</Label>
+            <StepBuilder
+              value={form.steps_flow}
+              onChange={(steps) => setForm({ ...form, steps_flow: steps })}
+            />
           </div>
         </div>
 

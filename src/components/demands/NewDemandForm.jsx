@@ -7,7 +7,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
-import { FLOW_TEMPLATES, STEPS } from "@/lib/flowConfig";
+import { STEPS } from "@/lib/flowConfig";
+import StepBuilder from "@/components/demands/StepBuilder";
 import { format } from "date-fns";
 import SketchPad from "@/components/demands/SketchPad";
 import { Plus, X, Link as LinkIcon, Upload, Loader2, Users, Check } from "lucide-react";
@@ -77,8 +78,7 @@ const defaultForm = {
   category: "social_media",
   priority: "media",
   deadline: "",
-  flow_template: "padrao",
-  steps_flow: [],
+  steps_flow: ["briefing", "finalizado"],
   assignees: {},
   step_deadlines: {},
   sketch_data: "",
@@ -170,9 +170,10 @@ export default function NewDemandForm({ open, onClose, onSave, preselectedClient
   }, [preselectedClientId, clients]);
 
   useEffect(() => {
-    const template = FLOW_TEMPLATES[form.flow_template];
-    if (template) setForm((f) => ({ ...f, steps_flow: template.steps }));
-  }, [form.flow_template]);
+    if (!form.steps_flow || form.steps_flow.length === 0) {
+      setForm((f) => ({ ...f, steps_flow: ["briefing", "finalizado"] }));
+    }
+  }, []);
 
   // Pré-calcula prazos sugeridos por etapa a partir de hoje (apenas dias úteis)
   const getSuggestedDeadlines = () => {
@@ -371,31 +372,27 @@ export default function NewDemandForm({ open, onClose, onSave, preselectedClient
               </div>
             </div>
 
-            {/* Prioridade + Fluxo */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label>Prioridade</Label>
-                <Select value={form.priority} onValueChange={(v) => setForm({ ...form, priority: v })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="baixa">🟢 Baixa</SelectItem>
-                    <SelectItem value="media">🟡 Média</SelectItem>
-                    <SelectItem value="alta">🟠 Alta</SelectItem>
-                    <SelectItem value="urgente">🔴 Urgente</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1.5">
-                <Label>Tipo de Fluxo</Label>
-                <Select value={form.flow_template} onValueChange={(v) => setForm({ ...form, flow_template: v })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(FLOW_TEMPLATES).map(([k, v]) => (
-                      <SelectItem key={k} value={k}>{v.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+            {/* Prioridade */}
+            <div className="space-y-1.5">
+              <Label>Prioridade</Label>
+              <Select value={form.priority} onValueChange={(v) => setForm({ ...form, priority: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="baixa">🟢 Baixa</SelectItem>
+                  <SelectItem value="media">🟡 Média</SelectItem>
+                  <SelectItem value="alta">🟠 Alta</SelectItem>
+                  <SelectItem value="urgente">🔴 Urgente</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Construtor de Fluxo */}
+            <div className="space-y-1.5">
+              <Label>Etapas do Fluxo</Label>
+              <StepBuilder
+                value={form.steps_flow}
+                onChange={(steps) => setForm({ ...form, steps_flow: steps })}
+              />
             </div>
           </div>
         )}
