@@ -78,7 +78,7 @@ const defaultForm = {
   category: "social_media",
   priority: "media",
   deadline: "",
-  steps_flow: ["briefing", "finalizado"],
+  steps_flow: ["finalizado"],
   assignees: {},
   step_deadlines: {},
   sketch_data: "",
@@ -171,7 +171,7 @@ export default function NewDemandForm({ open, onClose, onSave, preselectedClient
 
   useEffect(() => {
     if (!form.steps_flow || form.steps_flow.length === 0) {
-      setForm((f) => ({ ...f, steps_flow: ["briefing", "finalizado"] }));
+      setForm((f) => ({ ...f, steps_flow: ["finalizado"] }));
     }
   }, []);
 

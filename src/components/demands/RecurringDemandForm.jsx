@@ -49,7 +49,7 @@ const defaultForm = {
   client_id: "",
   client_name: "",
   priority: "media",
-  steps_flow: ["briefing", "finalizado"],
+  steps_flow: ["finalizado"],
   assignees: {},
   recurrence_type: "monthly",
   recurrence_day_of_month: 1,
@@ -74,7 +74,7 @@ export default function RecurringDemandForm({ open, onClose, onSave, editing = n
 
   useEffect(() => {
     if (!form.steps_flow || form.steps_flow.length === 0) {
-      setForm((f) => ({ ...f, steps_flow: ["briefing", "finalizado"] }));
+      setForm((f) => ({ ...f, steps_flow: ["finalizado"] }));
     }
   }, []);
 

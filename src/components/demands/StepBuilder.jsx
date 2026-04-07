@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 import { GripVertical, X, Plus } from "lucide-react";
 import { useState } from "react";
 
-// Etapas disponíveis para adicionar (exceto briefing e finalizado que são fixos)
+// Etapas disponíveis para adicionar (finalizado é fixo no fim)
 const AVAILABLE_STEPS = [
   "estrategia",
   "redacao",
@@ -20,20 +20,18 @@ export default function StepBuilder({ value = [], onChange }) {
   const [dragging, setDragging] = useState(null);
   const [dragOver, setDragOver] = useState(null);
 
-  // value sempre começa com briefing e termina com finalizado
-  const steps = value.length > 0 ? value : ["briefing", "finalizado"];
+  // value sempre começa com as etapas escolhidas e termina com finalizado
+  const steps = value.length > 0 ? value : ["finalizado"];
 
-  const middleSteps = steps.filter((s) => s !== "briefing" && s !== "finalizado");
-  const unusedSteps = AVAILABLE_STEPS.filter((s) => !middleSteps.includes(s));
+  const activeSteps = steps.filter((s) => s !== "finalizado");
+  const unusedSteps = AVAILABLE_STEPS.filter((s) => !activeSteps.includes(s));
 
   const addStep = (step) => {
-    const newSteps = ["briefing", ...middleSteps, step, "finalizado"];
-    onChange(newSteps);
+    onChange([...activeSteps, step, "finalizado"]);
   };
 
   const removeStep = (step) => {
-    const newMiddle = middleSteps.filter((s) => s !== step);
-    onChange(["briefing", ...newMiddle, "finalizado"]);
+    onChange([...activeSteps.filter((s) => s !== step), "finalizado"]);
   };
 
   const handleDragStart = (e, idx) => {
@@ -49,29 +47,22 @@ export default function StepBuilder({ value = [], onChange }) {
   const handleDrop = (e, toIdx) => {
     e.preventDefault();
     if (dragging === null || dragging === toIdx) return;
-    const reordered = [...middleSteps];
+    const reordered = [...activeSteps];
     const [moved] = reordered.splice(dragging, 1);
     reordered.splice(toIdx, 0, moved);
-    onChange(["briefing", ...reordered, "finalizado"]);
+    onChange([...reordered, "finalizado"]);
     setDragging(null);
     setDragOver(null);
   };
 
   return (
     <div className="space-y-3">
-      <p className="text-xs text-muted-foreground">Briefing e Finalizado são fixos. Arraste para reordenar as etapas do meio.</p>
+      <p className="text-xs text-muted-foreground">Finalizado é fixo. Adicione etapas e arraste para reordenar.</p>
 
       {/* Etapas ativas */}
       <div className="space-y-1.5">
-        {/* Briefing fixo */}
-        <div className="flex items-center gap-2 bg-muted/40 rounded-lg px-3 py-2 opacity-60">
-          <span className={cn("w-2 h-2 rounded-full shrink-0", STEPS.briefing.color)} />
-          <span className="text-xs font-medium flex-1">{STEPS.briefing.label}</span>
-          <span className="text-[10px] text-muted-foreground">fixo</span>
-        </div>
-
-        {/* Etapas do meio (arrastáveis) */}
-        {middleSteps.map((step, idx) => (
+        {/* Etapas arrastáveis */}
+        {activeSteps.map((step, idx) => (
           <div
             key={step}
             draggable
