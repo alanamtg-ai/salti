@@ -173,39 +173,87 @@ function ContentCard({ card, index, onChange, onRemove, readOnly }) {
         />
       </div>
 
-      {/* Prazos fixados */}
+      {/* Timeline de prazos */}
       {card.data_postagem && (
-        <div className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-border space-y-3">
-          {/* Cabeçalho */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-blue-500" />
-              <p className="text-sm font-bold text-foreground">Redação</p>
+        <div className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-border space-y-4">
+          <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Timeline de Prazos</p>
+          
+          <div className="relative">
+            {/* Linha conectora */}
+            <div className="absolute left-3 top-8 bottom-0 w-0.5 bg-gradient-to-b from-slate-300 to-slate-200 dark:from-slate-600 dark:to-slate-700" />
+
+            {/* Data da postagem */}
+            <div className="relative pl-10 pb-6">
+              <div className="absolute left-0 top-1.5 w-7 h-7 rounded-full bg-emerald-500 flex items-center justify-center border-4 border-white dark:border-slate-800">
+                <Calendar className="w-3.5 h-3.5 text-white" />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400">Data da Postagem</p>
+                <p className="text-sm font-semibold text-foreground mt-1">
+                  {format(new Date(card.data_postagem), "dd/MMM - EEEE", { locale: ptBR })}
+                </p>
+              </div>
             </div>
-            <span className="text-xs font-semibold text-muted-foreground">Dia do Trabalhador</span>
+
+            {/* Estratégia */}
+            <div className="relative pl-10 pb-6">
+              <div className="absolute left-0 top-1.5 w-7 h-7 rounded-full bg-purple-500 flex items-center justify-center border-4 border-white dark:border-slate-800">
+                <span className="text-xs font-bold text-white">E</span>
+              </div>
+              <div>
+                <p className="text-xs font-bold text-purple-600 dark:text-purple-400">Estratégia</p>
+                <p className="text-sm font-semibold text-foreground mt-1">
+                  {format(subDays(new Date(card.data_postagem), 45), "dd/MMM", { locale: ptBR })}
+                </p>
+              </div>
+            </div>
+
+            {/* Redação */}
+            <div className="relative pl-10 pb-6">
+              <div className="absolute left-0 top-1.5 w-7 h-7 rounded-full bg-blue-500 flex items-center justify-center border-4 border-white dark:border-slate-800">
+                <span className="text-xs font-bold text-white">R</span>
+              </div>
+              <div>
+                <p className="text-xs font-bold text-blue-600 dark:text-blue-400">Redação</p>
+                <p className="text-sm font-semibold text-foreground mt-1">
+                  {format(subDays(new Date(card.data_postagem), 20), "dd/MMM", { locale: ptBR })}
+                </p>
+              </div>
+            </div>
+
+            {/* Design */}
+            <div className="relative pl-10 pb-6">
+              <div className="absolute left-0 top-1.5 w-7 h-7 rounded-full bg-pink-500 flex items-center justify-center border-4 border-white dark:border-slate-800">
+                <span className="text-xs font-bold text-white">D</span>
+              </div>
+              <div>
+                <p className="text-xs font-bold text-pink-600 dark:text-pink-400">Design</p>
+                <p className="text-sm font-semibold text-foreground mt-1">
+                  {format(subDays(new Date(card.data_postagem), 15), "dd/MMM", { locale: ptBR })}
+                </p>
+              </div>
+            </div>
+
+            {/* Aprovação Cliente */}
+            <div className="relative pl-10">
+              <div className="absolute left-0 top-1.5 w-7 h-7 rounded-full bg-amber-500 flex items-center justify-center border-4 border-white dark:border-slate-800">
+                <span className="text-xs font-bold text-white">A</span>
+              </div>
+              <div>
+                <p className="text-xs font-bold text-amber-600 dark:text-amber-400">Aprovação Cliente</p>
+                <p className="text-sm font-semibold text-foreground mt-1">
+                  {format(subDays(new Date(card.data_postagem), 5), "dd/MMM", { locale: ptBR })}
+                </p>
+              </div>
+            </div>
           </div>
 
-          {/* Data da postagem */}
-          <div className="flex items-center gap-2">
-            <p className="text-xs text-muted-foreground">Data da postagem:</p>
-            <span className="bg-emerald-500 text-white text-xs font-semibold px-3 py-1 rounded-full">
-              {format(new Date(card.data_postagem), "dd/MMM - EEEE", { locale: ptBR })}
-            </span>
-          </div>
-
-          {/* Prazo de entrega */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400 text-xs font-semibold px-3 py-1 rounded-full">
-                Redação
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <p className="text-xs text-muted-foreground">Prazo de entrega:</p>
-              <span className="bg-emerald-500 text-white text-xs font-semibold px-3 py-1 rounded-full">
-                {format(subDays(new Date(card.data_postagem), 20), "dd/MMM", { locale: ptBR })}
-              </span>
-            </div>
+          {/* Legenda de duração */}
+          <div className="grid grid-cols-2 gap-2 text-[10px] text-muted-foreground pt-2 border-t border-border/50">
+            <div>Estratégia → Redação: <span className="font-bold">25 dias</span></div>
+            <div>Redação → Design: <span className="font-bold">5 dias</span></div>
+            <div>Design → Aprovação: <span className="font-bold">10 dias</span></div>
+            <div>Total: <span className="font-bold">45 dias</span></div>
           </div>
         </div>
       )}
