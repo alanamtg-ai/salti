@@ -17,6 +17,7 @@ import ReportsSummary from "@/components/dashboard/ReportsSummary";
 import ProductivitySummary from "@/components/dashboard/ProductivitySummary";
 import LiveClock from "@/components/dashboard/LiveClock";
 import NewDemandForm from "@/components/demands/NewDemandForm";
+import ClientPerformancePanel from "@/components/dashboard/ClientPerformancePanel";
 import { useCurrentMember } from "@/lib/useCurrentMember";
 import { isPast, isToday } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -168,6 +169,9 @@ export default function AdminDashboard() {
 
       {/* Calendário do dia */}
       <TodayCalendar demands={demands} onOpenDetail={setSelectedDemand} />
+
+      {/* Performance por Cliente */}
+      <ClientPerformancePanel clients={clients} demands={demands} />
 
       {/* Gestão de Clientes */}
       <div className="bg-card rounded-xl border border-border">
