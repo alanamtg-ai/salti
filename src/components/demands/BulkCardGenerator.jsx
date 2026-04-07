@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -95,6 +95,9 @@ export default function BulkCardGenerator({ open, onClose, onGenerate }) {
           <DialogTitle className="flex items-center gap-2">
             <Plus className="w-4 h-4" /> Gerar Cards em Lote
           </DialogTitle>
+          <DialogDescription>
+            Defina o período e frequência para gerar múltiplos cards automaticamente
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
