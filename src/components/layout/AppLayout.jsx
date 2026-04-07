@@ -38,7 +38,7 @@ export default function AppLayout() {
               <Layers className="w-4 h-4 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="font-bold text-sm text-foreground tracking-tight">Salti Designdem</h1>
+              <h1 className="font-bold text-sm text-foreground tracking-tight">Salti Design demandasa Flow</h1>
               <p className="text-[10px] text-muted-foreground">Agência de Conteúdo</p>
             </div>
           </div>
