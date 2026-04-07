@@ -5,8 +5,9 @@ export const STEPS = {
   redacao:            { label: "Redação",             role: "redator",      color: "bg-blue-500",    light: "bg-blue-100 text-blue-700" },
   design:             { label: "Design",              role: "designer",     color: "bg-pink-500",    light: "bg-pink-100 text-pink-700" },
   aprovacao_cliente:  { label: "Aprovação Cliente",  role: "cliente",      color: "bg-orange-500",  light: "bg-orange-100 text-orange-700" },
-  distribuicao:       { label: "Distribuição",        role: "social_media", color: "bg-emerald-500", light: "bg-emerald-100 text-emerald-700" },
-  finalizado:         { label: "Finalizado",          role: null,           color: "bg-slate-400",   light: "bg-slate-100 text-slate-500" },
+  distribuicao:       { label: "Distribuição",        role: "social_media",    color: "bg-emerald-500", light: "bg-emerald-100 text-emerald-700" },
+  trafego:            { label: "Gestor de Tráfego",   role: "gestor_trafego",  color: "bg-cyan-500",    light: "bg-cyan-100 text-cyan-700" },
+  finalizado:         { label: "Finalizado",           role: null,              color: "bg-slate-400",   light: "bg-slate-100 text-slate-500" },
 };
 
 // Fluxo padrão — único fluxo oficial
@@ -14,6 +15,10 @@ export const FLOW_TEMPLATES = {
   padrao: {
     label: "Fluxo Padrão Salti",
     steps: ["briefing", "estrategia", "redacao", "design", "aprovacao_cliente", "distribuicao", "finalizado"],
+  },
+  com_trafego: {
+    label: "Com Gestor de Tráfego",
+    steps: ["briefing", "estrategia", "redacao", "design", "aprovacao_cliente", "trafego", "finalizado"],
   },
   sem_redacao: {
     label: "Sem Redação",
