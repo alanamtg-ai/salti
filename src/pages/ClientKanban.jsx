@@ -7,6 +7,7 @@ import { Link } from "react-router-dom";
 import DemandCardV2 from "@/components/demands/DemandCardV2";
 import DemandDetailModal from "@/components/demands/DemandDetailModal";
 import NewDemandForm from "@/components/demands/NewDemandForm";
+import BriefingTab from "@/components/demands/BriefingTab";
 import { useCurrentMember } from "@/lib/useCurrentMember";
 import { getStepLabel, getStepColor, STEPS } from "@/lib/flowConfig";
 import { cn } from "@/lib/utils";
@@ -24,6 +25,7 @@ import AdsMetricsSection from "@/components/client-profile/AdsMetricsSection";
 const STEP_ORDER = ["briefing", "estrategia", "redacao", "design", "aprovacao_cliente", "distribuicao", "finalizado"];
 
 const TABS = [
+  { key: "briefing", label: "📋 Briefing", icon: BookOpen },
   { key: "kanban", label: "Kanban", icon: Columns },
   { key: "perfil", label: "Perfil do Cliente", icon: BookOpen },
   { key: "resultados", label: "Resultados", icon: BarChart2 },
@@ -99,6 +101,11 @@ export default function ClientKanban() {
           </button>
         ))}
       </div>
+
+      {/* Briefing Tab */}
+      {activeTab === "briefing" && (
+        <BriefingTab demands={clientDemands} onUpdated={refetch} />
+      )}
 
       {/* Kanban */}
       {activeTab === "kanban" && (
