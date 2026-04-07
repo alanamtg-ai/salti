@@ -167,7 +167,9 @@ function SendToWriterModal({ open, onClose, cards, demand, members, onSent }) {
   const [sending, setSending] = useState(false);
   const [done, setDone] = useState(false);
 
-  const redatores = members.filter((m) => m.role === "redator" || m.role === "admin");
+  const redatores = members.filter((m) =>
+    m.role === "redator" || m.role === "admin" || m.name?.toLowerCase().includes("pamela")
+  );
 
   const handleSend = async () => {
     if (!redatorEmail) return;
