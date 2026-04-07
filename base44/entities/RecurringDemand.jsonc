@@ -1,0 +1,111 @@
+{
+  "name": "RecurringDemand",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "T\u00edtulo da demanda recorrente"
+    },
+    "description": {
+      "type": "string"
+    },
+    "product_type": {
+      "type": "string",
+      "enum": [
+        "post_feed",
+        "post_stories",
+        "post_reels",
+        "carrossel",
+        "banner_digital",
+        "banner_impresso",
+        "flyer",
+        "infografico",
+        "logo",
+        "identidade_visual",
+        "papelaria",
+        "embalagem",
+        "video_curto",
+        "video_longo",
+        "motion_graphics",
+        "animacao",
+        "copy_legenda",
+        "copy_email",
+        "copy_blog",
+        "copy_anuncio",
+        "landing_page",
+        "website",
+        "ecommerce",
+        "planejamento_estrategico",
+        "relatorio",
+        "apresentacao",
+        "roteiro",
+        "pauta_editorial",
+        "briefing",
+        "foto_produto",
+        "foto_editorial",
+        "outro"
+      ]
+    },
+    "client_id": {
+      "type": "string"
+    },
+    "client_name": {
+      "type": "string"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "baixa",
+        "media",
+        "alta",
+        "urgente"
+      ],
+      "default": "media"
+    },
+    "flow_template": {
+      "type": "string",
+      "default": "padrao"
+    },
+    "steps_flow": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "assignees": {
+      "type": "object"
+    },
+    "recurrence_type": {
+      "type": "string",
+      "enum": [
+        "daily",
+        "weekly",
+        "monthly"
+      ],
+      "default": "monthly",
+      "description": "Frequ\u00eancia da recorr\u00eancia"
+    },
+    "recurrence_day_of_month": {
+      "type": "number",
+      "description": "Dia do m\u00eas (1-28) para recorr\u00eancia mensal"
+    },
+    "recurrence_day_of_week": {
+      "type": "number",
+      "description": "Dia da semana (0=Dom, 6=S\u00e1b) para recorr\u00eancia semanal"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Se a recorr\u00eancia est\u00e1 ativa"
+    },
+    "last_generated_date": {
+      "type": "string",
+      "description": "Data da \u00faltima demanda gerada (ISO)"
+    }
+  },
+  "required": [
+    "title",
+    "client_id",
+    "recurrence_type"
+  ]
+}

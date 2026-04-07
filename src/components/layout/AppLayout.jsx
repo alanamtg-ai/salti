@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Users2, BarChart3, Users, Inbox, Layers, ListTodo } from "lucide-react";
+import { LayoutDashboard, Users2, BarChart3, Users, Inbox, Layers, ListTodo, Repeat } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { useCurrentMember } from "@/lib/useCurrentMember";
@@ -10,7 +10,8 @@ const getNavItems = (role) => {
   { path: "/minhas-tarefas", label: "Minhas Tarefas", icon: ListTodo },
   { path: "/clientes", label: "Clientes", icon: Users2 },
   { path: "/equipe", label: "Equipe", icon: Users },
-  { path: "/relatorios", label: "Relatórios", icon: BarChart3 }];
+  { path: "/relatorios", label: "Relatórios", icon: BarChart3 },
+  { path: "/recorrentes", label: "Recorrentes", icon: Repeat }];
 
   if (role === "cliente") return [
   { path: "/", label: "Minhas Aprovações", icon: Inbox }];
