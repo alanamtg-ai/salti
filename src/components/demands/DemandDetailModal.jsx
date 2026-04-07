@@ -7,6 +7,7 @@ import { base44 } from "@/api/base44Client";
 import { format, differenceInDays, isPast, isToday } from "date-fns";
 import { getStepLabel, getStepLight, STEPS, REJECTION_STEP } from "@/lib/flowConfig";
 import DemandTimeline from "./DemandTimeline";
+import ContentCardsEditor from "./ContentCardsEditor";
 import { CheckCircle2, XCircle, RotateCcw, Clock, AlertTriangle, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -205,6 +206,17 @@ export default function DemandDetailModal({ demand, member, onClose, onUpdated }
               </div>
             )}
           </div>
+
+          {/* Cards de conteúdo — visível na etapa de estratégia */}
+          {currentStep === "estrategia" && (
+            <div className="border-t pt-4">
+              <ContentCardsEditor
+                demand={demand}
+                onUpdated={onUpdated}
+                canEdit={canAct}
+              />
+            </div>
+          )}
 
           {/* Descrição */}
           {demand.description && (

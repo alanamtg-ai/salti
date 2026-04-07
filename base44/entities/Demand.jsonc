@@ -199,6 +199,42 @@
       },
       "description": "Links de refer\u00eancia"
     },
+    "content_cards": {
+      "type": "array",
+      "description": "Cards de conte\u00fado criados na etapa de estrat\u00e9gia para envio ao redator",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "data_postagem": {
+            "type": "string"
+          },
+          "dia_semana": {
+            "type": "string"
+          },
+          "tipo_conteudo": {
+            "type": "string"
+          },
+          "canais": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "horario": {
+            "type": "string"
+          },
+          "tema": {
+            "type": "string"
+          },
+          "observacoes": {
+            "type": "string"
+          }
+        }
+      }
+    },
     "history": {
       "type": "array",
       "description": "Hist\u00f3rico de movimenta\u00e7\u00f5es",
