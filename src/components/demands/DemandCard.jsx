@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { Calendar, User, Clock } from "lucide-react";
-import { format, isPast, isToday, differenceInDays } from "date-fns";
+import { format, isPast, isToday, differenceInDays, subDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 
@@ -27,6 +27,20 @@ export default function DemandCard({ demand, onClick }) {
   const isOverdue = deadlineDate && isPast(deadlineDate) && !isToday(deadlineDate) && demand.status !== "concluido";
   const daysLeft = deadlineDate ? differenceInDays(deadlineDate, new Date()) : null;
 
+  // Para cards de redação: calcula prazos baseado na data de postagem
+  const scheduledDate = demand.scheduled_date ? new Date(demand.scheduled_date) : null;
+  const redacaoDueDate = scheduledDate ? subDays(scheduledDate, 30) : null;
+  const designDueDate = scheduledDate ? subDays(scheduledDate, 25) : null;
+  const estrategiaDueDate = scheduledDate ? subDays(scheduledDate, 45) : null;
+
+  const redacaoDaysLeft = redacaoDueDate ? differenceInDays(redacaoDueDate, new Date()) : null;
+  const designDaysLeft = designDueDate ? differenceInDays(designDueDate, new Date()) : null;
+  const estrategiaDaysLeft = estrategiaDueDate ? differenceInDays(estrategiaDueDate, new Date()) : null;
+
+  const isRedacaoOverdue = redacaoDueDate && isPast(redacaoDueDate) && !isToday(redacaoDueDate);
+  const isDesignOverdue = designDueDate && isPast(designDueDate) && !isToday(designDueDate);
+  const isEstrategiaOverdue = estrategiaDueDate && isPast(estrategiaDueDate) && !isToday(estrategiaDueDate);
+
   return (
     <div
       onClick={() => onClick?.(demand)}
@@ -51,21 +65,81 @@ export default function DemandCard({ demand, onClick }) {
         </Badge>
       )}
 
-      <div className="flex items-center justify-between pt-3 border-t border-border/60">
-        {demand.assignee_name && (
-          <div className="flex items-center gap-1.5">
-            <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center">
-              <span className="text-[9px] font-bold text-primary">
-                {demand.assignee_name.charAt(0).toUpperCase()}
+      {/* Datas de postagem e entrega (visível em cards de redação/design) */}
+      {scheduledDate && (
+        <div className="mt-3 pt-3 border-t border-border/60 space-y-1.5">
+          <div className="flex items-center gap-1.5 text-[10px]">
+            <Calendar className="w-3 h-3 text-blue-500" />
+            <span className="font-semibold text-blue-600">Postagem:</span>
+            <span className="text-foreground">{format(scheduledDate, "dd/MMM", { locale: ptBR })}</span>
+          </div>
+
+          {redacaoDueDate && (
+            <div className={cn(
+              "flex items-center gap-1.5 text-[10px]",
+              isRedacaoOverdue ? "text-red-600" : ""
+            )}>
+              <Clock className="w-3 h-3" />
+              <span className="font-semibold">Redação:</span>
+              <span>{format(redacaoDueDate, "dd/MMM", { locale: ptBR })}</span>
+              {redacaoDaysLeft !== null && (
+                <span className={cn("font-medium ml-auto", isRedacaoOverdue ? "text-red-600" : redacaoDaysLeft <= 2 ? "text-amber-500" : "text-muted-foreground")}>
+                  {isRedacaoOverdue ? "⚠️" : redacaoDaysLeft === 0 ? "Hoje" : `${redacaoDaysLeft}d`}
+                </span>
+              )}
+            </div>
+          )}
+
+          {designDueDate && (
+            <div className={cn(
+              "flex items-center gap-1.5 text-[10px]",
+              isDesignOverdue ? "text-red-600" : ""
+            )}>
+              <Clock className="w-3 h-3" />
+              <span className="font-semibold">Design:</span>
+              <span>{format(designDueDate, "dd/MMM", { locale: ptBR })}</span>
+              {designDaysLeft !== null && (
+                <span className={cn("font-medium ml-auto", isDesignOverdue ? "text-red-600" : designDaysLeft <= 2 ? "text-amber-500" : "text-muted-foreground")}>
+                  {isDesignOverdue ? "⚠️" : designDaysLeft === 0 ? "Hoje" : `${designDaysLeft}d`}
+                </span>
+              )}
+            </div>
+          )}
+
+          {estrategiaDueDate && (
+            <div className={cn(
+              "flex items-center gap-1.5 text-[10px]",
+              isEstrategiaOverdue ? "text-red-600" : ""
+            )}>
+              <Clock className="w-3 h-3" />
+              <span className="font-semibold">Estratégia:</span>
+              <span>{format(estrategiaDueDate, "dd/MMM", { locale: ptBR })}</span>
+              {estrategiaDaysLeft !== null && (
+                <span className={cn("font-medium ml-auto", isEstrategiaOverdue ? "text-red-600" : estrategiaDaysLeft <= 2 ? "text-amber-500" : "text-muted-foreground")}>
+                  {isEstrategiaOverdue ? "⚠️" : estrategiaDaysLeft === 0 ? "Hoje" : `${estrategiaDaysLeft}d`}
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Deadline genérico (fallback para demandas sem scheduled_date) */}
+      {!scheduledDate && deadlineDate && (
+        <div className="flex items-center justify-between pt-3 border-t border-border/60">
+          {demand.assignee_name && (
+            <div className="flex items-center gap-1.5">
+              <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center">
+                <span className="text-[9px] font-bold text-primary">
+                  {demand.assignee_name.charAt(0).toUpperCase()}
+                </span>
+              </div>
+              <span className="text-[11px] text-muted-foreground truncate max-w-[80px]">
+                {demand.assignee_name}
               </span>
             </div>
-            <span className="text-[11px] text-muted-foreground truncate max-w-[80px]">
-              {demand.assignee_name}
-            </span>
-          </div>
-        )}
+          )}
 
-        {deadlineDate && (
           <div className={cn(
             "flex items-center gap-1 text-[11px]",
             isOverdue ? "text-red-500 font-medium" : daysLeft <= 2 ? "text-amber-500" : "text-muted-foreground"
@@ -79,8 +153,22 @@ export default function DemandCard({ demand, onClick }) {
                 : `${daysLeft}d`}
             </span>
           </div>
-        )}
-      </div>
+        </div>
+      )}
+
+      {/* Caso não tenha deadline nem scheduled_date, mostra assignee */}
+      {!scheduledDate && !deadlineDate && demand.assignee_name && (
+        <div className="flex items-center gap-1.5 pt-3 border-t border-border/60">
+          <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center">
+            <span className="text-[9px] font-bold text-primary">
+              {demand.assignee_name.charAt(0).toUpperCase()}
+            </span>
+          </div>
+          <span className="text-[11px] text-muted-foreground truncate max-w-[80px]">
+            {demand.assignee_name}
+          </span>
+        </div>
+      )}
     </div>
   );
 }
