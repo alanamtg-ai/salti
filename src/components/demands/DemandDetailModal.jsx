@@ -12,6 +12,7 @@ import DemandTimeline from "./DemandTimeline";
 import ContentCardsEditor from "./ContentCardsEditor";
 import { CheckCircle2, XCircle, RotateCcw, Clock, AlertTriangle, ChevronRight, Palette } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { UNIVERSAL_MEMBERS } from "@/lib/universalMembers";
 
 const priorityConfig = {
   baixa:   "bg-emerald-100 text-emerald-700",
@@ -47,7 +48,11 @@ function PostClientApprovalPicker({ onPick }) {
 // Seletor de designer para enviar após aprovação interna de copy
 function DesignerPicker({ members, onPick }) {
   const [email, setEmail] = useState("");
-  const designers = members.filter((m) => m.role === "designer" || m.role === "admin");
+  const designers = members.filter((m) => {
+    if (m.role === "designer" || m.role === "admin") return true;
+    if (UNIVERSAL_MEMBERS.some((name) => m.name?.toLowerCase().includes(name) || m.email === name)) return true;
+    return false;
+  });
 
   return (
     <div className="space-y-3">

@@ -11,8 +11,7 @@ import { cn } from "@/lib/utils";
 import { format, subDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import BulkCardGenerator from "./BulkCardGenerator";
-
-const UNIVERSAL_MEMBERS = ["pamela", "saltiagencia@gmail.com"];
+import { UNIVERSAL_MEMBERS } from "@/lib/universalMembers";
 
 // Função para subtrair dias úteis (seg-sex)
 const subtractBusinessDays = (date, businessDays) => {
