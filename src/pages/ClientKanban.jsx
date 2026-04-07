@@ -17,6 +17,7 @@ import LoginsSection from "@/components/client-profile/LoginsSection";
 import SelosSection from "@/components/client-profile/SelosSection";
 import DatasSection from "@/components/client-profile/DatasSection";
 import GestaoCriseSection from "@/components/client-profile/GestaoCriseSection";
+import TikTokSection from "@/components/client-profile/TikTokSection";
 
 const STEP_ORDER = ["briefing", "estrategia", "redacao", "design", "aprovacao_cliente", "distribuicao", "finalizado"];
 
@@ -136,6 +137,9 @@ export default function ClientKanban() {
           <DatasSection profile={profile} clientId={clientId} onUpdated={refetchProfile} />
           <div className="lg:col-span-2">
             <GestaoCriseSection profile={profile} clientId={clientId} onUpdated={refetchProfile} />
+          </div>
+          <div className="lg:col-span-2">
+            <TikTokSection profile={profile} clientId={clientId} onUpdated={refetchProfile} />
           </div>
         </div>
       )}

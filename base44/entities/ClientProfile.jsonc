@@ -221,6 +221,39 @@
     },
     "gestao_crise_contatos": {
       "type": "string"
+    },
+    "tiktok_posts": {
+      "type": "array",
+      "description": "M\u00e9tricas manuais de posts do TikTok",
+      "items": {
+        "type": "object",
+        "properties": {
+          "titulo": {
+            "type": "string"
+          },
+          "data": {
+            "type": "string"
+          },
+          "link": {
+            "type": "string"
+          },
+          "visualizacoes": {
+            "type": "number"
+          },
+          "curtidas": {
+            "type": "number"
+          },
+          "comentarios": {
+            "type": "number"
+          },
+          "compartilhamentos": {
+            "type": "number"
+          },
+          "salvamentos": {
+            "type": "number"
+          }
+        }
+      }
     }
   },
   "required": [
