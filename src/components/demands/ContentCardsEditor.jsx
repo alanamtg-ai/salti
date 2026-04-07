@@ -101,7 +101,12 @@ function ContentCard({ card, index, onChange, onRemove, readOnly }) {
         </label>
         <div className="flex flex-wrap gap-1.5">
           {TIPOS_CONTEUDO.map((t) => {
-            const tipos = Array.isArray(card.tipo_conteudo) ? card.tipo_conteudo : (card.tipo_conteudo ? [card.tipo_conteudo] : []);
+            // Parse tipos — pode ser array ou string com vírgulas
+            const tipos = Array.isArray(card.tipo_conteudo)
+              ? card.tipo_conteudo
+              : card.tipo_conteudo
+              ? card.tipo_conteudo.split(", ").map((x) => x.trim())
+              : [];
             const isSelected = tipos.includes(t);
             return (
               <button
@@ -200,12 +205,15 @@ function SendToWriterModal({ open, onClose, cards, demand, members, onSent }) {
           client_id: demand.client_id,
           client_name: demand.client_name,
           priority: demand.priority,
-          product_type: card.tipo_conteudo === "Post Feed" ? "post_feed"
-            : card.tipo_conteudo === "Stories" ? "post_stories"
-            : card.tipo_conteudo === "Reels / TikTok" ? "post_reels"
-            : card.tipo_conteudo === "Carrossel" ? "carrossel"
-            : card.tipo_conteudo === "Vídeo" ? "video_curto"
-            : "copy_legenda",
+          product_type: (() => {
+            const tipo = Array.isArray(card.tipo_conteudo) ? card.tipo_conteudo[0] : card.tipo_conteudo;
+            return tipo === "Post Feed" ? "post_feed"
+              : tipo === "Stories" ? "post_stories"
+              : tipo === "Reels / TikTok" ? "post_reels"
+              : tipo === "Carrossel" ? "carrossel"
+              : tipo === "Vídeo" ? "video_curto"
+              : "copy_legenda";
+          })(),
           steps_flow: ["redacao", "aprovacao_interna_redacao", "design", "aprovacao_interna_design", "aprovacao_cliente", "finalizado"],
           current_step: "redacao",
           current_step_index: 0,
@@ -307,7 +315,12 @@ export default function ContentCardsEditor({ demand, onUpdated, canEdit }) {
 
   const handleSave = async () => {
     setSaving(true);
-    await base44.entities.Demand.update(demand.id, { content_cards: cards });
+    // Converte arrays de tipo_conteudo para string antes de salvar
+    const cardsToSave = cards.map((c) => ({
+      ...c,
+      tipo_conteudo: Array.isArray(c.tipo_conteudo) ? c.tipo_conteudo.join(", ") : c.tipo_conteudo,
+    }));
+    await base44.entities.Demand.update(demand.id, { content_cards: cardsToSave });
     setSaving(false);
     setSaved(true);
     onUpdated();
