@@ -30,9 +30,26 @@ export default function ProductivitySummary({ demands, members }) {
       }
     });
 
-    // Sobrescreve nome com o da equipe
+    // Consolida entradas com emails diferentes mas que correspondem ao mesmo membro
+    // (dados legados podem ter email antigo como "alana@agencia.com" vs "alanamtg@gmail.com")
     members.forEach((m) => {
-      if (scores[m.email]) scores[m.email].name = m.name;
+      // Se já existe entrada pelo email correto, sobrescreve o nome
+      if (scores[m.email]) {
+        scores[m.email].name = m.name;
+      }
+      // Procura entradas com mesmo nome mas email diferente e funde com o email correto
+      Object.keys(scores).forEach((key) => {
+        if (key !== m.email && scores[key].name?.toLowerCase() === m.name?.toLowerCase()) {
+          if (!scores[m.email]) {
+            scores[m.email] = { name: m.name, delivered: 0, totalHours: 0, countHours: 0 };
+          }
+          scores[m.email].delivered += scores[key].delivered;
+          scores[m.email].totalHours += scores[key].totalHours;
+          scores[m.email].countHours += scores[key].countHours;
+          scores[m.email].name = m.name;
+          delete scores[key];
+        }
+      });
     });
 
     return Object.entries(scores)
