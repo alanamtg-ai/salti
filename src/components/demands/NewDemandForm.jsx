@@ -10,7 +10,7 @@ import { useQuery } from "@tanstack/react-query";
 import { FLOW_TEMPLATES, STEPS } from "@/lib/flowConfig";
 import { format } from "date-fns";
 import SketchPad from "@/components/demands/SketchPad";
-import { Plus, X, Link as LinkIcon, Upload, Loader2 } from "lucide-react";
+import { Plus, X, Link as LinkIcon, Upload, Loader2, Users, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const PRODUCT_TYPES = [
@@ -86,9 +86,73 @@ const defaultForm = {
   file_urls: [],
 };
 
+// Multi-client picker component
+function ClientMultiPicker({ clients, selectedIds, onChange, disabled }) {
+  const allSelected = selectedIds.length === clients.length && clients.length > 0;
+
+  const toggleAll = () => {
+    onChange(allSelected ? [] : clients.map((c) => c.id));
+  };
+
+  const toggleOne = (id) => {
+    onChange(selectedIds.includes(id) ? selectedIds.filter((x) => x !== id) : [...selectedIds, id]);
+  };
+
+  return (
+    <div className="space-y-2">
+      {!disabled && (
+        <button
+          type="button"
+          onClick={toggleAll}
+          className={cn(
+            "w-full flex items-center gap-2 px-3 py-2 rounded-lg border text-sm font-medium transition-colors",
+            allSelected ? "bg-primary/10 border-primary text-primary" : "border-border bg-muted/30 hover:bg-muted/60"
+          )}
+        >
+          <Users className="w-4 h-4" />
+          {allSelected ? "✓ Todos os clientes selecionados" : "Selecionar todos os clientes"}
+        </button>
+      )}
+      <div className="max-h-44 overflow-y-auto space-y-1 border border-border rounded-lg p-2 bg-background">
+        {clients.map((c) => {
+          const selected = selectedIds.includes(c.id);
+          return (
+            <button
+              key={c.id}
+              type="button"
+              disabled={disabled}
+              onClick={() => toggleOne(c.id)}
+              className={cn(
+                "w-full flex items-center gap-2 px-3 py-1.5 rounded-md text-sm transition-colors text-left",
+                selected ? "bg-primary/10 text-primary font-medium" : "hover:bg-muted/60",
+                disabled && "opacity-50 pointer-events-none"
+              )}
+            >
+              <span className={cn("w-4 h-4 rounded border flex items-center justify-center shrink-0 text-[10px]",
+                selected ? "bg-primary border-primary text-white" : "border-muted-foreground"
+              )}>
+                {selected && <Check className="w-2.5 h-2.5" />}
+              </span>
+              {c.name}
+            </button>
+          );
+        })}
+        {clients.length === 0 && <p className="text-xs text-muted-foreground text-center py-2">Nenhum cliente encontrado.</p>}
+      </div>
+      {selectedIds.length > 0 && (
+        <p className="text-xs text-muted-foreground">
+          {selectedIds.length} cliente{selectedIds.length > 1 ? "s" : ""} selecionado{selectedIds.length > 1 ? "s" : ""}
+          {selectedIds.length > 1 && <span className="text-primary font-medium"> — será criada uma demanda para cada</span>}
+        </p>
+      )}
+    </div>
+  );
+}
+
 export default function NewDemandForm({ open, onClose, onSave, preselectedClientId }) {
   const [step, setStep] = useState(1);
   const [form, setForm] = useState({ ...defaultForm, client_id: preselectedClientId || "" });
+  const [selectedClientIds, setSelectedClientIds] = useState(preselectedClientId ? [preselectedClientId] : []);
   const [saving, setSaving] = useState(false);
   const [newLink, setNewLink] = useState("");
   const [uploadingFile, setUploadingFile] = useState(false);
@@ -101,6 +165,7 @@ export default function NewDemandForm({ open, onClose, onSave, preselectedClient
     if (preselectedClientId && clients.length) {
       const client = clients.find((c) => c.id === preselectedClientId);
       setForm((f) => ({ ...f, client_id: preselectedClientId, client_name: client?.name || "" }));
+      setSelectedClientIds([preselectedClientId]);
     }
   }, [preselectedClientId, clients]);
 
@@ -149,6 +214,19 @@ export default function NewDemandForm({ open, onClose, onSave, preselectedClient
     setForm((f) => ({ ...f, client_id: id, client_name: client?.name || "" }));
   };
 
+  const handleMultiClientChange = (ids) => {
+    setSelectedClientIds(ids);
+    // sync single client_id for step validation
+    if (ids.length === 1) {
+      const client = clients.find((c) => c.id === ids[0]);
+      setForm((f) => ({ ...f, client_id: ids[0], client_name: client?.name || "" }));
+    } else if (ids.length > 1) {
+      setForm((f) => ({ ...f, client_id: ids[0], client_name: "múltiplos" }));
+    } else {
+      setForm((f) => ({ ...f, client_id: "", client_name: "" }));
+    }
+  };
+
   const addLink = () => {
     const url = newLink.trim();
     if (!url) return;
@@ -181,30 +259,37 @@ export default function NewDemandForm({ open, onClose, onSave, preselectedClient
   const handleSave = async () => {
     setSaving(true);
     const now = format(new Date(), "yyyy-MM-dd'T'HH:mm:ss");
-    await base44.entities.Demand.create({
-      ...form,
-      current_step: form.steps_flow[0],
-      current_step_index: 0,
-      status: "ativo",
-      step_started_at: now,
-      history: [{
-        etapa_origem: null,
-        etapa_destino: form.steps_flow[0],
-        acao: "criado",
-        by: "admin",
-        by_name: "Admin",
-        date: now,
-        observacao: "",
-      }],
-    });
+    const clientsToCreate = selectedClientIds.length > 0 ? selectedClientIds : [form.client_id];
+    await Promise.all(clientsToCreate.map((cid) => {
+      const client = clients.find((c) => c.id === cid);
+      return base44.entities.Demand.create({
+        ...form,
+        client_id: cid,
+        client_name: client?.name || "",
+        current_step: form.steps_flow[0],
+        current_step_index: 0,
+        status: "ativo",
+        step_started_at: now,
+        history: [{
+          etapa_origem: null,
+          etapa_destino: form.steps_flow[0],
+          acao: "criado",
+          by: "admin",
+          by_name: "Admin",
+          date: now,
+          observacao: "",
+        }],
+      });
+    }));
     setSaving(false);
     onSave();
     onClose();
     setStep(1);
+    setSelectedClientIds(preselectedClientId ? [preselectedClientId] : []);
     setForm({ ...defaultForm, client_id: preselectedClientId || "" });
   };
 
-  const canGoStep2 = form.title && form.client_id && form.product_type;
+  const canGoStep2 = form.title && selectedClientIds.length > 0 && form.product_type;
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -269,16 +354,16 @@ export default function NewDemandForm({ open, onClose, onSave, preselectedClient
               />
             </div>
 
-            {/* Cliente + Prazo */}
-            <div className="grid grid-cols-2 gap-3">
+            {/* Cliente(s) + Prazo */}
+            <div className="space-y-3">
               <div className="space-y-1.5">
-                <Label>Cliente *</Label>
-                <Select value={form.client_id} onValueChange={handleClientChange} disabled={!!preselectedClientId}>
-                  <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
-                  <SelectContent>
-                    {clients.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-                  </SelectContent>
-                </Select>
+                <Label>Cliente(s) * <span className="text-muted-foreground font-normal text-[11px]">— selecione um ou mais</span></Label>
+                <ClientMultiPicker
+                  clients={clients}
+                  selectedIds={selectedClientIds}
+                  onChange={handleMultiClientChange}
+                  disabled={!!preselectedClientId}
+                />
               </div>
               <div className="space-y-1.5">
                 <Label>Prazo Final</Label>
@@ -495,7 +580,12 @@ export default function NewDemandForm({ open, onClose, onSave, preselectedClient
           )}
           {step === 3 && (
             <Button onClick={handleSave} disabled={saving}>
-              {saving ? <><Loader2 className="w-4 h-4 mr-1 animate-spin" /> Criando...</> : "Criar Demanda"}
+              {saving
+                ? <><Loader2 className="w-4 h-4 mr-1 animate-spin" /> Criando...</>
+                : selectedClientIds.length > 1
+                  ? `Criar ${selectedClientIds.length} Demandas`
+                  : "Criar Demanda"
+              }
             </Button>
           )}
         </DialogFooter>
