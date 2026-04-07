@@ -11,6 +11,22 @@ import { cn } from "@/lib/utils";
 import { format, subDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
+// Função para subtrair dias úteis (seg-sex)
+const subtractBusinessDays = (date, businessDays) => {
+  let currentDate = new Date(date);
+  let count = 0;
+  
+  while (count < businessDays) {
+    currentDate = subDays(currentDate, 1);
+    const dayOfWeek = currentDate.getDay();
+    if (dayOfWeek !== 0 && dayOfWeek !== 6) { // 0 = domingo, 6 = sábado
+      count++;
+    }
+  }
+  
+  return currentDate;
+};
+
 const DIAS_SEMANA = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"];
 const TIPOS_CONTEUDO = ["Post Feed", "Stories", "Reels / TikTok", "Carrossel", "Vídeo", "Copy / Legenda", "Outro"];
 const CANAIS_OPCOES = ["Instagram", "Facebook", "TikTok", "LinkedIn", "YouTube", "WhatsApp"];
@@ -240,9 +256,9 @@ function ContentCard({ card, index, onChange, onRemove, readOnly }) {
                 <span className="text-xs font-bold text-white">A</span>
               </div>
               <div>
-                <p className="text-xs font-bold text-amber-600 dark:text-amber-400">Aprovação Cliente</p>
+                <p className="text-xs font-bold text-amber-600 dark:text-amber-400">Aprovação Cliente (7 dias úteis)</p>
                 <p className="text-sm font-semibold text-foreground mt-1">
-                  {format(subDays(new Date(card.data_postagem), 5), "dd/MMM", { locale: ptBR })}
+                  {format(subtractBusinessDays(new Date(card.data_postagem), 7), "dd/MMM", { locale: ptBR })}
                 </p>
               </div>
             </div>
@@ -252,8 +268,7 @@ function ContentCard({ card, index, onChange, onRemove, readOnly }) {
           <div className="grid grid-cols-2 gap-2 text-[10px] text-muted-foreground pt-2 border-t border-border/50">
             <div>Estratégia → Redação: <span className="font-bold">25 dias</span></div>
             <div>Redação → Design: <span className="font-bold">5 dias</span></div>
-            <div>Design → Aprovação: <span className="font-bold">10 dias</span></div>
-            <div>Total: <span className="font-bold">45 dias</span></div>
+            <div>Design → Aprovação: <span className="font-bold">7 dias úteis</span></div>
           </div>
         </div>
       )}
