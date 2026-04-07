@@ -111,6 +111,13 @@ export default function MyDashboard() {
     (d.history || []).some((h) => h.acao === "aprovado" && h.by === member.email && h.date && new Date(h.date) >= yearStart)
   ).length;
 
+  // Demandas que você aprovou hoje (para mostrar como concluídas)
+  const approvedToday = demands.filter((d) => {
+    const lastApproval = [...(d.history || [])].reverse().find((h) => h.acao === "aprovado" && h.by === member.email);
+    if (!lastApproval || !lastApproval.date) return false;
+    return isToday(new Date(lastApproval.date));
+  });
+
   return (
     <div className="space-y-6 pb-20 lg:pb-0">
       {/* Header */}
@@ -186,6 +193,21 @@ export default function MyDashboard() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
             {urgent.map((d) => (
+              <MyTaskCard key={d.id} demand={d} member={member} onUpdated={refetch} onOpenDetail={setSelectedDemand} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Concluídas por você hoje */}
+      {approvedToday.length > 0 && (
+        <section>
+          <div className="flex items-center gap-2 mb-3">
+            <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+            <h2 className="text-sm font-semibold text-emerald-600">Concluídas hoje ({approvedToday.length})</h2>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+            {approvedToday.map((d) => (
               <MyTaskCard key={d.id} demand={d} member={member} onUpdated={refetch} onOpenDetail={setSelectedDemand} />
             ))}
           </div>
