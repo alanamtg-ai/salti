@@ -8,7 +8,8 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Plus, Trash2, Save, Send, Calendar, Clock, Tag, Radio, Loader2, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
+import { format, subDays } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 const DIAS_SEMANA = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"];
 const TIPOS_CONTEUDO = ["Post Feed", "Stories", "Reels / TikTok", "Carrossel", "Vídeo", "Copy / Legenda", "Outro"];
@@ -171,9 +172,32 @@ function ContentCard({ card, index, onChange, onRemove, readOnly }) {
           readOnly={readOnly}
         />
       </div>
-    </div>
-  );
-}
+
+      {/* Prazos fixados */}
+      {card.data_postagem && (
+        <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20 rounded-lg p-3 border border-blue-200 dark:border-blue-800 space-y-2">
+          <p className="text-[10px] font-semibold text-blue-700 dark:text-blue-300 uppercase tracking-wider">📅 Prazos Fixados</p>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="bg-white dark:bg-slate-800 rounded p-2 border border-blue-100 dark:border-blue-900">
+              <p className="text-[9px] font-semibold text-muted-foreground">Redação</p>
+              <p className="text-xs font-bold text-blue-600 dark:text-blue-400">
+                {format(subDays(new Date(card.data_postagem), 30), "dd/MMM", { locale: ptBR })}
+              </p>
+              <p className="text-[8px] text-muted-foreground">-30 dias</p>
+            </div>
+            <div className="bg-white dark:bg-slate-800 rounded p-2 border border-purple-100 dark:border-purple-900">
+              <p className="text-[9px] font-semibold text-muted-foreground">Design</p>
+              <p className="text-xs font-bold text-purple-600 dark:text-purple-400">
+                {format(subDays(new Date(card.data_postagem), 25), "dd/MMM", { locale: ptBR })}
+              </p>
+              <p className="text-[8px] text-muted-foreground">-25 dias</p>
+            </div>
+          </div>
+        </div>
+      )}
+      </div>
+      );
+      }
 
 // Modal: seleciona redator e confirma envio
 function SendToWriterModal({ open, onClose, cards, demand, members, onSent }) {
