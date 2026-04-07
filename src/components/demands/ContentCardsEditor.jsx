@@ -323,9 +323,7 @@ function SendToWriterModal({ open, onClose, cards, demand, members, onSent }) {
   const [sending, setSending] = useState(false);
   const [done, setDone] = useState(false);
 
-  const redatores = members.filter((m) =>
-    m.role === "redator" || m.role === "admin" || m.name?.toLowerCase().includes("pamela")
-  );
+  const redatores = members.filter((m) => m.role === "redator" || m.role === "admin");
 
   const handleSend = async () => {
     if (!redatorEmail) return;
@@ -401,22 +399,27 @@ function SendToWriterModal({ open, onClose, cards, demand, members, onSent }) {
         {done ? (
           <div className="flex flex-col items-center gap-2 py-6">
             <CheckCircle2 className="w-10 h-10 text-emerald-500" />
-            <p className="text-sm font-medium">{cards.length} demanda{cards.length > 1 ? "s" : ""} criada{cards.length > 1 ? "s" : ""}!</p>
+            <p className="text-sm font-medium">{cards.length} demanda{cards.length > 1 ? "s" : ""} criada{cards.length > 1 ? "s" : ""} para {redatores.find((r) => r.email === redatorEmail)?.name}!</p>
           </div>
         ) : (
           <>
             <div className="space-y-4 py-2">
-              <div className="bg-muted/40 rounded-lg p-3 text-xs text-muted-foreground">
-                Serão criadas <strong className="text-foreground">{cards.length} demanda{cards.length > 1 ? "s"  : ""}</strong> (1 por card), já na etapa de <strong className="text-blue-600">Redação</strong>.
+              <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-3 text-xs text-blue-700 dark:text-blue-400">
+                <p className="font-semibold mb-1">✓ Cards prontos para envio</p>
+                <p>Serão criadas <strong>{cards.length}</strong> demanda{cards.length > 1 ? "s" : ""} na etapa de <strong>Redação</strong>.</p>
               </div>
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium">Redator responsável</label>
+              <div className="space-y-2">
+                <label className="text-sm font-semibold">Qual redator será responsável?</label>
                 <Select value={redatorEmail} onValueChange={setRedatorEmail}>
-                  <SelectTrigger><SelectValue placeholder="Selecione o redator..." /></SelectTrigger>
+                  <SelectTrigger className="h-10"><SelectValue placeholder="Selecione o redator..." /></SelectTrigger>
                   <SelectContent>
-                    {redatores.map((m) => (
-                      <SelectItem key={m.id} value={m.email}>{m.name}</SelectItem>
-                    ))}
+                    {redatores.length === 0 ? (
+                      <div className="p-2 text-xs text-muted-foreground">Nenhum redator disponível</div>
+                    ) : (
+                      redatores.map((m) => (
+                        <SelectItem key={m.id} value={m.email}>{m.name}</SelectItem>
+                      ))
+                    )}
                   </SelectContent>
                 </Select>
               </div>
@@ -424,7 +427,7 @@ function SendToWriterModal({ open, onClose, cards, demand, members, onSent }) {
             <DialogFooter>
               <Button variant="outline" onClick={onClose}>Cancelar</Button>
               <Button onClick={handleSend} disabled={!redatorEmail || sending}>
-                {sending ? <><Loader2 className="w-4 h-4 mr-1 animate-spin" /> Criando...</> : <><Send className="w-4 h-4 mr-1" /> Enviar</>}
+                {sending ? <><Loader2 className="w-4 h-4 mr-1 animate-spin" /> Criando...</> : <><Send className="w-4 h-4 mr-1" /> Enviar para {redatores.find((r) => r.email === redatorEmail)?.name || "Redator"}</>}
               </Button>
             </DialogFooter>
           </>
