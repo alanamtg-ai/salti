@@ -12,6 +12,8 @@ import { format, subDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import BulkCardGenerator from "./BulkCardGenerator";
 
+const UNIVERSAL_MEMBERS = ["pamela"];
+
 // Função para subtrair dias úteis (seg-sex)
 const subtractBusinessDays = (date, businessDays) => {
   let currentDate = new Date(date);
@@ -323,7 +325,11 @@ function SendToWriterModal({ open, onClose, cards, demand, members, onSent }) {
   const [sending, setSending] = useState(false);
   const [done, setDone] = useState(false);
 
-  const redatores = members.filter((m) => m.role === "redator" || m.role === "admin");
+  const redatores = members.filter((m) => {
+    if (m.role === "redator" || m.role === "admin") return true;
+    if (UNIVERSAL_MEMBERS.some((name) => m.name?.toLowerCase().includes(name))) return true;
+    return false;
+  });
 
   const handleSend = async () => {
     if (!redatorEmail) return;
