@@ -208,8 +208,8 @@ function ContentCard({ card, index, onChange, onRemove, readOnly }) {
               <div>
                 <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400">Data da Postagem</p>
                 <p className="text-sm font-semibold text-foreground mt-1">
-                  {format(new Date(card.data_postagem), "dd/MMM - EEEE", { locale: ptBR })}
-                </p>
+                   {format(new Date(card.data_postagem + "T12:00:00"), "dd/MMM - EEEE", { locale: ptBR })}
+                 </p>
               </div>
             </div>
 
@@ -221,7 +221,7 @@ function ContentCard({ card, index, onChange, onRemove, readOnly }) {
               <div>
                 <p className="text-xs font-bold text-purple-600 dark:text-purple-400">Estratégia</p>
                 <p className="text-sm font-semibold text-foreground mt-1">
-                  {format(subDays(new Date(card.data_postagem), 45), "dd/MMM", { locale: ptBR })}
+                  {format(subDays(new Date(card.data_postagem + "T12:00:00"), 45), "dd/MMM", { locale: ptBR })}
                 </p>
               </div>
             </div>
@@ -234,7 +234,7 @@ function ContentCard({ card, index, onChange, onRemove, readOnly }) {
               <div>
                 <p className="text-xs font-bold text-blue-600 dark:text-blue-400">Redação</p>
                 <p className="text-sm font-semibold text-foreground mt-1">
-                  {format(subDays(new Date(card.data_postagem), 20), "dd/MMM", { locale: ptBR })}
+                  {format(subDays(new Date(card.data_postagem + "T12:00:00"), 20), "dd/MMM", { locale: ptBR })}
                 </p>
               </div>
             </div>
@@ -247,7 +247,7 @@ function ContentCard({ card, index, onChange, onRemove, readOnly }) {
               <div>
                 <p className="text-xs font-bold text-pink-600 dark:text-pink-400">Design</p>
                 <p className="text-sm font-semibold text-foreground mt-1">
-                  {format(subDays(new Date(card.data_postagem), 15), "dd/MMM", { locale: ptBR })}
+                  {format(subDays(new Date(card.data_postagem + "T12:00:00"), 15), "dd/MMM", { locale: ptBR })}
                 </p>
               </div>
             </div>
@@ -260,7 +260,7 @@ function ContentCard({ card, index, onChange, onRemove, readOnly }) {
               <div>
                 <p className="text-xs font-bold text-amber-600 dark:text-amber-400">Aprovação Cliente (7 dias úteis)</p>
                 <p className="text-sm font-semibold text-foreground mt-1">
-                  {format(subtractBusinessDays(new Date(card.data_postagem), 7), "dd/MMM", { locale: ptBR })}
+                  {format(subtractBusinessDays(new Date(card.data_postagem + "T12:00:00"), 7), "dd/MMM", { locale: ptBR })}
                 </p>
               </div>
             </div>
