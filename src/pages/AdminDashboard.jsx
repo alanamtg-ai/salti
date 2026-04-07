@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 import { format } from "date-fns";
 import {
   Plus, AlertTriangle, CheckCircle2, Users, Layers,
-  Trash2, ExternalLink, UserPlus
+  Trash2, UserPlus
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -103,15 +103,6 @@ export default function AdminDashboard() {
 
 
 
-  // Stats de cliente
-  const clientStats = (clientId) => {
-    const cd = demands.filter((d) => d.client_id === clientId);
-    return {
-      active: cd.filter((d) => d.current_step !== "publicado").length,
-      published: cd.filter((d) => d.status === "publicado").length,
-    };
-  };
-
   const handleDeleteClient = async (clientId) => {
     await base44.entities.Client.delete(clientId);
     setDeletingClientId(null);
@@ -164,70 +155,20 @@ export default function AdminDashboard() {
       {/* Resumo de Relatórios */}
       <ReportsSummary demands={demands} />
 
-      {/* Produtividade dos colaboradores */}
-      <ProductivitySummary demands={demands} members={members} />
-
       {/* Calendário do dia */}
       <TodayCalendar demands={demands} onOpenDetail={setSelectedDemand} />
 
-      {/* Performance por Cliente */}
-      <ClientPerformancePanel clients={clients} demands={demands} />
-
-      {/* Gestão de Clientes */}
-      <div className="bg-card rounded-xl border border-border">
-        <div className="p-5 border-b border-border flex items-center justify-between">
-          <div>
-            <h2 className="font-semibold">Clientes</h2>
-            <p className="text-xs text-muted-foreground mt-0.5">{clients.length} cadastrados</p>
-          </div>
-          <Button size="sm" variant="outline" onClick={() => setClientFormOpen(true)}>
-            <Plus className="w-3.5 h-3.5 mr-1" /> Adicionar
-          </Button>
+      {/* Performance por Cliente + Ranking da equipe */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        <div className="lg:col-span-2">
+          <ClientPerformancePanel clients={clients} demands={demands} />
         </div>
-        <div className="divide-y divide-border">
-          {clients.map((client, i) => {
-            const stats = clientStats(client.id);
-            const color = CLIENT_COLORS[i % CLIENT_COLORS.length];
-            return (
-              <div key={client.id} className="flex items-center gap-3 px-4 py-3 hover:bg-muted/20 transition-colors group">
-                <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm shrink-0", color)}>
-                  {client.name.charAt(0)}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold truncate">{client.name}</p>
-                  {client.company && <p className="text-[11px] text-muted-foreground">{client.company}</p>}
-                </div>
-                <div className="flex items-center gap-3 shrink-0">
-                  <div className="text-center hidden sm:block">
-                    <p className="text-sm font-bold">{stats.active}</p>
-                    <p className="text-[9px] text-muted-foreground">Ativas</p>
-                  </div>
-                  <div className="text-center hidden sm:block">
-                    <p className="text-sm font-bold text-emerald-600">{stats.published}</p>
-                    <p className="text-[9px] text-muted-foreground">Publicadas</p>
-                  </div>
-                  <Link to={`/kanban-cliente?id=${client.id}`}>
-                    <Button size="sm" variant="ghost" className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <ExternalLink className="w-3.5 h-3.5" />
-                    </Button>
-                  </Link>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100 transition-opacity text-red-500 hover:text-red-600 hover:bg-red-50"
-                    onClick={() => setDeletingClientId(client.id)}
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </Button>
-                </div>
-              </div>
-            );
-          })}
-          {clients.length === 0 && (
-            <div className="p-8 text-center text-sm text-muted-foreground">Nenhum cliente cadastrado</div>
-          )}
+        <div>
+          <ProductivitySummary demands={demands} members={members} />
         </div>
       </div>
+
+
 
       {/* Modais */}
       <DemandDetailModal demand={selectedDemand} member={member} onClose={() => setSelectedDemand(null)} onUpdated={refetchDemands} />
