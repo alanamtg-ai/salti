@@ -141,26 +141,30 @@ export default function ClientKanban() {
           <div className="lg:col-span-2">
             <GestaoCriseSection profile={profile} clientId={clientId} onUpdated={refetchProfile} />
           </div>
-          <div className="lg:col-span-2">
-            <TikTokSection profile={profile} clientId={clientId} onUpdated={refetchProfile} />
-          </div>
-          <SocialMetricsSection emoji="📸" title="Instagram — Métricas" fieldKey="instagram_posts" linkPlaceholder="https://instagram.com/p/..." profile={profile} clientId={clientId} onUpdated={refetchProfile} />
-          <SocialMetricsSection emoji="👥" title="Facebook — Métricas" fieldKey="facebook_posts" linkPlaceholder="https://facebook.com/..." profile={profile} clientId={clientId} onUpdated={refetchProfile} />
-          <SocialMetricsSection emoji="💼" title="LinkedIn — Métricas" fieldKey="linkedin_posts" linkPlaceholder="https://linkedin.com/posts/..." profile={profile} clientId={clientId} onUpdated={refetchProfile} />
         </div>
       )}
 
-      {/* Resultados de Ads */}
+      {/* Resultados */}
       {activeTab === "resultados" && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-          <div className="lg:col-span-2">
-            <AdsMetricsSection emoji="🎵" title="TikTok Ads" fieldKey="tiktok_ads" profile={profile} clientId={clientId} onUpdated={refetchProfile} />
+        <div className="space-y-6">
+          {/* Social Orgânico */}
+          <div>
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">📊 Orgânico — Redes Sociais</p>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+              <TikTokSection profile={profile} clientId={clientId} onUpdated={refetchProfile} />
+              <SocialMetricsSection emoji="📸" title="Instagram — Métricas" fieldKey="instagram_posts" linkPlaceholder="https://instagram.com/p/..." profile={profile} clientId={clientId} onUpdated={refetchProfile} />
+              <SocialMetricsSection emoji="👥" title="Facebook — Métricas" fieldKey="facebook_posts" linkPlaceholder="https://facebook.com/..." profile={profile} clientId={clientId} onUpdated={refetchProfile} />
+              <SocialMetricsSection emoji="💼" title="LinkedIn — Métricas" fieldKey="linkedin_posts" linkPlaceholder="https://linkedin.com/posts/..." profile={profile} clientId={clientId} onUpdated={refetchProfile} />
+            </div>
           </div>
-          <div className="lg:col-span-2">
-            <AdsMetricsSection emoji="📘" title="Meta Ads (Facebook & Instagram)" fieldKey="meta_ads" profile={profile} clientId={clientId} onUpdated={refetchProfile} />
-          </div>
-          <div className="lg:col-span-2">
-            <AdsMetricsSection emoji="🔍" title="Google Ads" fieldKey="google_ads" profile={profile} clientId={clientId} onUpdated={refetchProfile} />
+          {/* Ads */}
+          <div>
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">💰 Tráfego Pago</p>
+            <div className="space-y-5">
+              <AdsMetricsSection emoji="🎵" title="TikTok Ads" fieldKey="tiktok_ads" profile={profile} clientId={clientId} onUpdated={refetchProfile} />
+              <AdsMetricsSection emoji="📘" title="Meta Ads (Facebook & Instagram)" fieldKey="meta_ads" profile={profile} clientId={clientId} onUpdated={refetchProfile} />
+              <AdsMetricsSection emoji="🔍" title="Google Ads" fieldKey="google_ads" profile={profile} clientId={clientId} onUpdated={refetchProfile} />
+            </div>
           </div>
         </div>
       )}
