@@ -97,26 +97,35 @@ function ContentCard({ card, index, onChange, onRemove, readOnly }) {
 
       <div>
         <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 block">
-          Tipo de Conteúdo
+          Tipo(s) de Conteúdo
         </label>
         <div className="flex flex-wrap gap-1.5">
-          {TIPOS_CONTEUDO.map((t) => (
-            <button
-              key={t}
-              type="button"
-              disabled={readOnly}
-              onClick={() => onChange({ ...card, tipo_conteudo: t })}
-              className={cn(
-                "text-[11px] px-2.5 py-1 rounded-full border font-medium transition-colors",
-                card.tipo_conteudo === t
-                  ? "bg-primary text-primary-foreground border-primary"
-                  : "border-border hover:border-primary/50 hover:bg-muted/60",
-                readOnly && "pointer-events-none"
-              )}
-            >
-              {t}
-            </button>
-          ))}
+          {TIPOS_CONTEUDO.map((t) => {
+            const tipos = Array.isArray(card.tipo_conteudo) ? card.tipo_conteudo : (card.tipo_conteudo ? [card.tipo_conteudo] : []);
+            const isSelected = tipos.includes(t);
+            return (
+              <button
+                key={t}
+                type="button"
+                disabled={readOnly}
+                onClick={() => {
+                  const updated = isSelected
+                    ? tipos.filter((x) => x !== t)
+                    : [...tipos, t];
+                  onChange({ ...card, tipo_conteudo: updated });
+                }}
+                className={cn(
+                  "text-[11px] px-2.5 py-1 rounded-full border font-medium transition-colors",
+                  isSelected
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "border-border hover:border-primary/50 hover:bg-muted/60",
+                  readOnly && "pointer-events-none"
+                )}
+              >
+                {t}
+              </button>
+            );
+          })}
         </div>
       </div>
 
