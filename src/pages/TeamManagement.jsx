@@ -15,6 +15,9 @@ const roleConfig = {
   redator: { label: "Redator", color: "bg-blue-100 text-blue-700" },
   designer: { label: "Designer", color: "bg-pink-100 text-pink-700" },
   social_media: { label: "Social Media", color: "bg-emerald-100 text-emerald-700" },
+  gestor_trafego: { label: "Gestor de Tráfego", color: "bg-cyan-100 text-cyan-700" },
+  videomaker: { label: "Videomaker", color: "bg-yellow-100 text-yellow-700" },
+  assistente_financeira: { label: "Assistente Financeira", color: "bg-rose-100 text-rose-700" },
   cliente: { label: "Cliente", color: "bg-orange-100 text-orange-700" },
 };
 
