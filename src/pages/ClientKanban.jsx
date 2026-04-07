@@ -111,7 +111,15 @@ export default function ClientKanban() {
       {activeTab === "kanban" && (
         <div className="flex gap-4 overflow-x-auto pb-4">
           {columns.map((step) => {
-            const stepDemands = clientDemands.filter((d) => d.current_step === step);
+            let stepDemands = clientDemands.filter((d) => d.current_step === step);
+            // Ordenar por data de postagem crescente (primeiro card do mês)
+            stepDemands = stepDemands.sort((a, b) => {
+              const dateA = a.scheduled_date;
+              const dateB = b.scheduled_date;
+              if (!dateA) return 1;
+              if (!dateB) return -1;
+              return new Date(dateA) - new Date(dateB);
+            });
             const color = getStepColor(step);
             return (
               <div key={step} className="min-w-[260px] max-w-[300px] flex-shrink-0 bg-muted/40 rounded-xl">

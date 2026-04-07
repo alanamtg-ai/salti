@@ -14,6 +14,7 @@ const priorityConfig = {
 
 export default function DemandCardV2({ demand, onClick }) {
   const p = priorityConfig[demand.priority] || priorityConfig.media;
+  const scheduledDate = demand.scheduled_date ? new Date(demand.scheduled_date) : null;
   const stepDeadline = demand.step_deadlines?.[demand.current_step];
   const deadlineDate = stepDeadline ? new Date(stepDeadline) : demand.deadline ? new Date(demand.deadline) : null;
   const isOverdue = deadlineDate && isPast(deadlineDate) && !isToday(deadlineDate) && demand.current_step !== "publicado";
@@ -38,10 +39,10 @@ export default function DemandCardV2({ demand, onClick }) {
       )}
 
       {/* Data de postagem */}
-      {demand.scheduled_date && (
-        <div className="flex items-center gap-1 text-[10px] text-muted-foreground mt-2 mb-2">
+      {scheduledDate && (
+        <div className="flex items-center gap-1 text-[10px] text-emerald-600 font-medium mt-2 mb-2">
           <Calendar className="w-3 h-3" />
-          {format(new Date(demand.scheduled_date), "dd/MMM", { locale: ptBR })}
+          {format(scheduledDate, "dd/MMM", { locale: ptBR })}
         </div>
       )}
 
