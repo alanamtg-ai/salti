@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { useState } from "react";
-import { Plus, ChevronLeft, Columns, BookOpen } from "lucide-react";
+import { Plus, ChevronLeft, Columns, BookOpen, BarChart2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import DemandCardV2 from "@/components/demands/DemandCardV2";
@@ -18,12 +18,15 @@ import SelosSection from "@/components/client-profile/SelosSection";
 import DatasSection from "@/components/client-profile/DatasSection";
 import GestaoCriseSection from "@/components/client-profile/GestaoCriseSection";
 import TikTokSection from "@/components/client-profile/TikTokSection";
+import SocialMetricsSection from "@/components/client-profile/SocialMetricsSection";
+import AdsMetricsSection from "@/components/client-profile/AdsMetricsSection";
 
 const STEP_ORDER = ["briefing", "estrategia", "redacao", "design", "aprovacao_cliente", "distribuicao", "finalizado"];
 
 const TABS = [
   { key: "kanban", label: "Kanban", icon: Columns },
   { key: "perfil", label: "Perfil do Cliente", icon: BookOpen },
+  { key: "resultados", label: "Resultados", icon: BarChart2 },
 ];
 
 export default function ClientKanban() {
@@ -140,6 +143,24 @@ export default function ClientKanban() {
           </div>
           <div className="lg:col-span-2">
             <TikTokSection profile={profile} clientId={clientId} onUpdated={refetchProfile} />
+          </div>
+          <SocialMetricsSection emoji="📸" title="Instagram — Métricas" fieldKey="instagram_posts" linkPlaceholder="https://instagram.com/p/..." profile={profile} clientId={clientId} onUpdated={refetchProfile} />
+          <SocialMetricsSection emoji="👥" title="Facebook — Métricas" fieldKey="facebook_posts" linkPlaceholder="https://facebook.com/..." profile={profile} clientId={clientId} onUpdated={refetchProfile} />
+          <SocialMetricsSection emoji="💼" title="LinkedIn — Métricas" fieldKey="linkedin_posts" linkPlaceholder="https://linkedin.com/posts/..." profile={profile} clientId={clientId} onUpdated={refetchProfile} />
+        </div>
+      )}
+
+      {/* Resultados de Ads */}
+      {activeTab === "resultados" && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          <div className="lg:col-span-2">
+            <AdsMetricsSection emoji="🎵" title="TikTok Ads" fieldKey="tiktok_ads" profile={profile} clientId={clientId} onUpdated={refetchProfile} />
+          </div>
+          <div className="lg:col-span-2">
+            <AdsMetricsSection emoji="📘" title="Meta Ads (Facebook & Instagram)" fieldKey="meta_ads" profile={profile} clientId={clientId} onUpdated={refetchProfile} />
+          </div>
+          <div className="lg:col-span-2">
+            <AdsMetricsSection emoji="🔍" title="Google Ads" fieldKey="google_ads" profile={profile} clientId={clientId} onUpdated={refetchProfile} />
           </div>
         </div>
       )}

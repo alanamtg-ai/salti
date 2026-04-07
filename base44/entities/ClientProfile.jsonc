@@ -156,14 +156,12 @@
     },
     "selos_links": {
       "type": "array",
-      "description": "Links relacionados a selos e campanhas",
       "items": {
         "type": "string"
       }
     },
     "selos_campanhas": {
       "type": "array",
-      "description": "Legado \u2014 selos e campanhas unificados",
       "items": {
         "type": "object",
         "properties": {
@@ -250,6 +248,222 @@
             "type": "number"
           },
           "salvamentos": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "instagram_posts": {
+      "type": "array",
+      "description": "M\u00e9tricas manuais de posts do Instagram",
+      "items": {
+        "type": "object",
+        "properties": {
+          "titulo": {
+            "type": "string"
+          },
+          "data": {
+            "type": "string"
+          },
+          "link": {
+            "type": "string"
+          },
+          "visualizacoes": {
+            "type": "number"
+          },
+          "curtidas": {
+            "type": "number"
+          },
+          "comentarios": {
+            "type": "number"
+          },
+          "compartilhamentos": {
+            "type": "number"
+          },
+          "salvamentos": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "facebook_posts": {
+      "type": "array",
+      "description": "M\u00e9tricas manuais de posts do Facebook",
+      "items": {
+        "type": "object",
+        "properties": {
+          "titulo": {
+            "type": "string"
+          },
+          "data": {
+            "type": "string"
+          },
+          "link": {
+            "type": "string"
+          },
+          "visualizacoes": {
+            "type": "number"
+          },
+          "curtidas": {
+            "type": "number"
+          },
+          "comentarios": {
+            "type": "number"
+          },
+          "compartilhamentos": {
+            "type": "number"
+          },
+          "salvamentos": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "linkedin_posts": {
+      "type": "array",
+      "description": "M\u00e9tricas manuais de posts do LinkedIn",
+      "items": {
+        "type": "object",
+        "properties": {
+          "titulo": {
+            "type": "string"
+          },
+          "data": {
+            "type": "string"
+          },
+          "link": {
+            "type": "string"
+          },
+          "visualizacoes": {
+            "type": "number"
+          },
+          "curtidas": {
+            "type": "number"
+          },
+          "comentarios": {
+            "type": "number"
+          },
+          "compartilhamentos": {
+            "type": "number"
+          },
+          "salvamentos": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "meta_ads": {
+      "type": "array",
+      "description": "Campanhas Meta Ads",
+      "items": {
+        "type": "object",
+        "properties": {
+          "nome": {
+            "type": "string"
+          },
+          "periodo": {
+            "type": "string"
+          },
+          "investimento": {
+            "type": "number"
+          },
+          "impressoes": {
+            "type": "number"
+          },
+          "cliques": {
+            "type": "number"
+          },
+          "ctr": {
+            "type": "number"
+          },
+          "cpc": {
+            "type": "number"
+          },
+          "conversoes": {
+            "type": "number"
+          },
+          "cpa": {
+            "type": "number"
+          },
+          "alcance": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "tiktok_ads": {
+      "type": "array",
+      "description": "Campanhas TikTok Ads",
+      "items": {
+        "type": "object",
+        "properties": {
+          "nome": {
+            "type": "string"
+          },
+          "periodo": {
+            "type": "string"
+          },
+          "investimento": {
+            "type": "number"
+          },
+          "impressoes": {
+            "type": "number"
+          },
+          "cliques": {
+            "type": "number"
+          },
+          "ctr": {
+            "type": "number"
+          },
+          "cpc": {
+            "type": "number"
+          },
+          "conversoes": {
+            "type": "number"
+          },
+          "cpa": {
+            "type": "number"
+          },
+          "alcance": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "google_ads": {
+      "type": "array",
+      "description": "Campanhas Google Ads",
+      "items": {
+        "type": "object",
+        "properties": {
+          "nome": {
+            "type": "string"
+          },
+          "periodo": {
+            "type": "string"
+          },
+          "investimento": {
+            "type": "number"
+          },
+          "impressoes": {
+            "type": "number"
+          },
+          "cliques": {
+            "type": "number"
+          },
+          "ctr": {
+            "type": "number"
+          },
+          "cpc": {
+            "type": "number"
+          },
+          "conversoes": {
+            "type": "number"
+          },
+          "cpa": {
+            "type": "number"
+          },
+          "alcance": {
             "type": "number"
           }
         }
