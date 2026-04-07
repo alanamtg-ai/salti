@@ -6,10 +6,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
-import { Plus, Trash2, Save, Send, Calendar, Clock, Tag, Radio, Loader2, CheckCircle2 } from "lucide-react";
+import { Plus, Trash2, Save, Send, Calendar, Clock, Tag, Radio, Loader2, CheckCircle2, Layers } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format, subDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import BulkCardGenerator from "./BulkCardGenerator";
 
 // Função para subtrair dias úteis (seg-sex)
 const subtractBusinessDays = (date, businessDays) => {
@@ -441,6 +442,7 @@ export default function ContentCardsEditor({ demand, onUpdated, canEdit }) {
   const [saved, setSaved] = useState(false);
   const [sendModalOpen, setSendModalOpen] = useState(false);
   const [demandToDelete, setDemandToDelete] = useState(null);
+  const [bulkGeneratorOpen, setBulkGeneratorOpen] = useState(false);
 
   const { data: members = [] } = useQuery({
     queryKey: ["team_members"],
@@ -475,6 +477,17 @@ export default function ContentCardsEditor({ demand, onUpdated, canEdit }) {
     onUpdated();
   };
 
+  const handleBulkGenerate = (newCards) => {
+    if (cards.length === 1 && cards[0].tema === "" && cards[0].data_postagem === "") {
+      // Se só há um card vazio, substitui
+      setCards(newCards);
+    } else {
+      // Caso contrário, adiciona aos existentes
+      setCards([...cards, ...newCards]);
+    }
+    setSaved(false);
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between flex-wrap gap-2">
@@ -484,9 +497,14 @@ export default function ContentCardsEditor({ demand, onUpdated, canEdit }) {
         </div>
         <div className="flex gap-2 flex-wrap">
           {canEdit && (
-            <Button size="sm" variant="outline" onClick={addCard}>
-              <Plus className="w-3.5 h-3.5 mr-1" /> Card
-            </Button>
+            <>
+              <Button size="sm" variant="outline" onClick={() => setBulkGeneratorOpen(true)}>
+                <Layers className="w-3.5 h-3.5 mr-1" /> Gerar em Lote
+              </Button>
+              <Button size="sm" variant="outline" onClick={addCard}>
+                <Plus className="w-3.5 h-3.5 mr-1" /> Card
+              </Button>
+            </>
           )}
           {canEdit && (
             <Button size="sm" variant="outline" onClick={handleSave} disabled={saving}>
@@ -536,6 +554,12 @@ export default function ContentCardsEditor({ demand, onUpdated, canEdit }) {
         onClose={() => setDemandToDelete(null)}
         demandTitle={demandToDelete?.title}
         onConfirm={handleDeleteDemand}
+      />
+
+      <BulkCardGenerator
+        open={bulkGeneratorOpen}
+        onClose={() => setBulkGeneratorOpen(false)}
+        onGenerate={handleBulkGenerate}
       />
     </div>
   );
