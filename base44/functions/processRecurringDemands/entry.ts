@@ -42,29 +42,40 @@ Deno.serve(async (req) => {
 
       const steps = r.steps_flow?.length ? r.steps_flow : ['briefing', 'estrategia', 'redacao', 'design', 'aprovacao_cliente', 'agendamento', 'distribuicao', 'finalizado'];
 
-      await base44.asServiceRole.entities.Demand.create({
-        title: r.title,
-        description: r.description || '',
-        product_type: r.product_type || 'outro',
-        client_id: r.client_id,
-        client_name: r.client_name || '',
-        priority: r.priority || 'media',
-        steps_flow: steps,
-        assignees: r.assignees || {},
-        current_step: steps[0],
-        current_step_index: 0,
-        status: 'ativo',
-        step_started_at: nowISO,
-        history: [{
-          etapa_origem: null,
-          etapa_destino: steps[0],
-          acao: 'criado',
-          by: 'sistema',
-          by_name: 'Automação Recorrente',
-          date: nowISO,
-          observacao: `Gerado automaticamente pela recorrência: ${r.title}`,
-        }],
-      });
+      // Se client_id for "__todos__", cria uma demanda para cada cliente ativo
+      let clientsToCreate = [];
+      if (r.client_id === '__todos__') {
+        const allClients = await base44.asServiceRole.entities.Client.list();
+        clientsToCreate = allClients.filter((c) => c.active !== false).map((c) => ({ id: c.id, name: c.name }));
+      } else {
+        clientsToCreate = [{ id: r.client_id, name: r.client_name || '' }];
+      }
+
+      for (const client of clientsToCreate) {
+        await base44.asServiceRole.entities.Demand.create({
+          title: r.title,
+          description: r.description || '',
+          product_type: r.product_type || 'outro',
+          client_id: client.id,
+          client_name: client.name,
+          priority: r.priority || 'media',
+          steps_flow: steps,
+          assignees: r.assignees || {},
+          current_step: steps[0],
+          current_step_index: 0,
+          status: 'ativo',
+          step_started_at: nowISO,
+          history: [{
+            etapa_origem: null,
+            etapa_destino: steps[0],
+            acao: 'criado',
+            by: 'sistema',
+            by_name: 'Automação Recorrente',
+            date: nowISO,
+            observacao: `Gerado automaticamente pela recorrência: ${r.title}`,
+          }],
+        });
+      }
 
       await base44.asServiceRole.entities.RecurringDemand.update(r.id, {
         last_generated_date: nowISO,

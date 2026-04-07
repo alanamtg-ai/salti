@@ -62,6 +62,7 @@ export default function RecurringDemandForm({ open, onClose, onSave, editing = n
   const [saving, setSaving] = useState(false);
 
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: () => base44.entities.Client.list() });
+  const { data: members = [] } = useQuery({ queryKey: ["team_members"], queryFn: () => base44.entities.TeamMember.list() });
 
   useEffect(() => {
     if (editing) {
@@ -73,10 +74,28 @@ export default function RecurringDemandForm({ open, onClose, onSave, editing = n
 
   useEffect(() => {
     const template = FLOW_TEMPLATES[form.flow_template];
-    if (template) setForm((f) => ({ ...f, steps_flow: template.steps }));
-  }, [form.flow_template]);
+    if (template) {
+      // Se fluxo administrativo, preenche responsável com assistente financeira automaticamente
+      if (form.flow_template === "administrativo") {
+        const assistente = members.find((m) => m.role === "assistente_financeira");
+        setForm((f) => ({
+          ...f,
+          steps_flow: template.steps,
+          assignees: assistente ? { briefing: assistente.email } : f.assignees,
+        }));
+      } else {
+        setForm((f) => ({ ...f, steps_flow: template.steps }));
+      }
+    }
+  }, [form.flow_template, members]);
+
+  const ALL_CLIENTS_ID = "__todos__";
 
   const handleClientChange = (id) => {
+    if (id === ALL_CLIENTS_ID) {
+      setForm((f) => ({ ...f, client_id: ALL_CLIENTS_ID, client_name: "Todos os clientes" }));
+      return;
+    }
     const client = clients.find((c) => c.id === id);
     setForm((f) => ({ ...f, client_id: id, client_name: client?.name || "" }));
   };
@@ -142,6 +161,7 @@ export default function RecurringDemandForm({ open, onClose, onSave, editing = n
             <Select value={form.client_id} onValueChange={handleClientChange}>
               <SelectTrigger><SelectValue placeholder="Selecione o cliente..." /></SelectTrigger>
               <SelectContent>
+                <SelectItem value="__todos__">⭐ Todos os clientes</SelectItem>
                 {clients.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
               </SelectContent>
             </Select>
