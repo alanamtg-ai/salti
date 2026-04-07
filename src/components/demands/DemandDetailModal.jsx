@@ -72,6 +72,8 @@ export default function DemandDetailModal({ demand, member, onClose, onUpdated }
   const [loading, setLoading]                   = useState(false);
   const [showDistribuicao, setShowDistribuicao] = useState(false);
   const [showDesignerPicker, setShowDesignerPicker] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const { data: members = [] } = useQuery({
     queryKey: ["team_members"],
@@ -200,6 +202,18 @@ export default function DemandDetailModal({ demand, member, onClose, onUpdated }
 
   const nextStep = stepsFlow[stepIndex + 1];
 
+  const handleDelete = async () => {
+    setDeleting(true);
+    await base44.entities.Demand.delete(demand.id);
+    setDeleting(false);
+    setShowDeleteConfirm(false);
+    onUpdated();
+    onClose();
+  };
+
+  // Apenas estrategia pode deletar após envio para redação
+  const canDelete = myRole === "admin" || (myRole === "estrategista" && demand.current_step === "redacao");
+
   // Label do botão de aprovação por contexto
   const approveLabel = () => {
     if (currentStep === "estrategia") return null; // estrategia usa ContentCardsEditor
@@ -311,6 +325,30 @@ export default function DemandDetailModal({ demand, member, onClose, onUpdated }
           {/* ── AÇÕES ── */}
           {canAct && currentStep !== "finalizado" && currentStep !== "estrategia" && (
             <div className="border-t pt-4 space-y-3">
+              {showDeleteConfirm && (
+                <div className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg p-3 space-y-3">
+                  <p className="text-sm text-red-700 dark:text-red-400">
+                    Tem certeza que deseja excluir esta demanda? Esta ação não pode ser desfeita.
+                  </p>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowDeleteConfirm(false)}
+                    >
+                      Cancelar
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={handleDelete}
+                      disabled={deleting}
+                    >
+                      {deleting ? "Excluindo..." : "Confirmar Exclusão"}
+                    </Button>
+                  </div>
+                </div>
+              )}
               {showDistribuicao ? (
                 <PostClientApprovalPicker onPick={handleAprovar} />
               ) : showDesignerPicker ? (
@@ -388,6 +426,20 @@ export default function DemandDetailModal({ demand, member, onClose, onUpdated }
                   </div>
                 </>
               )}
+            </div>
+          )}
+
+          {/* Botão de exclusão para estrategista na etapa de redação */}
+          {canDelete && !showDeleteConfirm && (
+            <div className="border-t pt-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowDeleteConfirm(true)}
+                className="text-red-600 border-red-200 hover:bg-red-50 w-full"
+              >
+                🗑️ Excluir Demanda
+              </Button>
             </div>
           )}
 

@@ -213,6 +213,46 @@ function ContentCard({ card, index, onChange, onRemove, readOnly }) {
       );
       }
 
+// Modal de confirmação de exclusão
+function DeleteDemandModal({ open, onClose, demandTitle, onConfirm }) {
+  const [deleting, setDeleting] = useState(false);
+
+  const handleDelete = async () => {
+    setDeleting(true);
+    await onConfirm();
+    setDeleting(false);
+    onClose();
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-sm">
+        <DialogHeader>
+          <DialogTitle>Excluir Demanda</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4 py-2">
+          <p className="text-sm text-muted-foreground">
+            Tem certeza que deseja excluir a demanda <strong>"{demandTitle}"</strong>?
+          </p>
+          <p className="text-xs text-muted-foreground">
+            Esta ação não pode ser desfeita.
+          </p>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>Cancelar</Button>
+          <Button
+            variant="destructive"
+            onClick={handleDelete}
+            disabled={deleting}
+          >
+            {deleting ? "Excluindo..." : "Excluir"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 // Modal: seleciona redator e confirma envio
 function SendToWriterModal({ open, onClose, cards, demand, members, onSent }) {
   const [redatorEmail, setRedatorEmail] = useState("");
@@ -337,6 +377,7 @@ export default function ContentCardsEditor({ demand, onUpdated, canEdit }) {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [sendModalOpen, setSendModalOpen] = useState(false);
+  const [demandToDelete, setDemandToDelete] = useState(null);
 
   const { data: members = [] } = useQuery({
     queryKey: ["team_members"],
@@ -361,6 +402,13 @@ export default function ContentCardsEditor({ demand, onUpdated, canEdit }) {
     await base44.entities.Demand.update(demand.id, { content_cards: cardsToSave });
     setSaving(false);
     setSaved(true);
+    onUpdated();
+  };
+
+  const handleDeleteDemand = async () => {
+    if (!demandToDelete) return;
+    await base44.entities.Demand.delete(demandToDelete.id);
+    setDemandToDelete(null);
     onUpdated();
   };
 
@@ -418,6 +466,13 @@ export default function ContentCardsEditor({ demand, onUpdated, canEdit }) {
         demand={demand}
         members={members}
         onSent={onUpdated}
+      />
+
+      <DeleteDemandModal
+        open={!!demandToDelete}
+        onClose={() => setDemandToDelete(null)}
+        demandTitle={demandToDelete?.title}
+        onConfirm={handleDeleteDemand}
       />
     </div>
   );
