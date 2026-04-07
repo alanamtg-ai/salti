@@ -7,6 +7,7 @@ import { Plus, Repeat, Pencil, Trash2, ToggleLeft, ToggleRight } from "lucide-re
 import RecurringDemandForm from "@/components/demands/RecurringDemandForm";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
+import { useCurrentMember } from "@/lib/useCurrentMember";
 
 const priorityConfig = {
   baixa:   { label: "Baixa",   cls: "bg-emerald-100 text-emerald-700" },
@@ -24,9 +25,13 @@ const recurrenceLabel = (r) => {
   return "Diária";
 };
 
+const ALLOWED_ROLES = ["admin", "gestor_trafego", "assistente_financeira"];
+const ALLOWED_NAMES = ["alana"]; // admin Alana sempre tem acesso
+
 export default function RecurringDemands() {
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState(null);
+  const { member } = useCurrentMember();
 
   const { data: recurring = [], refetch } = useQuery({
     queryKey: ["recurring_demands"],
@@ -46,6 +51,21 @@ export default function RecurringDemands() {
   const handleEdit = (r) => { setEditing(r); setFormOpen(true); };
 
   const openNew = () => { setEditing(null); setFormOpen(true); };
+
+  const hasAccess = member && (
+    ALLOWED_ROLES.includes(member.role) ||
+    ALLOWED_NAMES.some((n) => member.name?.toLowerCase().includes(n))
+  );
+
+  if (member && !hasAccess) {
+    return (
+      <div className="flex flex-col items-center justify-center py-32 text-center text-muted-foreground">
+        <Repeat className="w-12 h-12 mb-4 opacity-20" />
+        <p className="font-medium">Acesso restrito</p>
+        <p className="text-sm mt-1">Apenas gestores de tráfego, assistente financeira e admins têm acesso a esta área.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 pb-20 lg:pb-0">

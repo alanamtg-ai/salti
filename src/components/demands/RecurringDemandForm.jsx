@@ -14,6 +14,7 @@ const PRODUCT_TYPES = [
   { value: "outro", label: "Outro" },
   { value: "servicos_administrativos", label: "Serviços Administrativos" },
   { value: "cotacao", label: "Cotação" },
+  { value: "relatorio_trafego", label: "Relatório Gestão de Tráfego" },
   { value: "copy_email", label: "E-mail Marketing" },
   { value: "relatorio", label: "Relatório" },
   { value: "apresentacao", label: "Apresentação" },

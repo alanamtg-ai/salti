@@ -45,6 +45,7 @@
         "foto_editorial",
         "servicos_administrativos",
         "cotacao",
+        "relatorio_trafego",
         "outro"
       ]
     },
