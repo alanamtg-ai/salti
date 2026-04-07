@@ -10,7 +10,7 @@ import { format, differenceInDays, isPast, isToday } from "date-fns";
 import { getStepLabel, getStepLight, STEPS, REJECTION_STEP } from "@/lib/flowConfig";
 import DemandTimeline from "./DemandTimeline";
 import ContentCardsEditor from "./ContentCardsEditor";
-import { CheckCircle2, XCircle, RotateCcw, Clock, AlertTriangle, ChevronRight, Palette } from "lucide-react";
+import { CheckCircle2, XCircle, RotateCcw, Clock, AlertTriangle, ChevronRight, Palette, BookOpen, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { UNIVERSAL_MEMBERS } from "@/lib/universalMembers";
 
@@ -74,11 +74,13 @@ function DesignerPicker({ members, onPick }) {
 
 export default function DemandDetailModal({ demand, member, onClose, onUpdated }) {
   const [note, setNote]                         = useState("");
+  const [contentText, setContentText]           = useState(demand?.content_text || "");
   const [loading, setLoading]                   = useState(false);
   const [showDistribuicao, setShowDistribuicao] = useState(false);
   const [showDesignerPicker, setShowDesignerPicker] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [activeTab, setActiveTab] = useState("briefing");
 
   const { data: members = [] } = useQuery({
     queryKey: ["team_members"],
@@ -147,6 +149,11 @@ export default function DemandDetailModal({ demand, member, onClose, onUpdated }
       updates.assignees = { ...(demand.assignees || {}), design: designerEmail };
     }
     if (distribuicaoTipo) updates.distribuicao_tipo = distribuicaoTipo;
+
+    // Salvar conteúdo de redação se houver
+    if (currentStep === "redacao" && contentText.trim()) {
+      updates.content_text = contentText;
+    }
 
     await base44.entities.Demand.update(demand.id, updates);
     setNote("");
@@ -338,30 +345,77 @@ export default function DemandDetailModal({ demand, member, onClose, onUpdated }
             </div>
           )}
 
-          {/* Descrição */}
-          {demand.description && (
-            <div>
-              <p className="text-xs font-semibold text-muted-foreground mb-1">Briefing</p>
-              <p className="text-sm whitespace-pre-line">{demand.description}</p>
-            </div>
-          )}
-
-          {/* Sketch / referências */}
-          {demand.sketch_data && (
-            <div>
-              <p className="text-xs font-semibold text-muted-foreground mb-1">Rabisco</p>
-              <img src={demand.sketch_data} alt="sketch" className="rounded-lg border border-border max-h-48 object-contain w-full bg-slate-50" />
-            </div>
-          )}
-
-          {(demand.reference_links || []).length > 0 && (
-            <div>
-              <p className="text-xs font-semibold text-muted-foreground mb-1">Referências</p>
-              <div className="space-y-1">
-                {demand.reference_links.map((l, i) => (
-                  <a key={i} href={l} target="_blank" rel="noopener noreferrer" className="block text-xs text-primary underline truncate">{l}</a>
-                ))}
+          {/* Abas: Briefing / Conteúdo (apenas em redação) */}
+          {(demand.description || demand.sketch_data || (demand.reference_links || []).length > 0 || currentStep === "redacao") && (
+            <div className="border-t pt-4 space-y-3">
+              <div className="flex gap-2 border-b border-border">
+                <button
+                  onClick={() => setActiveTab("briefing")}
+                  className={cn("flex items-center gap-1.5 px-3 py-2 text-xs font-medium border-b-2 transition-colors", 
+                    activeTab === "briefing" 
+                      ? "border-primary text-primary" 
+                      : "border-transparent text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  <BookOpen className="w-3.5 h-3.5" /> Briefing
+                </button>
+                {currentStep === "redacao" && (
+                  <button
+                    onClick={() => setActiveTab("conteudo")}
+                    className={cn("flex items-center gap-1.5 px-3 py-2 text-xs font-medium border-b-2 transition-colors", 
+                      activeTab === "conteudo" 
+                        ? "border-primary text-primary" 
+                        : "border-transparent text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    <FileText className="w-3.5 h-3.5" /> Conteúdo
+                  </button>
+                )}
               </div>
+
+              {/* Aba Briefing */}
+              {activeTab === "briefing" && (
+                <div className="space-y-3">
+                  {demand.description && (
+                    <div>
+                      <p className="text-xs font-semibold text-muted-foreground mb-1">Briefing</p>
+                      <p className="text-sm whitespace-pre-line">{demand.description}</p>
+                    </div>
+                  )}
+
+                  {demand.sketch_data && (
+                    <div>
+                      <p className="text-xs font-semibold text-muted-foreground mb-1">Rabisco</p>
+                      <img src={demand.sketch_data} alt="sketch" className="rounded-lg border border-border max-h-48 object-contain w-full bg-slate-50" />
+                    </div>
+                  )}
+
+                  {(demand.reference_links || []).length > 0 && (
+                    <div>
+                      <p className="text-xs font-semibold text-muted-foreground mb-1">Referências</p>
+                      <div className="space-y-1">
+                        {demand.reference_links.map((l, i) => (
+                          <a key={i} href={l} target="_blank" rel="noopener noreferrer" className="block text-xs text-primary underline truncate">{l}</a>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Aba Conteúdo (apenas em redação) */}
+              {activeTab === "conteudo" && currentStep === "redacao" && (
+                <div className="space-y-2">
+                  <p className="text-xs font-semibold text-muted-foreground mb-1">Escrever Conteúdo</p>
+                  <Textarea
+                    value={contentText}
+                    onChange={(e) => setContentText(e.target.value)}
+                    placeholder="Escreva o conteúdo aqui..."
+                    className="h-48 text-sm resize-none"
+                  />
+                  <p className="text-[10px] text-muted-foreground">Seu conteúdo será salvo ao enviar para aprovação.</p>
+                </div>
+              )}
             </div>
           )}
 
