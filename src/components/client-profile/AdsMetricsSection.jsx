@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Pencil, Plus, Trash2, TrendingUp, MousePointer, DollarSign, Users, Target } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { fmt } from "./SocialMetricsSection";
+import CsvImportButton from "./CsvImportButton";
 
 const emptyCampaign = {
   nome: "", periodo: "", investimento: "", impressoes: "", cliques: "",
@@ -74,6 +75,7 @@ export default function AdsMetricsSection({ emoji, title, fieldKey, profile, cli
           <h3 className="font-semibold text-sm">{title}</h3>
         </div>
         <div className="flex gap-2">
+          {!editing && <CsvImportButton fieldKey={fieldKey} profile={profile} clientId={clientId} onUpdated={onUpdated} />}
           {editing && <Button size="sm" variant="ghost" onClick={cancel}>Cancelar</Button>}
           <Button size="sm" variant={editing ? "default" : "outline"} onClick={editing ? save : () => setEditing(true)}>
             {editing ? "Salvar" : <><Pencil className="w-3.5 h-3.5 mr-1" /> Editar</>}

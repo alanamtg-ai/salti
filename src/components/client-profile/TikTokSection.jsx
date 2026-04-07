@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Pencil, Plus, Trash2, ExternalLink, Heart, Eye, MessageCircle, Share2, Bookmark } from "lucide-react";
 import { cn } from "@/lib/utils";
+import CsvImportButton from "./CsvImportButton";
 
 const emptyPost = { titulo: "", data: "", link: "", visualizacoes: "", curtidas: "", comentarios: "", compartilhamentos: "", salvamentos: "" };
 
@@ -57,6 +58,7 @@ export default function TikTokSection({ profile, clientId, onUpdated }) {
           <h3 className="font-semibold text-sm">TikTok — Métricas</h3>
         </div>
         <div className="flex gap-2">
+          {!editing && <CsvImportButton fieldKey="tiktok_posts" profile={profile} clientId={clientId} onUpdated={onUpdated} />}
           {editing && (
             <Button size="sm" variant="ghost" onClick={() => { setPosts(profile?.tiktok_posts || []); setEditing(false); }}>
               Cancelar
