@@ -175,26 +175,36 @@ function ContentCard({ card, index, onChange, onRemove, readOnly }) {
 
       {/* Prazos fixados */}
       {card.data_postagem && (
-        <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20 rounded-lg p-3 border border-blue-200 dark:border-blue-800 space-y-2">
-          <p className="text-[10px] font-semibold text-blue-700 dark:text-blue-300 uppercase tracking-wider">📅 Prazos Fixados</p>
-          <div className="grid grid-cols-2 gap-2">
-            <div className="bg-white dark:bg-slate-800 rounded p-2 border border-blue-100 dark:border-blue-900">
-              <p className="text-[9px] font-semibold text-muted-foreground">Redação</p>
-              <p className="text-xs font-bold text-blue-600 dark:text-blue-400">
-                {format(subDays(new Date(card.data_postagem), 20), "dd/MMM", { locale: ptBR })}
-              </p>
-              <p className="text-[8px] text-muted-foreground">-20 dias</p>
-              <div className="mt-1.5 pt-1.5 border-t border-blue-100 dark:border-blue-900 space-y-1">
-                <p className="text-[8px] text-muted-foreground"><span className="font-semibold">Postagem:</span> {format(new Date(card.data_postagem), "dd/MMM", { locale: ptBR })}</p>
-                <p className="text-[8px] text-muted-foreground"><span className="font-semibold">Entrega:</span> {format(subDays(new Date(card.data_postagem), 20), "dd/MMM", { locale: ptBR })}</p>
-              </div>
+        <div className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-border space-y-3">
+          {/* Cabeçalho */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-blue-500" />
+              <p className="text-sm font-bold text-foreground">Redação</p>
             </div>
-            <div className="bg-white dark:bg-slate-800 rounded p-2 border border-purple-100 dark:border-purple-900">
-              <p className="text-[9px] font-semibold text-muted-foreground">Design</p>
-              <p className="text-xs font-bold text-purple-600 dark:text-purple-400">
-                {format(subDays(new Date(card.data_postagem), 15), "dd/MMM", { locale: ptBR })}
-              </p>
-              <p className="text-[8px] text-muted-foreground">-15 dias</p>
+            <span className="text-xs font-semibold text-muted-foreground">Dia do Trabalhador</span>
+          </div>
+
+          {/* Data da postagem */}
+          <div className="flex items-center gap-2">
+            <p className="text-xs text-muted-foreground">Data da postagem:</p>
+            <span className="bg-emerald-500 text-white text-xs font-semibold px-3 py-1 rounded-full">
+              {format(new Date(card.data_postagem), "dd/MMM - EEEE", { locale: ptBR })}
+            </span>
+          </div>
+
+          {/* Prazo de entrega */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400 text-xs font-semibold px-3 py-1 rounded-full">
+                Redação
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <p className="text-xs text-muted-foreground">Prazo de entrega:</p>
+              <span className="bg-emerald-500 text-white text-xs font-semibold px-3 py-1 rounded-full">
+                {format(subDays(new Date(card.data_postagem), 20), "dd/MMM", { locale: ptBR })}
+              </span>
             </div>
           </div>
         </div>
