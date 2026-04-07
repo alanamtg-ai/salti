@@ -181,16 +181,16 @@ function ContentCard({ card, index, onChange, onRemove, readOnly }) {
             <div className="bg-white dark:bg-slate-800 rounded p-2 border border-blue-100 dark:border-blue-900">
               <p className="text-[9px] font-semibold text-muted-foreground">Redação</p>
               <p className="text-xs font-bold text-blue-600 dark:text-blue-400">
-                {format(subDays(new Date(card.data_postagem), 30), "dd/MMM", { locale: ptBR })}
+                {format(subDays(new Date(card.data_postagem), 20), "dd/MMM", { locale: ptBR })}
               </p>
-              <p className="text-[8px] text-muted-foreground">-30 dias</p>
+              <p className="text-[8px] text-muted-foreground">-20 dias</p>
             </div>
             <div className="bg-white dark:bg-slate-800 rounded p-2 border border-purple-100 dark:border-purple-900">
               <p className="text-[9px] font-semibold text-muted-foreground">Design</p>
               <p className="text-xs font-bold text-purple-600 dark:text-purple-400">
-                {format(subDays(new Date(card.data_postagem), 25), "dd/MMM", { locale: ptBR })}
+                {format(subDays(new Date(card.data_postagem), 15), "dd/MMM", { locale: ptBR })}
               </p>
-              <p className="text-[8px] text-muted-foreground">-25 dias</p>
+              <p className="text-[8px] text-muted-foreground">-15 dias</p>
             </div>
           </div>
         </div>
