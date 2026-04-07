@@ -2,16 +2,16 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { base44 } from "@/api/base44Client";
-import { Plus, Trash2, Save, Send, Calendar, Clock, Tag, Radio } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { Plus, Trash2, Save, Send, Calendar, Clock, Tag, Radio, Loader2, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { format } from "date-fns";
 
 const DIAS_SEMANA = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"];
-
-const TIPOS_CONTEUDO = [
-  "Post Feed", "Stories", "Reels / TikTok", "Carrossel", "Vídeo", "Copy / Legenda", "Outro"
-];
-
+const TIPOS_CONTEUDO = ["Post Feed", "Stories", "Reels / TikTok", "Carrossel", "Vídeo", "Copy / Legenda", "Outro"];
 const CANAIS_OPCOES = ["Instagram", "Facebook", "TikTok", "LinkedIn", "YouTube", "WhatsApp"];
 
 const emptyCard = () => ({
@@ -25,7 +25,7 @@ const emptyCard = () => ({
   observacoes: "",
 });
 
-function ContentCard({ card, index, onChange, onRemove }) {
+function ContentCard({ card, index, onChange, onRemove, readOnly }) {
   const toggleCanal = (canal) => {
     const next = card.canais.includes(canal)
       ? card.canais.filter((c) => c !== canal)
@@ -35,21 +35,17 @@ function ContentCard({ card, index, onChange, onRemove }) {
 
   return (
     <div className="bg-card border border-border rounded-xl p-4 space-y-3 relative">
-      {/* Número do card */}
       <div className="flex items-center justify-between">
         <span className="text-xs font-bold text-primary bg-primary/10 rounded-full px-2.5 py-0.5">
           #{index + 1}
         </span>
-        <button
-          type="button"
-          onClick={onRemove}
-          className="text-muted-foreground hover:text-destructive transition-colors"
-        >
-          <Trash2 className="w-3.5 h-3.5" />
-        </button>
+        {!readOnly && (
+          <button type="button" onClick={onRemove} className="text-muted-foreground hover:text-destructive transition-colors">
+            <Trash2 className="w-3.5 h-3.5" />
+          </button>
+        )}
       </div>
 
-      {/* Tema */}
       <div>
         <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1 mb-1">
           <Tag className="w-3 h-3" /> Tema / Assunto
@@ -59,10 +55,10 @@ function ContentCard({ card, index, onChange, onRemove }) {
           onChange={(e) => onChange({ ...card, tema: e.target.value })}
           placeholder="Ex: Lançamento produto X, Dica da semana..."
           className="text-sm h-8"
+          readOnly={readOnly}
         />
       </div>
 
-      {/* Data + Dia da semana + Horário */}
       <div className="grid grid-cols-3 gap-2">
         <div>
           <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1 mb-1">
@@ -73,22 +69,17 @@ function ContentCard({ card, index, onChange, onRemove }) {
             value={card.data_postagem}
             onChange={(e) => {
               const date = e.target.value;
-              const dia = date ? DIAS_SEMANA[new Date(date + "T12:00:00").getDay() === 0 ? 6 : new Date(date + "T12:00:00").getDay() - 1] : "";
+              const jsDay = new Date(date + "T12:00:00").getDay();
+              const dia = date ? DIAS_SEMANA[jsDay === 0 ? 6 : jsDay - 1] : "";
               onChange({ ...card, data_postagem: date, dia_semana: dia });
             }}
             className="text-xs h-8"
+            readOnly={readOnly}
           />
         </div>
         <div>
-          <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1 block">
-            Dia
-          </label>
-          <Input
-            value={card.dia_semana}
-            readOnly
-            placeholder="Auto"
-            className="text-xs h-8 bg-muted/40"
-          />
+          <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1 block">Dia</label>
+          <Input value={card.dia_semana} readOnly placeholder="Auto" className="text-xs h-8 bg-muted/40" />
         </div>
         <div>
           <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1 mb-1">
@@ -99,11 +90,11 @@ function ContentCard({ card, index, onChange, onRemove }) {
             value={card.horario}
             onChange={(e) => onChange({ ...card, horario: e.target.value })}
             className="text-xs h-8"
+            readOnly={readOnly}
           />
         </div>
       </div>
 
-      {/* Tipo de conteúdo */}
       <div>
         <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 block">
           Tipo de Conteúdo
@@ -113,12 +104,14 @@ function ContentCard({ card, index, onChange, onRemove }) {
             <button
               key={t}
               type="button"
+              disabled={readOnly}
               onClick={() => onChange({ ...card, tipo_conteudo: t })}
               className={cn(
                 "text-[11px] px-2.5 py-1 rounded-full border font-medium transition-colors",
                 card.tipo_conteudo === t
                   ? "bg-primary text-primary-foreground border-primary"
-                  : "border-border hover:border-primary/50 hover:bg-muted/60"
+                  : "border-border hover:border-primary/50 hover:bg-muted/60",
+                readOnly && "pointer-events-none"
               )}
             >
               {t}
@@ -127,7 +120,6 @@ function ContentCard({ card, index, onChange, onRemove }) {
         </div>
       </div>
 
-      {/* Canais */}
       <div>
         <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1 mb-1.5">
           <Radio className="w-3 h-3" /> Canais
@@ -137,12 +129,14 @@ function ContentCard({ card, index, onChange, onRemove }) {
             <button
               key={c}
               type="button"
+              disabled={readOnly}
               onClick={() => toggleCanal(c)}
               className={cn(
                 "text-[11px] px-2.5 py-1 rounded-full border font-medium transition-colors",
                 card.canais.includes(c)
                   ? "bg-violet-600 text-white border-violet-600"
-                  : "border-border hover:border-violet-400/60 hover:bg-muted/60"
+                  : "border-border hover:border-violet-400/60 hover:bg-muted/60",
+                readOnly && "pointer-events-none"
               )}
             >
               {c}
@@ -151,7 +145,6 @@ function ContentCard({ card, index, onChange, onRemove }) {
         </div>
       </div>
 
-      {/* Observações */}
       <div>
         <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1 block">
           Observações para o Redator
@@ -161,35 +154,145 @@ function ContentCard({ card, index, onChange, onRemove }) {
           onChange={(e) => onChange({ ...card, observacoes: e.target.value })}
           placeholder="Tom de voz, referências, hashtags sugeridas..."
           className="text-xs h-16 resize-none"
+          readOnly={readOnly}
         />
       </div>
     </div>
   );
 }
 
+// Modal: seleciona redator e confirma envio
+function SendToWriterModal({ open, onClose, cards, demand, members, onSent }) {
+  const [redatorEmail, setRedatorEmail] = useState("");
+  const [sending, setSending] = useState(false);
+  const [done, setDone] = useState(false);
+
+  const redatores = members.filter((m) => m.role === "redator" || m.role === "admin");
+
+  const handleSend = async () => {
+    if (!redatorEmail) return;
+    setSending(true);
+    const now = format(new Date(), "yyyy-MM-dd'T'HH:mm:ss");
+
+    // Cria uma demanda por card, já na etapa "redacao"
+    await Promise.all(
+      cards.map((card) =>
+        base44.entities.Demand.create({
+          title: card.tema || `Conteúdo - ${card.data_postagem || "sem data"}`,
+          description: [
+            card.tipo_conteudo && `Tipo: ${card.tipo_conteudo}`,
+            card.data_postagem && `Data: ${card.data_postagem} (${card.dia_semana})`,
+            card.horario && `Horário: ${card.horario}`,
+            card.canais?.length && `Canais: ${card.canais.join(", ")}`,
+            card.observacoes && `Observações: ${card.observacoes}`,
+          ].filter(Boolean).join("\n"),
+          client_id: demand.client_id,
+          client_name: demand.client_name,
+          priority: demand.priority,
+          product_type: card.tipo_conteudo === "Post Feed" ? "post_feed"
+            : card.tipo_conteudo === "Stories" ? "post_stories"
+            : card.tipo_conteudo === "Reels / TikTok" ? "post_reels"
+            : card.tipo_conteudo === "Carrossel" ? "carrossel"
+            : card.tipo_conteudo === "Vídeo" ? "video_curto"
+            : "copy_legenda",
+          steps_flow: ["redacao", "aprovacao_interna_redacao", "design", "aprovacao_interna_design", "aprovacao_cliente", "finalizado"],
+          current_step: "redacao",
+          current_step_index: 0,
+          scheduled_date: card.data_postagem,
+          assignees: { redacao: redatorEmail },
+          status: "ativo",
+          step_started_at: now,
+          history: [{
+            etapa_origem: "estrategia",
+            etapa_destino: "redacao",
+            acao: "aprovado",
+            by: "admin",
+            by_name: "Admin",
+            date: now,
+            observacao: `Enviado pelo estrategista. Card original: ${demand.title}`,
+          }],
+          // referência ao demand pai
+          reference_links: demand.reference_links || [],
+          sketch_data: demand.sketch_data || "",
+        })
+      )
+    );
+
+    setSending(false);
+    setDone(true);
+    setTimeout(() => {
+      onSent();
+      onClose();
+      setDone(false);
+      setRedatorEmail("");
+    }, 1200);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-sm">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Send className="w-4 h-4 text-primary" /> Enviar para Redação
+          </DialogTitle>
+        </DialogHeader>
+
+        {done ? (
+          <div className="flex flex-col items-center gap-2 py-6">
+            <CheckCircle2 className="w-10 h-10 text-emerald-500" />
+            <p className="text-sm font-medium">{cards.length} demanda{cards.length > 1 ? "s" : ""} criada{cards.length > 1 ? "s" : ""}!</p>
+          </div>
+        ) : (
+          <>
+            <div className="space-y-4 py-2">
+              <div className="bg-muted/40 rounded-lg p-3 text-xs text-muted-foreground">
+                Serão criadas <strong className="text-foreground">{cards.length} demanda{cards.length > 1 ? "s"  : ""}</strong> (1 por card), já na etapa de <strong className="text-blue-600">Redação</strong>.
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium">Redator responsável</label>
+                <Select value={redatorEmail} onValueChange={setRedatorEmail}>
+                  <SelectTrigger><SelectValue placeholder="Selecione o redator..." /></SelectTrigger>
+                  <SelectContent>
+                    {redatores.map((m) => (
+                      <SelectItem key={m.id} value={m.email}>{m.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={onClose}>Cancelar</Button>
+              <Button onClick={handleSend} disabled={!redatorEmail || sending}>
+                {sending ? <><Loader2 className="w-4 h-4 mr-1 animate-spin" /> Criando...</> : <><Send className="w-4 h-4 mr-1" /> Enviar</>}
+              </Button>
+            </DialogFooter>
+          </>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export default function ContentCardsEditor({ demand, onUpdated, canEdit }) {
-  const existingCards = demand.content_cards || [];
-  const [cards, setCards] = useState(existingCards.length > 0 ? existingCards : [emptyCard()]);
+  const [cards, setCards] = useState(
+    demand.content_cards?.length > 0 ? demand.content_cards : [emptyCard()]
+  );
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [sendModalOpen, setSendModalOpen] = useState(false);
 
-  // Quantos conteúdos o cliente tem contratados (via demand não temos esse dado diretamente)
-  // Deixamos livre para adicionar quantos quiser
+  const { data: members = [] } = useQuery({
+    queryKey: ["team_members"],
+    queryFn: () => base44.entities.TeamMember.list(),
+  });
 
   const updateCard = (idx, updated) => {
     setCards((prev) => prev.map((c, i) => (i === idx ? updated : c)));
     setSaved(false);
   };
 
-  const addCard = () => {
-    setCards((prev) => [...prev, emptyCard()]);
-    setSaved(false);
-  };
-
-  const removeCard = (idx) => {
-    setCards((prev) => prev.filter((_, i) => i !== idx));
-    setSaved(false);
-  };
+  const addCard = () => { setCards((prev) => [...prev, emptyCard()]); setSaved(false); };
+  const removeCard = (idx) => { setCards((prev) => prev.filter((_, i) => i !== idx)); setSaved(false); };
 
   const handleSave = async () => {
     setSaving(true);
@@ -201,32 +304,31 @@ export default function ContentCardsEditor({ demand, onUpdated, canEdit }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <div>
           <p className="text-sm font-semibold">Cards de Conteúdo</p>
-          <p className="text-xs text-muted-foreground">Preencha cada card com as informações para o redator.</p>
+          <p className="text-xs text-muted-foreground">Preencha cada card — cada um vira uma demanda de redação.</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           {canEdit && (
             <Button size="sm" variant="outline" onClick={addCard}>
-              <Plus className="w-3.5 h-3.5 mr-1" /> Adicionar Card
+              <Plus className="w-3.5 h-3.5 mr-1" /> Card
             </Button>
           )}
           {canEdit && (
-            <Button size="sm" onClick={handleSave} disabled={saving}>
-              {saving ? (
-                <span className="flex items-center gap-1"><Save className="w-3.5 h-3.5 animate-pulse" /> Salvando...</span>
-              ) : saved ? (
-                <span className="flex items-center gap-1 text-emerald-100"><Save className="w-3.5 h-3.5" /> Salvo!</span>
-              ) : (
-                <span className="flex items-center gap-1"><Save className="w-3.5 h-3.5" /> Salvar</span>
-              )}
+            <Button size="sm" variant="outline" onClick={handleSave} disabled={saving}>
+              {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5 mr-1" />}
+              {saved && !saving ? "Salvo!" : "Salvar"}
+            </Button>
+          )}
+          {canEdit && cards.length > 0 && (
+            <Button size="sm" onClick={() => setSendModalOpen(true)}>
+              <Send className="w-3.5 h-3.5 mr-1" /> Enviar para Redação
             </Button>
           )}
         </div>
       </div>
 
-      {/* Grid de cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {cards.map((card, idx) => (
           <ContentCard
@@ -235,6 +337,7 @@ export default function ContentCardsEditor({ demand, onUpdated, canEdit }) {
             index={idx}
             onChange={(updated) => updateCard(idx, updated)}
             onRemove={() => removeCard(idx)}
+            readOnly={!canEdit}
           />
         ))}
       </div>
@@ -242,11 +345,18 @@ export default function ContentCardsEditor({ demand, onUpdated, canEdit }) {
       {cards.length === 0 && (
         <div className="text-center py-8 text-muted-foreground text-sm">
           Nenhum card ainda.{" "}
-          {canEdit && (
-            <button className="text-primary underline" onClick={addCard}>Adicionar o primeiro</button>
-          )}
+          {canEdit && <button className="text-primary underline" onClick={addCard}>Adicionar o primeiro</button>}
         </div>
       )}
+
+      <SendToWriterModal
+        open={sendModalOpen}
+        onClose={() => setSendModalOpen(false)}
+        cards={cards}
+        demand={demand}
+        members={members}
+        onSent={onUpdated}
+      />
     </div>
   );
 }

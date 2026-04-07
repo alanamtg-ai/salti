@@ -2,13 +2,15 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useState } from "react";
 import { base44 } from "@/api/base44Client";
+import { useQuery } from "@tanstack/react-query";
 import { format, differenceInDays, isPast, isToday } from "date-fns";
 import { getStepLabel, getStepLight, STEPS, REJECTION_STEP } from "@/lib/flowConfig";
 import DemandTimeline from "./DemandTimeline";
 import ContentCardsEditor from "./ContentCardsEditor";
-import { CheckCircle2, XCircle, RotateCcw, Clock, AlertTriangle, ChevronRight } from "lucide-react";
+import { CheckCircle2, XCircle, RotateCcw, Clock, AlertTriangle, ChevronRight, Palette } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const priorityConfig = {
@@ -18,7 +20,6 @@ const priorityConfig = {
   urgente: "bg-red-100 text-red-700",
 };
 
-// Escolha pós-aprovação do cliente
 function PostClientApprovalPicker({ onPick }) {
   return (
     <div className="space-y-2">
@@ -43,10 +44,39 @@ function PostClientApprovalPicker({ onPick }) {
   );
 }
 
+// Seletor de designer para enviar após aprovação interna de copy
+function DesignerPicker({ members, onPick }) {
+  const [email, setEmail] = useState("");
+  const designers = members.filter((m) => m.role === "designer" || m.role === "admin");
+
+  return (
+    <div className="space-y-3">
+      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+        <Palette className="w-3.5 h-3.5" /> Enviar para qual designer?
+      </p>
+      <Select value={email} onValueChange={setEmail}>
+        <SelectTrigger className="text-sm"><SelectValue placeholder="Selecione o designer..." /></SelectTrigger>
+        <SelectContent>
+          {designers.map((m) => <SelectItem key={m.id} value={m.email}>{m.name}</SelectItem>)}
+        </SelectContent>
+      </Select>
+      <Button size="sm" disabled={!email} onClick={() => onPick(email)} className="w-full">
+        <Palette className="w-4 h-4 mr-1" /> Enviar para Design
+      </Button>
+    </div>
+  );
+}
+
 export default function DemandDetailModal({ demand, member, onClose, onUpdated }) {
-  const [note, setNote]                       = useState("");
-  const [loading, setLoading]                 = useState(false);
+  const [note, setNote]                         = useState("");
+  const [loading, setLoading]                   = useState(false);
   const [showDistribuicao, setShowDistribuicao] = useState(false);
+  const [showDesignerPicker, setShowDesignerPicker] = useState(false);
+
+  const { data: members = [] } = useQuery({
+    queryKey: ["team_members"],
+    queryFn: () => base44.entities.TeamMember.list(),
+  });
 
   if (!demand) return null;
 
@@ -59,7 +89,6 @@ export default function DemandDetailModal({ demand, member, onClose, onUpdated }
   const isOverdue    = deadline && isPast(new Date(deadline)) && !isToday(new Date(deadline));
   const daysLate     = deadline ? Math.abs(differenceInDays(new Date(deadline), new Date())) : 0;
 
-  // Quem pode agir
   const myRole  = member?.role;
   const stepRole = STEPS[currentStep]?.role;
   const canAct  = myRole === stepRole || myRole === "admin";
@@ -75,16 +104,22 @@ export default function DemandDetailModal({ demand, member, onClose, onUpdated }
   });
 
   // ✅ APROVAR — avança para próxima etapa
-  const handleAprovar = async (distribuicaoTipo = null) => {
+  const handleAprovar = async (distribuicaoTipo = null, designerEmail = null) => {
+    // Aprovação interna de copy → precisa escolher designer
+    if (currentStep === "aprovacao_interna_redacao" && !designerEmail) {
+      setShowDesignerPicker(true);
+      return;
+    }
+    // Aprovação do cliente → precisa escolher destino
     if (currentStep === "aprovacao_cliente" && !distribuicaoTipo) {
       setShowDistribuicao(true);
       return;
     }
+
     setLoading(true);
     let nextIndex = stepIndex + 1;
     let nextStep  = stepsFlow[nextIndex] || "finalizado";
 
-    // Se escolheu pular distribuição
     if (distribuicaoTipo === "finalizar") {
       nextStep  = "finalizado";
       nextIndex = stepsFlow.indexOf("finalizado");
@@ -99,15 +134,22 @@ export default function DemandDetailModal({ demand, member, onClose, onUpdated }
       step_started_at:    format(new Date(), "yyyy-MM-dd'T'HH:mm:ss"),
       history: [...(demand.history || []), buildEntry(currentStep, nextStep, "aprovado")],
     };
+
+    // Se aprovação interna de copy, atribui o designer escolhido
+    if (currentStep === "aprovacao_interna_redacao" && designerEmail) {
+      updates.assignees = { ...(demand.assignees || {}), design: designerEmail };
+    }
     if (distribuicaoTipo) updates.distribuicao_tipo = distribuicaoTipo;
+
     await base44.entities.Demand.update(demand.id, updates);
     setNote("");
     setLoading(false);
+    setShowDesignerPicker(false);
     onUpdated();
     onClose();
   };
 
-  // 🔁 REVISAR — volta para etapa anterior, nota obrigatória
+  // 🔁 REVISAR — volta para etapa anterior (com nota)
   const handleRevisar = async () => {
     if (!note.trim()) return;
     setLoading(true);
@@ -126,15 +168,26 @@ export default function DemandDetailModal({ demand, member, onClose, onUpdated }
     onClose();
   };
 
-  // ❌ REPROVAR — sempre volta para estrategia
-  const handleReprovar = async () => {
+  // ❌ REPROVAR — na aprovação interna de design volta para redação ou design
+  const handleReprovar = async (targetOverride = null) => {
     if (!note.trim()) return;
     setLoading(true);
-    const targetStep  = REJECTION_STEP;
-    const targetIndex = stepsFlow.indexOf(targetStep);
+
+    let targetStep, targetIndex;
+
+    if (targetOverride) {
+      // escolha explícita (volta p/ redação ou design)
+      targetStep = targetOverride;
+      targetIndex = stepsFlow.indexOf(targetStep);
+    } else {
+      // padrão: volta para estrategia
+      targetStep = REJECTION_STEP;
+      targetIndex = stepsFlow.indexOf(targetStep);
+    }
+
     await base44.entities.Demand.update(demand.id, {
       current_step:       targetStep,
-      current_step_index: targetIndex >= 0 ? targetIndex : 1,
+      current_step_index: targetIndex >= 0 ? targetIndex : 0,
       rejection_note:     note,
       step_started_at:    format(new Date(), "yyyy-MM-dd'T'HH:mm:ss"),
       history: [...(demand.history || []), buildEntry(currentStep, targetStep, "reprovou", note)],
@@ -146,6 +199,20 @@ export default function DemandDetailModal({ demand, member, onClose, onUpdated }
   };
 
   const nextStep = stepsFlow[stepIndex + 1];
+
+  // Label do botão de aprovação por contexto
+  const approveLabel = () => {
+    if (currentStep === "estrategia") return null; // estrategia usa ContentCardsEditor
+    if (currentStep === "redacao") return "Enviar para Aprovação";
+    if (currentStep === "aprovacao_interna_redacao") return "Aprovar Copy → Design";
+    if (currentStep === "design") return "Enviar para Aprovação";
+    if (currentStep === "aprovacao_interna_design") return "Aprovar Design → Cliente";
+    if (isLastStep) return "Finalizar";
+    return "Aprovar";
+  };
+
+  // Reprovar na aprovação interna de design: escolhe se volta para redação ou design
+  const isInternalDesignApproval = currentStep === "aprovacao_interna_design";
 
   return (
     <Dialog open={!!demand} onOpenChange={onClose}>
@@ -207,14 +274,10 @@ export default function DemandDetailModal({ demand, member, onClose, onUpdated }
             )}
           </div>
 
-          {/* Cards de conteúdo — visível na etapa de estratégia */}
+          {/* Cards de conteúdo — apenas na etapa estratégia */}
           {currentStep === "estrategia" && (
             <div className="border-t pt-4">
-              <ContentCardsEditor
-                demand={demand}
-                onUpdated={onUpdated}
-                canEdit={canAct}
-              />
+              <ContentCardsEditor demand={demand} onUpdated={onUpdated} canEdit={canAct} />
             </div>
           )}
 
@@ -222,7 +285,7 @@ export default function DemandDetailModal({ demand, member, onClose, onUpdated }
           {demand.description && (
             <div>
               <p className="text-xs font-semibold text-muted-foreground mb-1">Briefing</p>
-              <p className="text-sm">{demand.description}</p>
+              <p className="text-sm whitespace-pre-line">{demand.description}</p>
             </div>
           )}
 
@@ -246,10 +309,12 @@ export default function DemandDetailModal({ demand, member, onClose, onUpdated }
           )}
 
           {/* ── AÇÕES ── */}
-          {canAct && currentStep !== "finalizado" && (
+          {canAct && currentStep !== "finalizado" && currentStep !== "estrategia" && (
             <div className="border-t pt-4 space-y-3">
               {showDistribuicao ? (
                 <PostClientApprovalPicker onPick={handleAprovar} />
+              ) : showDesignerPicker ? (
+                <DesignerPicker members={members} onPick={(email) => handleAprovar(null, email)} />
               ) : (
                 <>
                   <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Sua Ação</p>
@@ -259,42 +324,67 @@ export default function DemandDetailModal({ demand, member, onClose, onUpdated }
                     placeholder="Observação (obrigatória para Revisar e Reprovar)..."
                     className="h-20 text-sm"
                   />
-                  <div className="flex flex-wrap gap-2">
-                    {/* REPROVAR — volta para estrategia */}
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleReprovar}
-                      disabled={loading || !note.trim()}
-                      className="text-red-600 border-red-200 hover:bg-red-50"
-                    >
-                      <XCircle className="w-4 h-4 mr-1" /> Reprovar
-                    </Button>
-
-                    {/* REVISAR — volta para etapa anterior */}
-                    {stepIndex > 0 && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleRevisar}
-                        disabled={loading || !note.trim()}
-                        className="text-amber-600 border-amber-200 hover:bg-amber-50"
-                      >
-                        <RotateCcw className="w-4 h-4 mr-1" /> Revisar
-                      </Button>
+                  <div className="flex flex-wrap gap-2 items-center">
+                    {/* Reprovar — aprovação interna de design: escolhe destino */}
+                    {isInternalDesignApproval ? (
+                      <>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleReprovar("redacao")}
+                          disabled={loading || !note.trim()}
+                          className="text-red-600 border-red-200 hover:bg-red-50"
+                        >
+                          <XCircle className="w-4 h-4 mr-1" /> Reprovar → Redação
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleReprovar("design")}
+                          disabled={loading || !note.trim()}
+                          className="text-amber-600 border-amber-200 hover:bg-amber-50"
+                        >
+                          <RotateCcw className="w-4 h-4 mr-1" /> Reprovar → Design
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleReprovar()}
+                          disabled={loading || !note.trim()}
+                          className="text-red-600 border-red-200 hover:bg-red-50"
+                        >
+                          <XCircle className="w-4 h-4 mr-1" /> Reprovar
+                        </Button>
+                        {stepIndex > 0 && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={handleRevisar}
+                            disabled={loading || !note.trim()}
+                            className="text-amber-600 border-amber-200 hover:bg-amber-50"
+                          >
+                            <RotateCcw className="w-4 h-4 mr-1" /> Revisar
+                          </Button>
+                        )}
+                      </>
                     )}
 
-                    {/* APROVAR — avança */}
-                    <Button
-                      size="sm"
-                      onClick={() => handleAprovar()}
-                      disabled={loading}
-                      className="ml-auto"
-                    >
-                      <CheckCircle2 className="w-4 h-4 mr-1" />
-                      {isLastStep ? "Finalizar" : "Aprovar"}
-                      <ChevronRight className="w-3 h-3 ml-0.5" />
-                    </Button>
+                    {/* Aprovar */}
+                    {approveLabel() && (
+                      <Button
+                        size="sm"
+                        onClick={() => handleAprovar()}
+                        disabled={loading}
+                        className="ml-auto"
+                      >
+                        <CheckCircle2 className="w-4 h-4 mr-1" />
+                        {approveLabel()}
+                        <ChevronRight className="w-3 h-3 ml-0.5" />
+                      </Button>
+                    )}
                   </div>
                 </>
               )}
@@ -322,7 +412,6 @@ export default function DemandDetailModal({ demand, member, onClose, onUpdated }
                           {getStepLabel(h.etapa_origem)} → {getStepLabel(h.etapa_destino)}
                         </span>
                       )}
-                      {/* legado */}
                       {!h.etapa_origem && h.step && (
                         <span className="text-muted-foreground">em <em>{getStepLabel(h.step)}</em></span>
                       )}
