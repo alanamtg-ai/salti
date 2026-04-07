@@ -4,25 +4,31 @@ export const STEPS = {
   estrategia:         { label: "Estratégia",         role: "estrategista", color: "bg-violet-500",  light: "bg-violet-100 text-violet-700" },
   redacao:            { label: "Redação",             role: "redator",      color: "bg-blue-500",    light: "bg-blue-100 text-blue-700" },
   design:             { label: "Design",              role: "designer",     color: "bg-pink-500",    light: "bg-pink-100 text-pink-700" },
-  aprovacao_cliente:  { label: "Aprovação Cliente",  role: "cliente",      color: "bg-orange-500",  light: "bg-orange-100 text-orange-700" },
-  distribuicao:       { label: "Distribuição",        role: "social_media",    color: "bg-emerald-500", light: "bg-emerald-100 text-emerald-700" },
-  trafego:            { label: "Gestor de Tráfego",   role: "gestor_trafego",  color: "bg-cyan-500",    light: "bg-cyan-100 text-cyan-700" },
-  finalizado:         { label: "Finalizado",           role: null,              color: "bg-slate-400",   light: "bg-slate-100 text-slate-500" },
+  aprovacao_cliente:  { label: "Aprovação Cliente",  role: "cliente",         color: "bg-orange-500",  light: "bg-orange-100 text-orange-700" },
+  agendamento:        { label: "Agendamento",          role: "social_media",    color: "bg-teal-500",    light: "bg-teal-100 text-teal-700" },
+  criar_campanha:     { label: "Criar Campanha",       role: "gestor_trafego",  color: "bg-cyan-500",    light: "bg-cyan-100 text-cyan-700" },
+  distribuicao:       { label: "Distribuição",         role: "social_media",    color: "bg-emerald-500", light: "bg-emerald-100 text-emerald-700" },
+  trafego:            { label: "Gestor de Tráfego",    role: "gestor_trafego",  color: "bg-cyan-600",    light: "bg-cyan-100 text-cyan-800" },
+  finalizado:         { label: "Finalizado",            role: null,              color: "bg-slate-400",   light: "bg-slate-100 text-slate-500" },
 };
 
 // Fluxo padrão — único fluxo oficial
 export const FLOW_TEMPLATES = {
   padrao: {
     label: "Fluxo Padrão Salti",
-    steps: ["briefing", "estrategia", "redacao", "design", "aprovacao_cliente", "distribuicao", "finalizado"],
+    steps: ["briefing", "estrategia", "redacao", "design", "aprovacao_cliente", "agendamento", "distribuicao", "finalizado"],
   },
   com_trafego: {
     label: "Com Gestor de Tráfego",
-    steps: ["briefing", "estrategia", "redacao", "design", "aprovacao_cliente", "trafego", "finalizado"],
+    steps: ["briefing", "estrategia", "redacao", "design", "aprovacao_cliente", "criar_campanha", "trafego", "finalizado"],
+  },
+  completo: {
+    label: "Fluxo Completo",
+    steps: ["briefing", "estrategia", "redacao", "design", "aprovacao_cliente", "agendamento", "criar_campanha", "distribuicao", "finalizado"],
   },
   sem_redacao: {
     label: "Sem Redação",
-    steps: ["briefing", "estrategia", "design", "aprovacao_cliente", "distribuicao", "finalizado"],
+    steps: ["briefing", "estrategia", "design", "aprovacao_cliente", "agendamento", "distribuicao", "finalizado"],
   },
   sem_distribuicao: {
     label: "Sem Distribuição",
