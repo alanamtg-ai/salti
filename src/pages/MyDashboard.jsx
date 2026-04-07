@@ -4,6 +4,7 @@ import { useCurrentMember } from "@/lib/useCurrentMember";
 import { getStepsForRole, getStepLabel, STEPS } from "@/lib/flowConfig";
 import MyTaskCard from "@/components/demands/MyTaskCard";
 import DemandDetailModal from "@/components/demands/DemandDetailModal";
+import DeadlineAlertsCompact from "@/components/dashboard/DeadlineAlertsCompact";
 import { useState } from "react";
 import { Loader2, Inbox, CheckCircle2, Clock, AlertTriangle, Trophy } from "lucide-react";
 import { isPast, isToday, startOfMonth, startOfYear } from "date-fns";
@@ -132,9 +133,12 @@ export default function MyDashboard() {
         </div>
       </div>
 
-      {/* Stats rápidas */}
-      {total > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+      {/* Alertas de prazos */}
+       <DeadlineAlertsCompact userEmail={member.email} />
+
+       {/* Stats rápidas */}
+       {total > 0 && (
+         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
           <div className="bg-card rounded-xl border border-border p-3 text-center">
             <p className="text-2xl font-bold text-foreground">{total}</p>
             <p className="text-[11px] text-muted-foreground mt-0.5">Em aberto</p>

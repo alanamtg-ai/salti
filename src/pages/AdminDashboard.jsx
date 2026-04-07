@@ -18,6 +18,7 @@ import ProductivitySummary from "@/components/dashboard/ProductivitySummary";
 import LiveClock from "@/components/dashboard/LiveClock";
 import NewDemandForm from "@/components/demands/NewDemandForm";
 import ClientPerformancePanel from "@/components/dashboard/ClientPerformancePanel";
+import DeadlineAlerts from "@/components/dashboard/DeadlineAlerts";
 import { useCurrentMember } from "@/lib/useCurrentMember";
 import { isPast, isToday } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -152,11 +153,19 @@ export default function AdminDashboard() {
         ))}
       </div>
 
-      {/* Resumo de Relatórios */}
-      <ReportsSummary demands={demands} />
+      {/* Alertas de Prazos */}
+       <div className="bg-card rounded-xl border border-border p-5">
+         <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+           <AlertTriangle className="w-5 h-5" /> Alertas de Prazos
+         </h2>
+         <DeadlineAlerts />
+       </div>
 
-      {/* Calendário do dia */}
-      <TodayCalendar demands={demands} onOpenDetail={setSelectedDemand} />
+       {/* Resumo de Relatórios */}
+       <ReportsSummary demands={demands} />
+
+       {/* Calendário do dia */}
+       <TodayCalendar demands={demands} onOpenDetail={setSelectedDemand} />
 
       {/* Performance por Cliente + Ranking da equipe */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
