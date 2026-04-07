@@ -77,12 +77,19 @@ export default function RecurringDemandForm({ open, onClose, onSave, editing = n
     const template = FLOW_TEMPLATES[form.flow_template];
     if (template) {
       // Se fluxo administrativo, preenche responsável com assistente financeira automaticamente
-      if (form.flow_template === "administrativo") {
+      if (form.flow_template === "administrativo" || form.flow_template === "financeiro") {
         const assistente = members.find((m) => m.role === "assistente_financeira");
         setForm((f) => ({
           ...f,
           steps_flow: template.steps,
-          assignees: assistente ? { briefing: assistente.email } : f.assignees,
+          assignees: assistente ? { briefing: assistente.email, revisao_financeira: assistente.email } : f.assignees,
+        }));
+      } else if (form.flow_template === "relatorio_trafego") {
+        const gestor = members.find((m) => m.role === "gestor_trafego");
+        setForm((f) => ({
+          ...f,
+          steps_flow: template.steps,
+          assignees: gestor ? { briefing: gestor.email, trafego: gestor.email } : f.assignees,
         }));
       } else {
         setForm((f) => ({ ...f, steps_flow: template.steps }));
