@@ -38,14 +38,14 @@ export default function AppLayout() {
               <Layers className="w-4 h-4 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="font-bold text-sm text-foreground tracking-tight">Salti Design demandasa Flow</h1>
+              <h1 className="font-bold text-sm text-foreground tracking-tight">Salti Design 
+Demandas Flow</h1>
               <p className="text-[10px] text-muted-foreground">Agência de Conteúdo</p>
             </div>
           </div>
         </div>
 
-        {member &&
-        <div className="px-4 py-3 border-b border-border bg-muted/30">
+        {member && <div className="px-4 py-3 border-b border-border bg-muted/30">
             <div className="flex items-center gap-2">
               <div className="w-7 h-7 rounded-full bg-primary/15 flex items-center justify-center">
                 <span className="text-xs font-bold text-primary">{member.name.charAt(0)}</span>
