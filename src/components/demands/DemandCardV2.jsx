@@ -1,6 +1,7 @@
 import { Badge } from "@/components/ui/badge";
-import { Clock, User } from "lucide-react";
+import { Clock, Calendar } from "lucide-react";
 import { format, isPast, isToday, differenceInDays } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { getStepLight, getStepLabel } from "@/lib/flowConfig";
 import { cn } from "@/lib/utils";
 
@@ -33,6 +34,14 @@ export default function DemandCardV2({ demand, onClick }) {
       {demand.rejection_note && (
         <div className="text-[10px] text-red-600 bg-red-50 rounded px-2 py-1 mb-2 line-clamp-1">
           ↩ {demand.rejection_note}
+        </div>
+      )}
+
+      {/* Data de postagem */}
+      {demand.scheduled_date && (
+        <div className="flex items-center gap-1 text-[10px] text-muted-foreground mt-2 mb-2">
+          <Calendar className="w-3 h-3" />
+          {format(new Date(demand.scheduled_date), "dd/MMM", { locale: ptBR })}
         </div>
       )}
 
