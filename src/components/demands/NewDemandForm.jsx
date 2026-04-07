@@ -109,19 +109,24 @@ export default function NewDemandForm({ open, onClose, onSave, preselectedClient
     if (template) setForm((f) => ({ ...f, steps_flow: template.steps }));
   }, [form.flow_template]);
 
-  // Pré-calcula prazos sugeridos por etapa a partir de hoje
+  // Pré-calcula prazos sugeridos por etapa a partir de hoje (apenas dias úteis)
   const getSuggestedDeadlines = () => {
-    const addDays = (date, days) => {
+    const addWorkDays = (date, days) => {
       const d = new Date(date);
-      d.setDate(d.getDate() + days);
+      let added = 0;
+      while (added < days) {
+        d.setDate(d.getDate() + 1);
+        const dow = d.getDay();
+        if (dow !== 0 && dow !== 6) added++; // ignora domingo (0) e sábado (6)
+      }
       return format(d, "yyyy-MM-dd");
     };
     const today = new Date();
-    const estrategia  = addDays(today, 2);
-    const redacao     = addDays(today, 4);   // +2
-    const design      = addDays(today, 7);   // +3 (inclui aprovação interna 2d + revisão 2d = 4d no total após redação, simplificado em +3)
-    const aprovacao   = addDays(today, 11);  // design +2 aprovação +2 revisão
-    const distribuicao = addDays(today, 13); // +2
+    const estrategia   = addWorkDays(today, 2);   // +2 dias úteis
+    const redacao      = addWorkDays(today, 4);   // +2 dias úteis após estratégia
+    const design       = addWorkDays(today, 7);   // +3 dias úteis após redação
+    const aprovacao    = addWorkDays(today, 11);  // +2 aprovação interna + 2 revisão
+    const distribuicao = addWorkDays(today, 13);  // +2 dias úteis após aprovação
     return { estrategia, redacao, design, aprovacao_cliente: aprovacao, distribuicao };
   };
 
