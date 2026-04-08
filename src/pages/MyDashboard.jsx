@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useCurrentMember } from "@/lib/useCurrentMember";
-import { getStepLabel, OFFICIAL_FLOW } from "@/lib/flowConfig";
+import { getStepLabel, OFFICIAL_FLOW, STEPS } from "@/lib/flowConfig";
 import { Loader2, Inbox, CheckCircle2, Clock, AlertTriangle, Trophy } from "lucide-react";
 import { isPast, isToday, startOfMonth, startOfYear } from "date-fns";
 import { cn } from "@/lib/utils";
