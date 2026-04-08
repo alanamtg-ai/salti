@@ -5,6 +5,7 @@ import { getStepsForRole, getStepLabel, STEPS } from "@/lib/flowConfig";
 import MyTaskCard from "@/components/demands/MyTaskCard";
 import DemandDetailModal from "@/components/demands/DemandDetailModal";
 import DeadlineAlertsCompact from "@/components/dashboard/DeadlineAlertsCompact";
+import MonthlyGoalsCard from "@/components/dashboard/MonthlyGoalsCard";
 import { useState, useEffect } from "react";
 import { Loader2, Inbox, CheckCircle2, Clock, AlertTriangle, Trophy } from "lucide-react";
 import { isPast, isToday, startOfMonth, startOfYear } from "date-fns";
@@ -152,6 +153,9 @@ export default function MyDashboard() {
 
       {/* Alertas de prazos */}
        <DeadlineAlertsCompact userEmail={member.email} />
+
+       {/* Meta mensal */}
+       <MonthlyGoalsCard demands={demands} member={member} concludedThisMonth={concludedThisMonth} />
 
        {/* Stats rápidas */}
        {total > 0 &&
