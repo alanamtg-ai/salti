@@ -27,7 +27,6 @@ import AdsMetricsSection from "@/components/client-profile/AdsMetricsSection";
 const STEP_ORDER = [
   "estrategia",
   "redacao",
-  "aprovacao_interna_redacao",
   "design",
   "aprovacao_interna_design",
   "aprovacao_cliente",
