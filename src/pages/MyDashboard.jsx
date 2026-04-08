@@ -20,28 +20,28 @@ export default function MyDashboard() {
   // Aplicar tema salvo ao carregar
   useEffect(() => {
     if (!member) return;
-    if (member.theme === "dark") document.documentElement.classList.add("dark");
-    else document.documentElement.classList.remove("dark");
+    if (member.theme === "dark") document.documentElement.classList.add("dark");else
+    document.documentElement.classList.remove("dark");
   }, [member?.theme]);
 
   const { data: demands = [], refetch } = useQuery({
     queryKey: ["demands"],
     queryFn: () => base44.entities.Demand.list("-created_date", 500),
-    enabled: !!member,
+    enabled: !!member
   });
 
   if (loadingMember) return (
     <div className="flex items-center justify-center h-64">
       <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-    </div>
-  );
+    </div>);
+
 
   if (!member) return (
     <div className="text-center py-20 text-muted-foreground">
       <p className="text-sm">Seu e-mail não está cadastrado na equipe.</p>
       <p className="text-xs mt-1">Peça ao administrador para te adicionar.</p>
-    </div>
-  );
+    </div>);
+
 
   const mySteps = getStepsForRole(member.role);
 
@@ -72,7 +72,7 @@ export default function MyDashboard() {
     const dl = d.step_deadlines?.[d.current_step] || d.deadline;
     if (!dl) return false;
     const date = new Date(dl);
-    return (isPast(date) && !isToday(date)) || d.priority === "urgente";
+    return isPast(date) && !isToday(date) || d.priority === "urgente";
   };
 
   const overdue = myDemands.filter((d) => {
@@ -92,9 +92,9 @@ export default function MyDashboard() {
     return dl && isToday(new Date(dl));
   }).length;
 
-  const roleLabel = member.role === "cliente"
-    ? "Aprovações"
-    : STEPS[mySteps[0]]?.label || member.role;
+  const roleLabel = member.role === "cliente" ?
+  "Aprovações" :
+  STEPS[mySteps[0]]?.label || member.role;
 
   // Ranking: contar aprovações por colaborador no histórico
   const rankingMap = {};
@@ -113,12 +113,12 @@ export default function MyDashboard() {
   const monthStart = startOfMonth(now);
   const yearStart = startOfYear(now);
   const concludedThisMonth = demands.filter((d) =>
-    d.status === "finalizado" &&
-    (d.history || []).some((h) => h.acao === "aprovado" && h.by === member.email && h.date && new Date(h.date) >= monthStart)
+  d.status === "finalizado" &&
+  (d.history || []).some((h) => h.acao === "aprovado" && h.by === member.email && h.date && new Date(h.date) >= monthStart)
   ).length;
   const concludedThisYear = demands.filter((d) =>
-    d.status === "finalizado" &&
-    (d.history || []).some((h) => h.acao === "aprovado" && h.by === member.email && h.date && new Date(h.date) >= yearStart)
+  d.status === "finalizado" &&
+  (d.history || []).some((h) => h.acao === "aprovado" && h.by === member.email && h.date && new Date(h.date) >= yearStart)
   ).length;
 
   // Demandas que você aprovou hoje (para mostrar como concluídas)
@@ -138,23 +138,23 @@ export default function MyDashboard() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
             Olá, {member.name.split(" ")[0]} 👋
-            {myRankPos > 0 && (
-              <span className="flex items-center gap-1 text-sm font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 border border-amber-200">
+            {myRankPos > 0 &&
+            <span className="flex items-center gap-1 text-sm font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 border border-amber-200">
                 <Trophy className="w-3.5 h-3.5" />
                 #{myRankPos} ranking
               </span>
-            )}
+            }
           </h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            {member.role === "cliente"
-              ? "Demandas aguardando sua aprovação"
-              : `Suas tarefas como ${roleLabel}`}
+            {member.role === "cliente" ?
+            "Demandas aguardando sua aprovação" :
+            `Suas tarefas como ${roleLabel}`}
           </p>
         </div>
       </div>
 
       {/* Quadro de Avisos */}
-      <div className="bg-card rounded-xl border border-border p-5">
+      <div className="bg-[#f1efea] p-5 rounded-xl border border-border">
         <NoticeBoard member={member} />
       </div>
 
@@ -162,8 +162,8 @@ export default function MyDashboard() {
        <DeadlineAlertsCompact userEmail={member.email} />
 
        {/* Stats rápidas */}
-       {total > 0 && (
-         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+       {total > 0 &&
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
           <div className="bg-card rounded-xl border border-border p-3 text-center">
             <p className="text-2xl font-bold text-foreground">{total}</p>
             <p className="text-[11px] text-muted-foreground mt-0.5">Em aberto</p>
@@ -185,96 +185,96 @@ export default function MyDashboard() {
             <p className="text-[11px] text-muted-foreground mt-0.5">Concluídas/ano</p>
           </div>
         </div>
-      )}
+      }
 
       {/* Atrasadas */}
-      {overdue.length > 0 && (
-        <section>
+      {overdue.length > 0 &&
+      <section>
           <div className="flex items-center gap-2 mb-3">
             <AlertTriangle className="w-4 h-4 text-red-500" />
             <h2 className="text-sm font-semibold text-red-600">Atrasadas ({overdue.length})</h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
-            {overdue.map((d) => (
-              <MyTaskCard key={d.id} demand={d} member={member} onUpdated={refetch} onOpenDetail={setSelectedDemand} />
-            ))}
+            {overdue.map((d) =>
+          <MyTaskCard key={d.id} demand={d} member={member} onUpdated={refetch} onOpenDetail={setSelectedDemand} />
+          )}
           </div>
         </section>
-      )}
+      }
 
       {/* Urgentes (prioridade urgente mas não atrasadas) */}
-      {urgent.length > 0 && (
-        <section>
+      {urgent.length > 0 &&
+      <section>
           <div className="flex items-center gap-2 mb-3">
             <Clock className="w-4 h-4 text-orange-500" />
             <h2 className="text-sm font-semibold text-orange-600">Urgentes ({urgent.length})</h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
-            {urgent.map((d) => (
-              <MyTaskCard key={d.id} demand={d} member={member} onUpdated={refetch} onOpenDetail={setSelectedDemand} />
-            ))}
+            {urgent.map((d) =>
+          <MyTaskCard key={d.id} demand={d} member={member} onUpdated={refetch} onOpenDetail={setSelectedDemand} />
+          )}
           </div>
         </section>
-      )}
+      }
 
       {/* Concluídas por você hoje */}
-      {approvedToday.length > 0 && (
-        <section>
+      {approvedToday.length > 0 &&
+      <section>
           <div className="flex items-center gap-2 mb-3">
             <CheckCircle2 className="w-4 h-4 text-emerald-500" />
             <h2 className="text-sm font-semibold text-emerald-600">Concluídas hoje ({approvedToday.length})</h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
-            {approvedToday.map((d) => (
-              <MyTaskCard key={d.id} demand={d} member={member} onUpdated={refetch} onOpenDetail={setSelectedDemand} />
-            ))}
+            {approvedToday.map((d) =>
+          <MyTaskCard key={d.id} demand={d} member={member} onUpdated={refetch} onOpenDetail={setSelectedDemand} />
+          )}
           </div>
         </section>
-      )}
+      }
 
       {/* Normais agrupadas por cliente */}
-      {normal.length > 0 && (
-        (() => {
-          const byClient = {};
-          normal.forEach((d) => {
-            const key = d.client_name || "Sem cliente";
-            if (!byClient[key]) byClient[key] = [];
-            byClient[key].push(d);
-          });
-          return Object.entries(byClient).map(([clientName, clientDemands]) => (
-            <section key={clientName}>
+      {normal.length > 0 &&
+      (() => {
+        const byClient = {};
+        normal.forEach((d) => {
+          const key = d.client_name || "Sem cliente";
+          if (!byClient[key]) byClient[key] = [];
+          byClient[key].push(d);
+        });
+        return Object.entries(byClient).map(([clientName, clientDemands]) =>
+        <section key={clientName}>
               <div className="flex items-center gap-2 mb-3">
                 <div className="w-2 h-2 rounded-full bg-primary" />
                 <h2 className="text-sm font-semibold">{clientName} <span className="text-muted-foreground font-normal">({clientDemands.length})</span></h2>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
-                {clientDemands.map((d) => (
-                  <MyTaskCard key={d.id} demand={d} member={member} onUpdated={refetch} onOpenDetail={setSelectedDemand} />
-                ))}
+                {clientDemands.map((d) =>
+            <MyTaskCard key={d.id} demand={d} member={member} onUpdated={refetch} onOpenDetail={setSelectedDemand} />
+            )}
               </div>
             </section>
-          ));
-        })()
-      )}
+        );
+      })()
+      }
 
       {/* Concluídas por mim (reabríveis) */}
       <CompletedByMeSection demands={demands} member={member} onOpenDetail={setSelectedDemand} />
 
       {/* Estado vazio */}
-      {myDemands.length === 0 && (
-        <div className="text-center py-20 text-muted-foreground">
+      {myDemands.length === 0 &&
+      <div className="text-center py-20 text-muted-foreground">
           <CheckCircle2 className="w-12 h-12 mx-auto mb-3 opacity-20" />
           <p className="text-sm font-medium">Tudo em dia!</p>
           <p className="text-xs mt-1">Nenhuma demanda aguardando sua ação.</p>
         </div>
-      )}
+      }
 
       <DemandDetailModal
         demand={selectedDemand}
         member={member}
         onClose={() => setSelectedDemand(null)}
-        onUpdated={refetch}
-      />
-    </div>
-  );
+        onUpdated={refetch} />
+      
+    </div>);
+
 }
