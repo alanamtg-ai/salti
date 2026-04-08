@@ -1,9 +1,9 @@
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Clock, ChevronRight, AlertTriangle, CheckCircle2, RotateCcw, XCircle } from "lucide-react";
-import { format, isPast, isToday, differenceInDays } from "date-fns";
-import { getStepLabel, getStepLight, STEPS } from "@/lib/flowConfig";
+import { Clock, ChevronRight, AlertTriangle } from "lucide-react";
+import { isPast, isToday, differenceInDays } from "date-fns";
+import { getStepLabel, getStepLight } from "@/lib/flowConfig";
 import { cn } from "@/lib/utils";
+import MemberProfileMini from "@/components/profile/MemberProfileMini";
 
 const priorityConfig = {
   baixa:   { label: "Baixa",   cls: "bg-emerald-100 text-emerald-700 border-emerald-200" },
@@ -12,7 +12,7 @@ const priorityConfig = {
   urgente: { label: "Urgente", cls: "bg-red-100 text-red-700 border-red-200" },
 };
 
-export default function MyTaskCard({ demand, onOpenDetail }) {
+export default function MyTaskCard({ demand, onOpenDetail, assigneeMember, onMemberUpdated }) {
   const p = priorityConfig[demand.priority] || priorityConfig.media;
   const stepDeadline  = demand.step_deadlines?.[demand.current_step];
   const deadlineDate  = stepDeadline ? new Date(stepDeadline) : demand.deadline ? new Date(demand.deadline) : null;
@@ -66,7 +66,7 @@ export default function MyTaskCard({ demand, onOpenDetail }) {
         )}
       </div>
 
-      {/* Footer: prazo */}
+      {/* Footer: prazo + responsável */}
       <div className="flex items-center justify-between gap-2 pt-3 border-t border-border/60">
         {deadlineDate ? (
           <span className={cn("flex items-center gap-1 text-[10px] font-medium",
@@ -78,7 +78,11 @@ export default function MyTaskCard({ demand, onOpenDetail }) {
         ) : (
           <span className="text-[10px] text-muted-foreground">Sem prazo</span>
         )}
-        <span className="text-[10px] text-primary font-medium">Clique para agir →</span>
+        {assigneeMember ? (
+          <MemberProfileMini member={assigneeMember} onUpdated={onMemberUpdated} />
+        ) : (
+          <span className="text-[10px] text-primary font-medium">Clique para agir →</span>
+        )}
       </div>
     </div>
   );

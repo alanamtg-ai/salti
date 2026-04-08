@@ -273,9 +273,21 @@ export default function AdminDashboard() {
             <span className="text-xs font-normal text-muted-foreground">({myFlowTasks.length} aguardando)</span>
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
-            {myFlowTasks.map((d) => (
-              <MyTaskCard key={d.id} demand={d} onOpenDetail={setSelectedDemand} />
-            ))}
+            {myFlowTasks.map((d) => {
+              const assigneeEmail = d.assignees?.[d.current_step];
+              const assigneeMember = assigneeEmail
+                ? members.find((m) => m.email === assigneeEmail)
+                : null;
+              return (
+                <MyTaskCard
+                  key={d.id}
+                  demand={d}
+                  onOpenDetail={setSelectedDemand}
+                  assigneeMember={assigneeMember}
+                  onMemberUpdated={() => qc.invalidateQueries(["team_members"])}
+                />
+              );
+            })}
           </div>
         </div>
       )}
