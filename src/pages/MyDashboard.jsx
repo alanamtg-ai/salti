@@ -49,19 +49,14 @@ export default function MyDashboard() {
   let myDemands;
   if (member.role === "cliente") {
     myDemands = demands.filter(
-      (d) => d.current_step === "aprovacao_cliente" && d.client_id === member.client_id
+      (d) => d.current_step === "aprovacao_cliente" && d.client_id === member.client_id && d.status === "ativo"
     );
-  } else if (member.role === "admin") {
-    // Admin vê demandas onde está atribuído como responsável da etapa atual
+  } else {
+    // Colaboradores e admins: ver demandas onde estão atribuídos à etapa atual (ou sem atribuição se faz parte do fluxo)
     myDemands = demands.filter((d) => {
       if (d.current_step === "finalizado" || d.status !== "ativo") return false;
-      return d.assignees?.[d.current_step] === member.email;
-    });
-  } else {
-    myDemands = demands.filter((d) => {
-      if (d.current_step === "finalizado") return false;
       if (!mySteps.includes(d.current_step)) return false;
-      // Se tem responsável definido, filtra pelo email
+      // Se tem responsável definido, filtra pelo email; senão, mostra para todos da etapa
       if (d.assignees?.[d.current_step] && d.assignees[d.current_step] !== member.email) return false;
       return true;
     });
