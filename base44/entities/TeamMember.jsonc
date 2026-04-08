@@ -28,6 +28,11 @@
       "type": "string",
       "description": "Preenchido quando role=cliente"
     },
+    "monthly_goal": {
+      "type": "number",
+      "default": 25,
+      "description": "Meta mensal de demandas a completar"
+    },
     "avatar_color": {
       "type": "string"
     },

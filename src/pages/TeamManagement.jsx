@@ -23,17 +23,35 @@ const roleConfig = {
 
 export default function TeamManagement() {
   const [formOpen, setFormOpen] = useState(false);
-  const [form, setForm] = useState({ name: "", email: "", role: "redator", client_id: "" });
+  const [editingId, setEditingId] = useState(null);
+  const [form, setForm] = useState({ name: "", email: "", role: "redator", client_id: "", monthly_goal: 25 });
 
   const { data: members = [], refetch } = useQuery({ queryKey: ["team_members"], queryFn: () => base44.entities.TeamMember.list() });
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: () => base44.entities.Client.list() });
 
   const handleAdd = async () => {
     if (!form.name || !form.email) return;
-    await base44.entities.TeamMember.create(form);
-    setForm({ name: "", email: "", role: "redator", client_id: "" });
+    if (editingId) {
+      await base44.entities.TeamMember.update(editingId, form);
+      setEditingId(null);
+    } else {
+      await base44.entities.TeamMember.create(form);
+    }
+    setForm({ name: "", email: "", role: "redator", client_id: "", monthly_goal: 25 });
     setFormOpen(false);
     refetch();
+  };
+
+  const handleEdit = (member) => {
+    setForm({
+      name: member.name,
+      email: member.email,
+      role: member.role,
+      client_id: member.client_id || "",
+      monthly_goal: member.monthly_goal || 25,
+    });
+    setEditingId(member.id);
+    setFormOpen(true);
   };
 
   const handleDelete = async (id) => {
@@ -66,27 +84,40 @@ export default function TeamManagement() {
               <span className="text-xs text-muted-foreground">({roleMembers.length})</span>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {roleMembers.map((m) => (
-                <div key={m.id} className="bg-card rounded-xl border border-border p-4 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center">
-                      <span className="text-sm font-bold text-primary">{m.name.charAt(0)}</span>
-                    </div>
-                    <div>
-                      <p className="font-semibold text-sm">{m.name}</p>
-                      <p className="text-xs text-muted-foreground">{m.email}</p>
-                      {m.role === "cliente" && m.client_id && (
-                        <p className="text-[10px] text-orange-600 mt-0.5">
-                          {clients.find((c) => c.id === m.client_id)?.name || "cliente"}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => handleDelete(m.id)}>
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </div>
-              ))}
+             {roleMembers.map((m) => (
+               <div key={m.id} className="bg-card rounded-xl border border-border p-4 space-y-3">
+                 <div className="flex items-start justify-between">
+                   <div className="flex items-center gap-3 flex-1">
+                     <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                       <span className="text-sm font-bold text-primary">{m.name.charAt(0)}</span>
+                     </div>
+                     <div className="min-w-0">
+                       <p className="font-semibold text-sm">{m.name}</p>
+                       <p className="text-xs text-muted-foreground truncate">{m.email}</p>
+                       {m.role === "cliente" && m.client_id && (
+                         <p className="text-[10px] text-orange-600 mt-0.5">
+                           {clients.find((c) => c.id === m.client_id)?.name || "cliente"}
+                         </p>
+                       )}
+                     </div>
+                   </div>
+                   <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive shrink-0" onClick={() => handleDelete(m.id)}>
+                     <Trash2 className="w-4 h-4" />
+                   </Button>
+                 </div>
+                 {m.role !== "cliente" && (
+                   <div className="bg-muted/40 rounded-lg p-2.5 flex items-center justify-between border border-border/60">
+                     <span className="text-xs text-muted-foreground">Meta mensal:</span>
+                     <button
+                       onClick={() => handleEdit(m)}
+                       className="text-sm font-bold text-primary hover:underline cursor-pointer"
+                     >
+                       {m.monthly_goal || 25}
+                     </button>
+                   </div>
+                 )}
+               </div>
+             ))}
             </div>
           </div>
         ) : null
@@ -99,9 +130,12 @@ export default function TeamManagement() {
         </div>
       )}
 
-      <Dialog open={formOpen} onOpenChange={setFormOpen}>
+      <Dialog open={formOpen} onOpenChange={(open) => {
+        if (!open) setEditingId(null);
+        setFormOpen(open);
+      }}>
         <DialogContent className="sm:max-w-md">
-          <DialogHeader><DialogTitle>Novo Membro</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{editingId ? "Editar Membro" : "Novo Membro"}</DialogTitle></DialogHeader>
           <div className="space-y-3 py-2">
             <div className="space-y-1.5">
               <Label>Nome *</Label>
@@ -123,20 +157,35 @@ export default function TeamManagement() {
               </Select>
             </div>
             {form.role === "cliente" && (
-              <div className="space-y-1.5">
-                <Label>Cliente Vinculado</Label>
-                <Select value={form.client_id} onValueChange={(v) => setForm({ ...form, client_id: v })}>
-                  <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
-                  <SelectContent>
-                    {clients.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
+             <div className="space-y-1.5">
+               <Label>Cliente Vinculado</Label>
+               <Select value={form.client_id} onValueChange={(v) => setForm({ ...form, client_id: v })}>
+                 <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                 <SelectContent>
+                   {clients.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                 </SelectContent>
+               </Select>
+             </div>
             )}
-          </div>
+            {form.role !== "cliente" && (
+             <div className="space-y-1.5">
+               <Label>Meta Mensal (demandas)</Label>
+               <Input 
+                 type="number" 
+                 min="1" 
+                 value={form.monthly_goal} 
+                 onChange={(e) => setForm({ ...form, monthly_goal: parseInt(e.target.value) || 25 })} 
+                 placeholder="25"
+               />
+             </div>
+            )}
+            </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setFormOpen(false)}>Cancelar</Button>
-            <Button onClick={handleAdd} disabled={!form.name || !form.email}>Adicionar</Button>
+            <Button variant="outline" onClick={() => {
+              setFormOpen(false);
+              setEditingId(null);
+            }}>Cancelar</Button>
+            <Button onClick={handleAdd} disabled={!form.name || !form.email}>{editingId ? "Salvar" : "Adicionar"}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

@@ -2,12 +2,10 @@ import { startOfMonth, endOfMonth } from "date-fns";
 import { TrendingUp, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const DEFAULT_MONTHLY_GOAL = 25;
-
 export default function MonthlyGoalsCard({ demands, member, concludedThisMonth }) {
   if (!member || member.role === "cliente") return null;
 
-  const monthlyGoal = DEFAULT_MONTHLY_GOAL;
+  const monthlyGoal = member.monthly_goal || 25;
   const completed = concludedThisMonth;
   const remaining = Math.max(0, monthlyGoal - completed);
   const progressPercent = Math.min(100, Math.round((completed / monthlyGoal) * 100));
