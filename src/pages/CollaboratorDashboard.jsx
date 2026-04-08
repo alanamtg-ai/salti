@@ -131,7 +131,9 @@ export default function CollaboratorDashboard() {
     const dl = d.step_deadlines?.[d.current_step] || d.deadline;
     return dl && isPast(new Date(dl)) && !isToday(new Date(dl));
   });
-  const normal = myDemands.filter((d) => !overdue.includes(d));
+  
+  const urgent = myDemands.filter((d) => d.priority === "urgente" && !overdue.includes(d));
+  const normal = myDemands.filter((d) => !overdue.includes(d) && !urgent.includes(d));
 
   const now = new Date();
   const in48h = addDays(now, 2);
@@ -292,7 +294,7 @@ export default function CollaboratorDashboard() {
         </div>
       )}
 
-      {/* Tarefas em aberto */}
+      {/* Atrasadas */}
       {overdue.length > 0 && (
         <section>
           <div className="flex items-center gap-2 mb-3">
@@ -301,6 +303,21 @@ export default function CollaboratorDashboard() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
             {overdue.map((d) => (
+              <MyTaskCard key={d.id} demand={d} member={member} onUpdated={refetch} onOpenDetail={setSelected} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Urgentes */}
+      {urgent.length > 0 && (
+        <section>
+          <div className="flex items-center gap-2 mb-3">
+            <Clock className="w-4 h-4 text-orange-500" />
+            <h2 className="text-sm font-semibold text-orange-600">Urgentes ({urgent.length})</h2>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+            {urgent.map((d) => (
               <MyTaskCard key={d.id} demand={d} member={member} onUpdated={refetch} onOpenDetail={setSelected} />
             ))}
           </div>
