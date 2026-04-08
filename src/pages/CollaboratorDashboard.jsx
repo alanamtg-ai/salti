@@ -173,7 +173,7 @@ export default function CollaboratorDashboard() {
       });
     });
     return approvals.size;
-  }, [demands, member?.email]);
+  }, [demands, member?.email]) || 0;
 
   const concludedThisYear = useMemo(() => {
     const yearStart = new Date(new Date().getFullYear(), 0, 1);
@@ -186,7 +186,7 @@ export default function CollaboratorDashboard() {
       });
     });
     return approvals.size;
-  }, [demands, member?.email]);
+  }, [demands, member?.email]) || 0;
 
   return (
     <div className="space-y-6 pb-20 lg:pb-0">
