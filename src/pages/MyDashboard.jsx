@@ -30,12 +30,6 @@ export default function MyDashboard() {
     enabled: !!member,
   });
 
-  const { data: recurringDemands = [] } = useQuery({
-    queryKey: ["recurring_demands"],
-    queryFn: () => base44.entities.RecurringDemand.list(),
-    enabled: !!member,
-  });
-
   if (loadingMember) return (
     <div className="flex items-center justify-center h-64">
       <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
@@ -55,14 +49,19 @@ export default function MyDashboard() {
   let myDemands;
   if (member.role === "cliente") {
     myDemands = demands.filter(
-      (d) => d.current_step === "aprovacao_cliente" && d.client_id === member.client_id && d.status === "ativo"
+      (d) => d.current_step === "aprovacao_cliente" && d.client_id === member.client_id
     );
-  } else {
-    // Colaboradores e admins: ver demandas onde estão atribuídos à etapa atual (ou sem atribuição se faz parte do fluxo)
+  } else if (member.role === "admin") {
+    // Admin vê demandas onde está atribuído como responsável da etapa atual
     myDemands = demands.filter((d) => {
       if (d.current_step === "finalizado" || d.status !== "ativo") return false;
+      return d.assignees?.[d.current_step] === member.email;
+    });
+  } else {
+    myDemands = demands.filter((d) => {
+      if (d.current_step === "finalizado") return false;
       if (!mySteps.includes(d.current_step)) return false;
-      // Se tem responsável definido, filtra pelo email; senão, mostra para todos da etapa
+      // Se tem responsável definido, filtra pelo email
       if (d.assignees?.[d.current_step] && d.assignees[d.current_step] !== member.email) return false;
       return true;
     });
@@ -109,14 +108,16 @@ export default function MyDashboard() {
   const rankingSorted = Object.entries(rankingMap).sort((a, b) => b[1] - a[1]);
   const myRankPos = rankingSorted.findIndex(([email]) => email === member.email) + 1;
 
-  // Concluídas no mês e no ano (todas que você aprovou)
+  // Concluídas no mês e no ano
   const now = new Date();
   const monthStart = startOfMonth(now);
   const yearStart = startOfYear(now);
   const concludedThisMonth = demands.filter((d) =>
+    d.status === "finalizado" &&
     (d.history || []).some((h) => h.acao === "aprovado" && h.by === member.email && h.date && new Date(h.date) >= monthStart)
   ).length;
   const concludedThisYear = demands.filter((d) =>
+    d.status === "finalizado" &&
     (d.history || []).some((h) => h.acao === "aprovado" && h.by === member.email && h.date && new Date(h.date) >= yearStart)
   ).length;
 
@@ -127,13 +128,11 @@ export default function MyDashboard() {
     return isToday(new Date(lastApproval.date));
   });
 
-  // Demandas recorrentes atribuídas ao membro
-  const myRecurring = recurringDemands.filter(
-    (rd) => rd.active && rd.assignees && Object.values(rd.assignees).includes(member.email)
-  );
-
   return (
     <div className="space-y-6 pb-20 lg:pb-0">
+      {/* Perfil do membro */}
+      <MemberProfileCard member={member} onUpdated={refetch} />
+
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
@@ -154,44 +153,41 @@ export default function MyDashboard() {
         </div>
       </div>
 
-      {/* Stats rápidas — KPIs */}
-       {total > 0 && (
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-           <div className="bg-card rounded-xl border border-border p-3 text-center">
-             <p className="text-2xl font-bold text-foreground">{total}</p>
-             <p className="text-[11px] text-muted-foreground mt-0.5">Em aberto</p>
-           </div>
-           <div className={cn("rounded-xl border p-3 text-center", overdueCount > 0 ? "bg-red-50 border-red-200" : "bg-card border-border")}>
-             <p className={cn("text-2xl font-bold", overdueCount > 0 ? "text-red-600" : "text-foreground")}>{overdueCount}</p>
-             <p className="text-[11px] text-muted-foreground mt-0.5">Atrasadas</p>
-           </div>
-           <div className={cn("rounded-xl border p-3 text-center", dueToday > 0 ? "bg-amber-50 border-amber-200" : "bg-card border-border")}>
-             <p className={cn("text-2xl font-bold", dueToday > 0 ? "text-amber-600" : "text-foreground")}>{dueToday}</p>
-             <p className="text-[11px] text-muted-foreground mt-0.5">Vencem hoje</p>
-           </div>
-           <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-center">
-             <p className="text-2xl font-bold text-emerald-600">{concludedThisMonth}</p>
-             <p className="text-[11px] text-muted-foreground mt-0.5">Concluídas/mês</p>
-           </div>
-           <div className="bg-violet-50 border border-violet-200 rounded-xl p-3 text-center">
-             <p className="text-2xl font-bold text-violet-600">{concludedThisYear}</p>
-             <p className="text-[11px] text-muted-foreground mt-0.5">Concluídas/ano</p>
-           </div>
-         </div>
-         )}
-
-      {/* Perfil do membro */}
-      <MemberProfileCard member={member} onUpdated={refetch} />
-
-        {/* Quadro de Avisos */}
-        <div className="bg-card rounded-xl border border-border p-5">
+      {/* Quadro de Avisos */}
+      <div className="bg-card rounded-xl border border-border p-5">
         <NoticeBoard member={member} />
+      </div>
+
+      {/* Alertas de prazos */}
+       <DeadlineAlertsCompact userEmail={member.email} />
+
+       {/* Stats rápidas */}
+       {total > 0 && (
+         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+          <div className="bg-card rounded-xl border border-border p-3 text-center">
+            <p className="text-2xl font-bold text-foreground">{total}</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">Em aberto</p>
+          </div>
+          <div className={cn("rounded-xl border p-3 text-center", overdueCount > 0 ? "bg-red-50 border-red-200" : "bg-card border-border")}>
+            <p className={cn("text-2xl font-bold", overdueCount > 0 ? "text-red-600" : "text-foreground")}>{overdueCount}</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">Atrasadas</p>
+          </div>
+          <div className={cn("rounded-xl border p-3 text-center", dueToday > 0 ? "bg-amber-50 border-amber-200" : "bg-card border-border")}>
+            <p className={cn("text-2xl font-bold", dueToday > 0 ? "text-amber-600" : "text-foreground")}>{dueToday}</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">Vencem hoje</p>
+          </div>
+          <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-center">
+            <p className="text-2xl font-bold text-emerald-600">{concludedThisMonth}</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">Concluídas/mês</p>
+          </div>
+          <div className="bg-violet-50 border border-violet-200 rounded-xl p-3 text-center">
+            <p className="text-2xl font-bold text-violet-600">{concludedThisYear}</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">Concluídas/ano</p>
+          </div>
         </div>
+      )}
 
-        {/* Alertas de prazos */}
-        <DeadlineAlertsCompact userEmail={member.email} />
-
-        {/* Atrasadas */}
+      {/* Atrasadas */}
       {overdue.length > 0 && (
         <section>
           <div className="flex items-center gap-2 mb-3">
@@ -259,35 +255,6 @@ export default function MyDashboard() {
             </section>
           ));
         })()
-      )}
-
-      {/* Demandas Recorrentes */}
-      {myRecurring.length > 0 && (
-        <section>
-          <div className="flex items-center gap-2 mb-3">
-            <div className="w-2 h-2 rounded-full bg-blue-500" />
-            <h2 className="text-sm font-semibold">Demandas Recorrentes ({myRecurring.length})</h2>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
-            {myRecurring.map((rd) => (
-              <div key={rd.id} className="bg-card rounded-xl border border-blue-200 p-4 hover:shadow-md transition-all">
-                <div className="flex items-start justify-between gap-2 mb-2">
-                  <p className="font-semibold text-sm line-clamp-2">{rd.title}</p>
-                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700 shrink-0 font-medium">
-                    {rd.recurrence_type}
-                  </span>
-                </div>
-                {rd.description && (
-                  <p className="text-xs text-muted-foreground line-clamp-2 mb-2">{rd.description}</p>
-                )}
-                <div className="flex items-center justify-between pt-2 border-t border-blue-100">
-                  <span className="text-xs text-muted-foreground">{rd.client_name}</span>
-                  <span className="text-xs text-blue-600 font-medium">📅 Recorrente</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
       )}
 
       {/* Concluídas por mim (reabríveis) */}
