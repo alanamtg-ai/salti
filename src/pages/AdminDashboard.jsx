@@ -21,10 +21,11 @@ import ClientPerformancePanel from "@/components/dashboard/ClientPerformancePane
 import DeadlineAlerts from "@/components/dashboard/DeadlineAlerts";
 import NoticeBoard from "@/components/notices/NoticeBoard";
 import CompletedByMeSection from "@/components/demands/CompletedByMeSection";
+import MyTaskCard from "@/components/demands/MyTaskCard";
 import { useCurrentMember } from "@/lib/useCurrentMember";
 import { isPast, isToday } from "date-fns";
 import { cn } from "@/lib/utils";
-import { getStepLabel, getStepLight, STEPS } from "@/lib/flowConfig";
+import { getStepLabel, getStepLight, STEPS, getStepsForRole } from "@/lib/flowConfig";
 
 const CLIENT_COLORS = [
   "bg-violet-500", "bg-blue-500", "bg-emerald-500", "bg-pink-500",
@@ -98,6 +99,19 @@ export default function AdminDashboard() {
   const refetchAll = () => { refetchDemands(); qc.invalidateQueries(["clients"]); };
 
   const active = demands.filter((d) => d.current_step !== "finalizado");
+
+  // Tarefas do fluxo onde o admin (Alana) é responsável:
+  // etapas com role="admin" OU etapas onde está atribuída pelo email
+  const adminSteps = getStepsForRole("admin");
+  const myFlowTasks = active.filter((d) => {
+    const step = d.current_step;
+    const assignee = d.assignees?.[step];
+    // Atribuída explicitamente pelo email
+    if (assignee === member?.email) return true;
+    // Etapa cujo papel padrão é "admin" e sem assignee específico
+    if (adminSteps.includes(step) && !assignee) return true;
+    return false;
+  });
   const overdue = active.filter((d) => {
     const dl = d.step_deadlines?.[d.current_step] || d.deadline;
     return dl && isPast(new Date(dl)) && !isToday(new Date(dl));
@@ -185,6 +199,22 @@ export default function AdminDashboard() {
       </div>
 
 
+
+      {/* Minhas tarefas no fluxo */}
+      {myFlowTasks.length > 0 && (
+        <div className="bg-card rounded-xl border border-border p-5 space-y-3">
+          <h2 className="text-base font-semibold flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-violet-500" />
+            Minhas Tarefas no Fluxo
+            <span className="text-xs font-normal text-muted-foreground">({myFlowTasks.length} aguardando)</span>
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+            {myFlowTasks.map((d) => (
+              <MyTaskCard key={d.id} demand={d} onOpenDetail={setSelectedDemand} />
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Concluídas por mim */}
       <CompletedByMeSection demands={demands} member={member} onOpenDetail={setSelectedDemand} />
