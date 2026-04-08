@@ -208,6 +208,29 @@ export default function AdminDashboard() {
         </div>
       </div>
 
+      {/* Relógio ao vivo + sessão */}
+      <LiveClock sessionStart={sessionStart} />
+
+      {/* KPIs — linha 1: operacional */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {[
+          { label: "Ativas", value: active.length, icon: Layers, cls: "bg-primary/10 text-primary" },
+          { label: "Atrasadas", value: overdue.length, icon: AlertTriangle, cls: "bg-red-100 text-red-500" },
+          { label: `Clientes (${mensalistas.length} mens. · ${avulsos.length} avul.)`, value: clients.length, icon: Users, cls: "bg-emerald-100 text-emerald-600" },
+          { label: "Aguardando minha ação", value: myFlowTasks.length, icon: CheckCircle2, cls: "bg-violet-100 text-violet-600" },
+        ].map((s) => (
+          <div key={s.label} className="bg-card rounded-xl border border-border p-5 flex items-center gap-4">
+            <div className={cn("w-11 h-11 rounded-xl flex items-center justify-center shrink-0", s.cls)}>
+              <s.icon className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="text-3xl font-bold">{s.value}</p>
+              <p className="text-xs text-muted-foreground">{s.label}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
       {/* Minhas tarefas no fluxo */}
       {myFlowTasks.length > 0 && (
         <div className="bg-card rounded-xl border border-border p-5 space-y-3">
@@ -235,29 +258,6 @@ export default function AdminDashboard() {
           </div>
         </div>
       )}
-
-      {/* Relógio ao vivo + sessão */}
-      <LiveClock sessionStart={sessionStart} />
-
-      {/* KPIs — linha 1: operacional */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {[
-          { label: "Ativas", value: active.length, icon: Layers, cls: "bg-primary/10 text-primary" },
-          { label: "Atrasadas", value: overdue.length, icon: AlertTriangle, cls: "bg-red-100 text-red-500" },
-          { label: `Clientes (${mensalistas.length} mens. · ${avulsos.length} avul.)`, value: clients.length, icon: Users, cls: "bg-emerald-100 text-emerald-600" },
-          { label: "Aguardando minha ação", value: myFlowTasks.length, icon: CheckCircle2, cls: "bg-violet-100 text-violet-600" },
-        ].map((s) => (
-          <div key={s.label} className="bg-card rounded-xl border border-border p-5 flex items-center gap-4">
-            <div className={cn("w-11 h-11 rounded-xl flex items-center justify-center shrink-0", s.cls)}>
-              <s.icon className="w-5 h-5" />
-            </div>
-            <div>
-              <p className="text-3xl font-bold">{s.value}</p>
-              <p className="text-xs text-muted-foreground">{s.label}</p>
-            </div>
-          </div>
-        ))}
-      </div>
 
       {/* KPIs — linha 2: entregas */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
