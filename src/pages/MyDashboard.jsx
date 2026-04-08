@@ -57,8 +57,11 @@ export default function MyDashboard() {
     myDemands = demands.filter((d) => {
       if (d.current_step === "finalizado" || d.status !== "ativo") return false;
       
-      // Se está designado a ele, mostra
+      // Se está designado a ele na etapa atual, mostra
       if (d.assignees?.[d.current_step] === member.email) return true;
+      
+      // Se está mencionado em qualquer etapa dos assignees, mostra
+      if (Object.values(d.assignees || {}).includes(member.email)) return true;
       
       // Se é redação e ele é redator sem assignee definido, mostra
       if (d.current_step === "redacao" && member.role === "redator" && !d.assignees?.["redacao"]) return true;
