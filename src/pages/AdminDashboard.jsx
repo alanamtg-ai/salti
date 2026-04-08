@@ -122,8 +122,11 @@ export default function AdminDashboard() {
 
   // "Concluídas" = redes sociais (fluxo com agendamento — publicadas)
   const concluded = allFinished.filter((d) => (d.steps_flow || []).includes("agendamento"));
-  // "Finalizadas" = entregas diretas sem publicação (flyer, banner, etc.)
-  const finalized = allFinished.filter((d) => !(d.steps_flow || []).includes("agendamento"));
+  // "Finalizadas" = entregas diretas com etapa de design mas sem agendamento (flyer, banner, artes avulsas)
+  const finalized = allFinished.filter((d) => {
+    const flow = d.steps_flow || [];
+    return flow.includes("design") && !flow.includes("agendamento");
+  });
 
   const concludedThisMonth = concluded.filter((d) => {
     const lastEntry = [...(d.history || [])].reverse().find((h) => h.acao === "aprovado");
