@@ -319,7 +319,7 @@ function DeleteDemandModal({ open, onClose, demandTitle, onConfirm }) {
 }
 
 // Modal: seleciona redator e confirma envio
-function SendToWriterModal({ open, onClose, cards, demand, members, onSent }) {
+function SendToWriterModal({ open, onClose, cards, demand, members, member, onSent }) {
   const [redatorEmail, setRedatorEmail] = useState("");
   const [sending, setSending] = useState(false);
   const [done, setDone] = useState(false);
@@ -334,6 +334,24 @@ function SendToWriterModal({ open, onClose, cards, demand, members, onSent }) {
     if (!redatorEmail) return;
     setSending(true);
     const now = format(new Date(), "yyyy-MM-dd'T'HH:mm:ss");
+
+    // Finaliza a demanda mãe (estratégia concluída)
+    await base44.entities.Demand.update(demand.id, {
+      status: "finalizado",
+      current_step: "finalizado",
+      history: [
+        ...(demand.history || []),
+        {
+          etapa_origem: "estrategia",
+          etapa_destino: "finalizado",
+          acao: "aprovado",
+          by: member?.email || demand.history?.[0]?.by || "sistema",
+          by_name: member?.name || demand.history?.[0]?.by_name || "Sistema",
+          date: now,
+          observacao: `Estratégia concluída — ${cards.length} card(s) enviado(s) para redação.`,
+        },
+      ],
+    });
 
     // Cria uma demanda por card, já na etapa "redacao"
     await Promise.all(
@@ -554,6 +572,7 @@ export default function ContentCardsEditor({ demand, onUpdated, canEdit, member 
         cards={cards}
         demand={demand}
         members={members}
+        member={member}
         onSent={onUpdated}
       />
 
