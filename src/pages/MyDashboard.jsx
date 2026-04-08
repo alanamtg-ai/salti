@@ -198,9 +198,9 @@ export default function MyDashboard() {
             <h2 className="text-sm font-semibold text-red-600">Atrasadas ({overdue.length})</h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
-            {overdue.map((d) =>
+            {overdue.map((d) => (
           <MyTaskCard key={d.id} demand={d} member={member} onUpdated={refetch} onOpenDetail={setSelectedDemand} />
-          )}
+            ))}
           </div>
         </section>
       }
@@ -213,9 +213,9 @@ export default function MyDashboard() {
             <h2 className="text-sm font-semibold text-orange-600">Urgentes ({urgent.length})</h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
-            {urgent.map((d) =>
+            {urgent.map((d) => (
           <MyTaskCard key={d.id} demand={d} member={member} onUpdated={refetch} onOpenDetail={setSelectedDemand} />
-          )}
+            ))}
           </div>
         </section>
       }
@@ -228,9 +228,9 @@ export default function MyDashboard() {
             <h2 className="text-sm font-semibold text-emerald-600">Concluídas hoje ({approvedToday.length})</h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
-            {approvedToday.map((d) =>
+            {approvedToday.map((d) => (
           <MyTaskCard key={d.id} demand={d} member={member} onUpdated={refetch} onOpenDetail={setSelectedDemand} />
-          )}
+            ))}
           </div>
         </section>
       }
@@ -251,9 +251,9 @@ export default function MyDashboard() {
                 <h2 className="text-sm font-semibold">{clientName} <span className="text-muted-foreground font-normal">({clientDemands.length})</span></h2>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
-                {clientDemands.map((d) =>
-            <MyTaskCard key={d.id} demand={d} member={member} onUpdated={refetch} onOpenDetail={setSelectedDemand} />
-            )}
+                {clientDemands.map((d) => (
+              <MyTaskCard key={d.id} demand={d} member={member} onUpdated={refetch} onOpenDetail={setSelectedDemand} />
+                ))}
               </div>
             </section>
         );
