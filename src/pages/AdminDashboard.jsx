@@ -212,12 +212,11 @@ export default function AdminDashboard() {
       <LiveClock sessionStart={sessionStart} />
 
       {/* KPIs — linha 1: operacional */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
         {[
           { label: "Ativas", value: active.length, icon: Layers, cls: "bg-primary/10 text-primary" },
           { label: "Atrasadas", value: overdue.length, icon: AlertTriangle, cls: "bg-red-100 text-red-500" },
           { label: `Clientes (${mensalistas.length} mens. · ${avulsos.length} avul.)`, value: clients.length, icon: Users, cls: "bg-emerald-100 text-emerald-600" },
-          { label: "Aguardando minha ação", value: myFlowTasks.length, icon: CheckCircle2, cls: "bg-violet-100 text-violet-600" },
         ].map((s) => (
           <div key={s.label} className="bg-card rounded-xl border border-border p-5 flex items-center gap-4">
             <div className={cn("w-11 h-11 rounded-xl flex items-center justify-center shrink-0", s.cls)}>
