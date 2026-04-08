@@ -19,7 +19,7 @@ export const STEPS = {
 export const FLOW_TEMPLATES = {
   padrao: {
     label: "Fluxo Padrão Salti",
-    steps: ["briefing", "estrategia", "redacao", "design", "aprovacao_cliente", "agendamento", "distribuicao", "finalizado"],
+    steps: ["briefing", "estrategia", "redacao", "design", "aprovacao_cliente", "agendamento", "finalizado"],
   },
   com_trafego: {
     label: "Com Gestor de Tráfego",
@@ -27,14 +27,14 @@ export const FLOW_TEMPLATES = {
   },
   completo: {
     label: "Fluxo Completo",
-    steps: ["briefing", "estrategia", "redacao", "design", "aprovacao_cliente", "agendamento", "criar_campanha", "distribuicao", "finalizado"],
+    steps: ["briefing", "estrategia", "redacao", "design", "aprovacao_cliente", "agendamento", "criar_campanha", "finalizado"],
   },
   sem_redacao: {
     label: "Sem Redação",
-    steps: ["briefing", "estrategia", "design", "aprovacao_cliente", "agendamento", "distribuicao", "finalizado"],
+    steps: ["briefing", "estrategia", "design", "aprovacao_cliente", "agendamento", "finalizado"],
   },
   sem_distribuicao: {
-    label: "Sem Distribuição",
+    label: "Sem Social Media",
     steps: ["briefing", "estrategia", "redacao", "design", "aprovacao_cliente", "finalizado"],
   },
   estrategia_only: {

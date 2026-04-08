@@ -377,7 +377,7 @@ function SendToWriterModal({ open, onClose, cards, demand, members, member, onSe
               : tipo === "Vídeo" ? "video_curto"
               : "copy_legenda";
           })(),
-          steps_flow: ["redacao", "aprovacao_interna_redacao", "design", "aprovacao_interna_design", "aprovacao_cliente", "finalizado"],
+          steps_flow: ["redacao", "aprovacao_interna_redacao", "design", "aprovacao_interna_design", "aprovacao_cliente", "agendamento", "finalizado"],
           current_step: "redacao",
           current_step_index: 0,
           scheduled_date: card.data_postagem,

@@ -21,29 +21,7 @@ const priorityConfig = {
   urgente: "bg-red-100 text-red-700",
 };
 
-function PostClientApprovalPicker({ onPick }) {
-  return (
-    <div className="space-y-2">
-      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Para onde vai?</p>
-      <div className="grid grid-cols-3 gap-2">
-        {[
-          { value: "social_media", label: "📱 Social Media" },
-          { value: "midia",        label: "📺 Mídia" },
-          { value: "finalizar",    label: "✅ Finalizar" },
-        ].map((opt) => (
-          <button
-            key={opt.value}
-            type="button"
-            onClick={() => onPick(opt.value)}
-            className="border border-border rounded-lg p-3 text-xs font-medium hover:bg-muted hover:border-primary transition-colors text-center"
-          >
-            {opt.label}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-}
+
 
 // Seletor de designer para enviar após aprovação interna de copy
 function DesignerPicker({ members, onPick }) {
@@ -76,7 +54,6 @@ export default function DemandDetailModal({ demand, member, onClose, onUpdated }
   const [note, setNote]                         = useState("");
   const [contentText, setContentText]           = useState(demand?.content_text || "");
   const [loading, setLoading]                   = useState(false);
-  const [showDistribuicao, setShowDistribuicao] = useState(false);
   const [showDesignerPicker, setShowDesignerPicker] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -113,27 +90,16 @@ export default function DemandDetailModal({ demand, member, onClose, onUpdated }
   });
 
   // ✅ APROVAR — avança para próxima etapa
-  const handleAprovar = async (distribuicaoTipo = null, designerEmail = null) => {
+  const handleAprovar = async (designerEmail = null) => {
     // Aprovação interna de copy → precisa escolher designer
     if (currentStep === "aprovacao_interna_redacao" && !designerEmail) {
       setShowDesignerPicker(true);
       return;
     }
-    // Aprovação do cliente → precisa escolher destino
-    if (currentStep === "aprovacao_cliente" && !distribuicaoTipo) {
-      setShowDistribuicao(true);
-      return;
-    }
 
     setLoading(true);
-    let nextIndex = stepIndex + 1;
-    let nextStep  = stepsFlow[nextIndex] || "finalizado";
-
-    if (distribuicaoTipo === "finalizar") {
-      nextStep  = "finalizado";
-      nextIndex = stepsFlow.indexOf("finalizado");
-      if (nextIndex === -1) nextIndex = stepsFlow.length - 1;
-    }
+    const nextIndex = stepIndex + 1;
+    const nextStep  = stepsFlow[nextIndex] || "finalizado";
 
     const updates = {
       current_step:       nextStep,
@@ -148,7 +114,6 @@ export default function DemandDetailModal({ demand, member, onClose, onUpdated }
     if (currentStep === "aprovacao_interna_redacao" && designerEmail) {
       updates.assignees = { ...(demand.assignees || {}), design: designerEmail };
     }
-    if (distribuicaoTipo) updates.distribuicao_tipo = distribuicaoTipo;
 
     // Salvar conteúdo de redação se houver
     if (currentStep === "redacao" && contentText.trim()) {
@@ -446,9 +411,7 @@ export default function DemandDetailModal({ demand, member, onClose, onUpdated }
                   </div>
                 </div>
               )}
-              {showDistribuicao ? (
-                <PostClientApprovalPicker onPick={handleAprovar} />
-              ) : showDesignerPicker ? (
+              {showDesignerPicker ? (
                 <DesignerPicker members={members} onPick={(email) => handleAprovar(null, email)} />
               ) : (
                 <>
