@@ -28,18 +28,8 @@ export default function DemandCard({ demand, onClick }) {
   const daysLeft = deadlineDate ? differenceInDays(deadlineDate, new Date()) : null;
 
   // Para cards de redação: calcula prazos baseado na data de postagem
-   const scheduledDate = demand.scheduled_date ? new Date(demand.scheduled_date) : null;
-   const redacaoDueDate = scheduledDate ? subDays(scheduledDate, 20) : null;
-   const designDueDate = scheduledDate ? subDays(scheduledDate, 15) : null;
-   const estrategiaDueDate = scheduledDate ? subDays(scheduledDate, 45) : null;
-
-   const redacaoDaysLeft = redacaoDueDate ? differenceInDays(redacaoDueDate, new Date()) : null;
-   const designDaysLeft = designDueDate ? differenceInDays(designDueDate, new Date()) : null;
-   const estrategiaDaysLeft = estrategiaDueDate ? differenceInDays(estrategiaDueDate, new Date()) : null;
-
-   const isRedacaoOverdue = redacaoDueDate && isPast(redacaoDueDate) && !isToday(redacaoDueDate);
-   const isDesignOverdue = designDueDate && isPast(designDueDate) && !isToday(designDueDate);
-   const isEstrategiaOverdue = estrategiaDueDate && isPast(estrategiaDueDate) && !isToday(estrategiaDueDate);
+  const scheduledDate = demand.scheduled_date ? new Date(demand.scheduled_date) : null;
+  const redacaoDueDate = scheduledDate ? subDays(scheduledDate, 20) : null;
 
   return (
     <div
@@ -66,28 +56,32 @@ export default function DemandCard({ demand, onClick }) {
       )}
 
       {/* Datas de postagem e entrega (visível em cards de redação/design) */}
-       {scheduledDate && demand.current_step === "redacao" && (
-         <div className="mt-3 pt-3 border-t border-border/60 space-y-2">
-           <div className="flex items-center gap-2">
-             <Calendar className="w-3 h-3 text-emerald-500" />
-             <span className="text-[10px] text-muted-foreground">Data da postagem:</span>
-             <span className="bg-emerald-500 text-white text-[10px] font-semibold px-2.5 py-1 rounded-full">
-               {format(scheduledDate, "dd/MMM - EEEE", { locale: ptBR })}
-             </span>
-           </div>
-           <div className="flex items-center justify-between">
-             <span className="bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400 text-[10px] font-semibold px-2.5 py-1 rounded-full">
-               Redação
-             </span>
-             <div className="flex items-center gap-2">
-               <span className="text-[10px] text-muted-foreground">Prazo de entrega:</span>
-               <span className="bg-emerald-500 text-white text-[10px] font-semibold px-2.5 py-1 rounded-full">
-                 {format(redacaoDueDate, "dd/MMM", { locale: ptBR })}
-               </span>
-             </div>
-           </div>
-         </div>
-       )}
+      {scheduledDate && (demand.current_step === "redacao" || demand.current_step === "design") && (
+        <div className="mt-3 pt-3 border-t border-border/60 space-y-2">
+          <div className="flex items-center gap-2">
+            <Calendar className="w-3 h-3 text-emerald-500" />
+            <span className="text-[10px] text-muted-foreground">Data da postagem:</span>
+            <span className="bg-emerald-500 text-white text-[10px] font-semibold px-2.5 py-1 rounded-full">
+              {format(scheduledDate, "dd/MMM - EEEE", { locale: ptBR })}
+            </span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className={cn("text-[10px] font-semibold px-2.5 py-1 rounded-full", 
+              demand.current_step === "redacao" 
+                ? "bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400" 
+                : "bg-pink-100 dark:bg-pink-950 text-pink-600 dark:text-pink-400"
+            )}>
+              {demand.current_step === "redacao" ? "Redação" : "Design"}
+            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] text-muted-foreground">Prazo de entrega:</span>
+              <span className="bg-emerald-500 text-white text-[10px] font-semibold px-2.5 py-1 rounded-full">
+                {format(redacaoDueDate, "dd/MMM", { locale: ptBR })}
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Deadline genérico (fallback para demandas sem scheduled_date) */}
       {!scheduledDate && deadlineDate && (
