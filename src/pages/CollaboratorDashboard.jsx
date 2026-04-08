@@ -6,6 +6,7 @@ import MyTaskCard from "@/components/demands/MyTaskCard";
 import { useState, useMemo } from "react";
 import { Loader2, CheckCircle2, AlertTriangle, Clock, Trophy, Star } from "lucide-react";
 import NoticeBoard from "@/components/notices/NoticeBoard";
+import CompletedByMeSection from "@/components/demands/CompletedByMeSection";
 import { getStepsForRole, getStepLabel, STEPS } from "@/lib/flowConfig";
 import { cn } from "@/lib/utils";
 import { isPast, isToday, differenceInDays, parseISO } from "date-fns";
@@ -208,6 +209,9 @@ export default function CollaboratorDashboard() {
           </div>
         </section>
       )}
+
+      {/* Concluídas por mim (reabríveis) */}
+      <CompletedByMeSection demands={demands} member={member} onOpenDetail={setSelected} />
 
       {myDemands.length === 0 && (
         <div className="text-center py-20 text-muted-foreground">

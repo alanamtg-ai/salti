@@ -11,6 +11,7 @@ import { isPast, isToday, startOfMonth, startOfYear } from "date-fns";
 import { cn } from "@/lib/utils";
 import MemberProfileCard from "@/components/profile/MemberProfileCard";
 import NoticeBoard from "@/components/notices/NoticeBoard";
+import CompletedByMeSection from "@/components/demands/CompletedByMeSection";
 
 export default function MyDashboard() {
   const { member, isLoading: loadingMember } = useCurrentMember();
@@ -255,6 +256,9 @@ export default function MyDashboard() {
           ));
         })()
       )}
+
+      {/* Concluídas por mim (reabríveis) */}
+      <CompletedByMeSection demands={demands} member={member} onOpenDetail={setSelectedDemand} />
 
       {/* Estado vazio */}
       {myDemands.length === 0 && (
