@@ -4,7 +4,7 @@ import { useCurrentMember } from "@/lib/useCurrentMember";
 import DemandDetailModal from "@/components/demands/DemandDetailModal";
 import MyTaskCard from "@/components/demands/MyTaskCard";
 import { useState, useMemo } from "react";
-import { Loader2, CheckCircle2, AlertTriangle, Clock, Trophy, Star } from "lucide-react";
+import { Loader2, CheckCircle2, AlertTriangle, Clock, Trophy, Star, Send } from "lucide-react";
 import NoticeBoard from "@/components/notices/NoticeBoard";
 import CompletedByMeSection from "@/components/demands/CompletedByMeSection";
 import { getStepsForRole, getStepLabel, STEPS } from "@/lib/flowConfig";
@@ -123,7 +123,7 @@ export default function CollaboratorDashboard() {
         {[
           { label: "Em aberto", value: myDemands.length, icon: Clock, cls: "bg-primary/10 text-primary" },
           { label: "Atrasadas", value: overdue.length, icon: AlertTriangle, cls: overdue.length > 0 ? "bg-red-100 text-red-500" : "bg-muted text-muted-foreground" },
-          { label: "Entregues", value: metrics.delivered, icon: CheckCircle2, cls: "bg-emerald-100 text-emerald-600" },
+          { label: "Concluídas por mim", value: metrics.delivered, icon: Send, cls: "bg-teal-100 text-teal-600" },
           {
             label: "Tempo médio",
             value: metrics.avgDays ? `${metrics.avgDays}d` : "—",
