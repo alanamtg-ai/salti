@@ -42,6 +42,11 @@ export default function ClientDashboard() {
     (d) => d.status === "finalizado" && d.client_id === member?.client_id
   );
 
+  // Demandas avulsas (ativas, mas não aguardando aprovação do cliente)
+  const freelance = demands.filter(
+    (d) => d.status === "ativo" && d.client_id === member?.client_id && d.current_step !== "aprovacao_cliente"
+  );
+
   return (
     <div className="space-y-6 pb-20 lg:pb-0">
       {/* Header */}
@@ -55,16 +60,57 @@ export default function ClientDashboard() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-3 gap-4">
         <div className={cn("rounded-xl border p-4 text-center", pending.length > 0 ? "bg-orange-50 border-orange-200" : "bg-card border-border")}>
           <p className={cn("text-3xl font-bold", pending.length > 0 ? "text-orange-600" : "text-foreground")}>{pending.length}</p>
           <p className="text-xs text-muted-foreground mt-1">Aguardando aprovação</p>
+        </div>
+        <div className="bg-card rounded-xl border border-border p-4 text-center">
+          <p className="text-3xl font-bold text-blue-600">{freelance.length}</p>
+          <p className="text-xs text-muted-foreground mt-1">Demandas avulsas</p>
         </div>
         <div className="bg-card rounded-xl border border-border p-4 text-center">
           <p className="text-3xl font-bold text-emerald-600">{approved.length}</p>
           <p className="text-xs text-muted-foreground mt-1">Publicadas</p>
         </div>
       </div>
+
+      {/* Demandas avulsas */}
+      {freelance.length > 0 && (
+        <div className="space-y-3">
+          <h2 className="text-sm font-semibold flex items-center gap-2">
+            <Clock className="w-4 h-4 text-blue-500" />
+            Demandas avulsas em andamento
+          </h2>
+          <div className="grid gap-3">
+            {freelance.map((d) => (
+              <button
+                key={d.id}
+                onClick={() => setSelected(d)}
+                className="w-full text-left bg-card rounded-xl border border-border p-4 hover:shadow-md hover:border-primary/30 transition-all"
+              >
+                <div className="flex items-start justify-between gap-2 mb-2">
+                  <p className="font-semibold text-sm">{d.title}</p>
+                  {d.priority && (
+                    <span className={cn("text-[10px] px-1.5 py-0.5 rounded-full shrink-0 font-medium", priorityStyle[d.priority])}>
+                      {priorityLabel[d.priority]}
+                    </span>
+                  )}
+                </div>
+                {d.description && (
+                  <p className="text-xs text-muted-foreground line-clamp-2 mb-2">{d.description}</p>
+                )}
+                <div className="flex items-center justify-between">
+                  <span className={cn("text-xs px-2 py-0.5 rounded-full font-medium", getStepLight(d.current_step))}>
+                    {getStepLabel(d.current_step)}
+                  </span>
+                  <span className="text-xs text-muted-foreground">Em andamento</span>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Lista de pendências */}
       {pending.length > 0 ? (
