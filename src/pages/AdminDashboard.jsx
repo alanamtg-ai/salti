@@ -231,34 +231,6 @@ export default function AdminDashboard() {
         ))}
       </div>
 
-      {/* Minhas tarefas no fluxo */}
-      {myFlowTasks.length > 0 && (
-        <div className="bg-card rounded-xl border border-border p-5 space-y-3">
-          <h2 className="text-base font-semibold flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-violet-500" />
-            Minhas Tarefas no Fluxo
-            <span className="text-xs font-normal text-muted-foreground">({myFlowTasks.length} aguardando)</span>
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
-            {myFlowTasks.map((d) => {
-              const assigneeEmail = d.assignees?.[d.current_step];
-              const assigneeMember = assigneeEmail
-                ? members.find((m) => m.email === assigneeEmail)
-                : null;
-              return (
-                <MyTaskCard
-                  key={d.id}
-                  demand={d}
-                  onOpenDetail={setSelectedDemand}
-                  assigneeMember={assigneeMember}
-                  onMemberUpdated={() => qc.invalidateQueries(["team_members"])}
-                />
-              );
-            })}
-          </div>
-        </div>
-      )}
-
       {/* KPIs — linha 2: entregas */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="bg-card rounded-xl border border-teal-200 p-5 flex items-center gap-4">
@@ -316,7 +288,39 @@ export default function AdminDashboard() {
         </div>
       </div>
 
+      {/* ─────────────────────────────────────────────── */}
+      {/* MINHAS TAREFAS — Seção Separada                */}
+      {/* ─────────────────────────────────────────────── */}
 
+      {/* Minhas tarefas no fluxo */}
+      {myFlowTasks.length > 0 && (
+       <div className="mt-8 pt-8 border-t border-border">
+         <div className="bg-card rounded-xl border border-border p-5 space-y-3">
+           <h2 className="text-base font-semibold flex items-center gap-2">
+             <CheckCircle2 className="w-4 h-4 text-violet-500" />
+             Minhas Tarefas no Fluxo
+             <span className="text-xs font-normal text-muted-foreground">({myFlowTasks.length} aguardando)</span>
+           </h2>
+           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+             {myFlowTasks.map((d) => {
+               const assigneeEmail = d.assignees?.[d.current_step];
+               const assigneeMember = assigneeEmail
+                 ? members.find((m) => m.email === assigneeEmail)
+                 : null;
+               return (
+                 <MyTaskCard
+                   key={d.id}
+                   demand={d}
+                   onOpenDetail={setSelectedDemand}
+                   assigneeMember={assigneeMember}
+                   onMemberUpdated={() => qc.invalidateQueries(["team_members"])}
+                 />
+               );
+             })}
+           </div>
+         </div>
+       </div>
+      )}
 
       {/* Concluídas por mim */}
       <CompletedByMeSection demands={demands} member={member} onOpenDetail={setSelectedDemand} />
