@@ -153,15 +153,7 @@ export default function MyDashboard() {
         </div>
       </div>
 
-      {/* Quadro de Avisos */}
-      <div className="bg-card rounded-xl border border-border p-5">
-        <NoticeBoard member={member} />
-      </div>
-
-      {/* Alertas de prazos */}
-       <DeadlineAlertsCompact userEmail={member.email} />
-
-       {/* Stats rápidas */}
+      {/* Stats rápidas — KPIs */}
        {total > 0 && (
          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
           <div className="bg-card rounded-xl border border-border p-3 text-center">
@@ -185,9 +177,17 @@ export default function MyDashboard() {
             <p className="text-[11px] text-muted-foreground mt-0.5">Concluídas/ano</p>
           </div>
         </div>
-      )}
+        )}
 
-      {/* Atrasadas */}
+        {/* Quadro de Avisos */}
+        <div className="bg-card rounded-xl border border-border p-5">
+        <NoticeBoard member={member} />
+        </div>
+
+        {/* Alertas de prazos */}
+        <DeadlineAlertsCompact userEmail={member.email} />
+
+        {/* Atrasadas */}
       {overdue.length > 0 && (
         <section>
           <div className="flex items-center gap-2 mb-3">
