@@ -303,7 +303,7 @@ export default function DemandDetailModal({ demand, member, onClose, onUpdated }
           {/* Cards de conteúdo — apenas na etapa estratégia */}
           {currentStep === "estrategia" && (
             <div className="border-t pt-4 space-y-4">
-              <ContentCardsEditor demand={demand} onUpdated={onUpdated} canEdit={canAct} />
+              <ContentCardsEditor demand={demand} onUpdated={onUpdated} canEdit={canAct} member={member} />
 
               {/* Botão de exclusão em estratégia */}
               {canDelete && !showDeleteConfirm && (

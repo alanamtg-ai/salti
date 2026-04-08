@@ -370,8 +370,8 @@ function SendToWriterModal({ open, onClose, cards, demand, members, onSent }) {
             etapa_origem: "estrategia",
             etapa_destino: "redacao",
             acao: "aprovado",
-            by: "admin",
-            by_name: "Admin",
+            by: member?.email || "admin",
+            by_name: member?.name || "Admin",
             date: now,
             observacao: `Enviado pelo estrategista. Card original: ${demand.title}`,
           }],
@@ -442,7 +442,7 @@ function SendToWriterModal({ open, onClose, cards, demand, members, onSent }) {
   );
 }
 
-export default function ContentCardsEditor({ demand, onUpdated, canEdit }) {
+export default function ContentCardsEditor({ demand, onUpdated, canEdit, member }) {
   const [cards, setCards] = useState(
     demand.content_cards?.length > 0 ? demand.content_cards : [emptyCard()]
   );

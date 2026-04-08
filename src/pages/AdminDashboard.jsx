@@ -20,6 +20,7 @@ import NewDemandForm from "@/components/demands/NewDemandForm";
 import ClientPerformancePanel from "@/components/dashboard/ClientPerformancePanel";
 import DeadlineAlerts from "@/components/dashboard/DeadlineAlerts";
 import NoticeBoard from "@/components/notices/NoticeBoard";
+import CompletedByMeSection from "@/components/demands/CompletedByMeSection";
 import { useCurrentMember } from "@/lib/useCurrentMember";
 import { isPast, isToday } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -184,6 +185,9 @@ export default function AdminDashboard() {
       </div>
 
 
+
+      {/* Concluídas por mim */}
+      <CompletedByMeSection demands={demands} member={member} onOpenDetail={setSelectedDemand} />
 
       {/* Modais */}
       <DemandDetailModal demand={selectedDemand} member={member} onClose={() => setSelectedDemand(null)} onUpdated={refetchDemands} />
