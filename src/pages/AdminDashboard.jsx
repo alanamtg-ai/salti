@@ -98,7 +98,11 @@ export default function AdminDashboard() {
 
   const refetchAll = () => { refetchDemands(); qc.invalidateQueries(["clients"]); };
 
-  const active = demands.filter((d) => d.current_step !== "finalizado");
+  const now = new Date();
+  const currentMonth = now.getMonth();
+  const currentYear = now.getFullYear();
+
+  const active = demands.filter((d) => d.status === "ativo");
 
   // Tarefas do fluxo onde o admin (Alana) é responsável:
   // etapas com role="admin" OU etapas onde está atribuída pelo email
@@ -117,6 +121,20 @@ export default function AdminDashboard() {
     return dl && isPast(new Date(dl)) && !isToday(new Date(dl));
   });
   const published = demands.filter((d) => d.status === "finalizado");
+
+  // Concluídas no mês e no ano correntes (pelo histórico de aprovação final)
+  const completedThisMonth = published.filter((d) => {
+    const lastEntry = [...(d.history || [])].reverse().find((h) => h.acao === "aprovado");
+    if (!lastEntry?.date) return false;
+    const dt = new Date(lastEntry.date);
+    return dt.getMonth() === currentMonth && dt.getFullYear() === currentYear;
+  });
+
+  const completedThisYear = published.filter((d) => {
+    const lastEntry = [...(d.history || [])].reverse().find((h) => h.acao === "aprovado");
+    if (!lastEntry?.date) return false;
+    return new Date(lastEntry.date).getFullYear() === currentYear;
+  });
 
 
 
@@ -155,7 +173,7 @@ export default function AdminDashboard() {
           { label: "Ativas", value: active.length, icon: Layers, cls: "bg-primary/10 text-primary" },
           { label: "Atrasadas", value: overdue.length, icon: AlertTriangle, cls: "bg-red-100 text-red-500" },
           { label: "Clientes", value: clients.length, icon: Users, cls: "bg-emerald-100 text-emerald-600" },
-          { label: "Publicadas", value: published.length, icon: CheckCircle2, cls: "bg-sky-100 text-sky-600" },
+          { label: "Publicadas", value: published.length, icon: CheckCircle2, cls: "bg-sky-100 text-sky-600", sub: `${completedThisMonth.length} esse mês · ${completedThisYear.length} esse ano` },
         ].map((s) => (
           <div key={s.label} className="bg-card rounded-xl border border-border p-5 flex items-center gap-4">
             <div className={cn("w-11 h-11 rounded-xl flex items-center justify-center shrink-0", s.cls)}>
@@ -164,6 +182,7 @@ export default function AdminDashboard() {
             <div>
               <p className="text-3xl font-bold">{s.value}</p>
               <p className="text-xs text-muted-foreground">{s.label}</p>
+              {s.sub && <p className="text-[10px] text-muted-foreground mt-0.5">{s.sub}</p>}
             </div>
           </div>
         ))}
