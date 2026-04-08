@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 import { format } from "date-fns";
 import {
   Plus, AlertTriangle, CheckCircle2, Users, Layers,
-  Trash2, UserPlus
+  Trash2, UserPlus, MessageCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -164,6 +164,15 @@ export default function AdminDashboard() {
           <p className="text-sm text-muted-foreground">Visão geral da agência</p>
         </div>
         <div className="flex gap-2">
+          <a
+            href={base44.agents.getWhatsAppConnectURL('demand_manager')}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <Button size="sm" variant="outline" className="text-green-600 border-green-200 hover:bg-green-50">
+              <MessageCircle className="w-4 h-4 mr-1" /> WhatsApp Bot
+            </Button>
+          </a>
           <Button size="sm" variant="outline" onClick={() => setClientFormOpen(true)}>
             <UserPlus className="w-4 h-4 mr-1" /> Cliente
           </Button>
