@@ -55,19 +55,14 @@ export default function MyDashboard() {
   let myDemands;
   if (member.role === "cliente") {
     myDemands = demands.filter(
-      (d) => d.current_step === "aprovacao_cliente" && d.client_id === member.client_id
+      (d) => d.current_step === "aprovacao_cliente" && d.client_id === member.client_id && d.status === "ativo"
     );
-  } else if (member.role === "admin") {
-    // Admin vê demandas onde está atribuído como responsável da etapa atual
+  } else {
+    // Colaboradores e admins: ver demandas onde estão atribuídos à etapa atual (ou sem atribuição se faz parte do fluxo)
     myDemands = demands.filter((d) => {
       if (d.current_step === "finalizado" || d.status !== "ativo") return false;
-      return d.assignees?.[d.current_step] === member.email;
-    });
-  } else {
-    myDemands = demands.filter((d) => {
-      if (d.current_step === "finalizado") return false;
       if (!mySteps.includes(d.current_step)) return false;
-      // Se tem responsável definido, filtra pelo email
+      // Se tem responsável definido, filtra pelo email; senão, mostra para todos da etapa
       if (d.assignees?.[d.current_step] && d.assignees[d.current_step] !== member.email) return false;
       return true;
     });
@@ -139,9 +134,6 @@ export default function MyDashboard() {
 
   return (
     <div className="space-y-6 pb-20 lg:pb-0">
-      {/* Perfil do membro */}
-      <MemberProfileCard member={member} onUpdated={refetch} />
-
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
@@ -164,29 +156,32 @@ export default function MyDashboard() {
 
       {/* Stats rápidas — KPIs */}
        {total > 0 && (
-         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-          <div className="bg-card rounded-xl border border-border p-3 text-center">
-            <p className="text-2xl font-bold text-foreground">{total}</p>
-            <p className="text-[11px] text-muted-foreground mt-0.5">Em aberto</p>
-          </div>
-          <div className={cn("rounded-xl border p-3 text-center", overdueCount > 0 ? "bg-red-50 border-red-200" : "bg-card border-border")}>
-            <p className={cn("text-2xl font-bold", overdueCount > 0 ? "text-red-600" : "text-foreground")}>{overdueCount}</p>
-            <p className="text-[11px] text-muted-foreground mt-0.5">Atrasadas</p>
-          </div>
-          <div className={cn("rounded-xl border p-3 text-center", dueToday > 0 ? "bg-amber-50 border-amber-200" : "bg-card border-border")}>
-            <p className={cn("text-2xl font-bold", dueToday > 0 ? "text-amber-600" : "text-foreground")}>{dueToday}</p>
-            <p className="text-[11px] text-muted-foreground mt-0.5">Vencem hoje</p>
-          </div>
-          <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-center">
-            <p className="text-2xl font-bold text-emerald-600">{concludedThisMonth}</p>
-            <p className="text-[11px] text-muted-foreground mt-0.5">Concluídas/mês</p>
-          </div>
-          <div className="bg-violet-50 border border-violet-200 rounded-xl p-3 text-center">
-            <p className="text-2xl font-bold text-violet-600">{concludedThisYear}</p>
-            <p className="text-[11px] text-muted-foreground mt-0.5">Concluídas/ano</p>
-          </div>
-        </div>
-        )}
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+           <div className="bg-card rounded-xl border border-border p-3 text-center">
+             <p className="text-2xl font-bold text-foreground">{total}</p>
+             <p className="text-[11px] text-muted-foreground mt-0.5">Em aberto</p>
+           </div>
+           <div className={cn("rounded-xl border p-3 text-center", overdueCount > 0 ? "bg-red-50 border-red-200" : "bg-card border-border")}>
+             <p className={cn("text-2xl font-bold", overdueCount > 0 ? "text-red-600" : "text-foreground")}>{overdueCount}</p>
+             <p className="text-[11px] text-muted-foreground mt-0.5">Atrasadas</p>
+           </div>
+           <div className={cn("rounded-xl border p-3 text-center", dueToday > 0 ? "bg-amber-50 border-amber-200" : "bg-card border-border")}>
+             <p className={cn("text-2xl font-bold", dueToday > 0 ? "text-amber-600" : "text-foreground")}>{dueToday}</p>
+             <p className="text-[11px] text-muted-foreground mt-0.5">Vencem hoje</p>
+           </div>
+           <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-center">
+             <p className="text-2xl font-bold text-emerald-600">{concludedThisMonth}</p>
+             <p className="text-[11px] text-muted-foreground mt-0.5">Concluídas/mês</p>
+           </div>
+           <div className="bg-violet-50 border border-violet-200 rounded-xl p-3 text-center">
+             <p className="text-2xl font-bold text-violet-600">{concludedThisYear}</p>
+             <p className="text-[11px] text-muted-foreground mt-0.5">Concluídas/ano</p>
+           </div>
+         </div>
+         )}
+
+      {/* Perfil do membro */}
+      <MemberProfileCard member={member} onUpdated={refetch} />
 
         {/* Quadro de Avisos */}
         <div className="bg-card rounded-xl border border-border p-5">
