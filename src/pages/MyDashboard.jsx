@@ -30,6 +30,12 @@ export default function MyDashboard() {
     enabled: !!member,
   });
 
+  const { data: recurringDemands = [] } = useQuery({
+    queryKey: ["recurring_demands"],
+    queryFn: () => base44.entities.RecurringDemand.list(),
+    enabled: !!member,
+  });
+
   if (loadingMember) return (
     <div className="flex items-center justify-center h-64">
       <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
@@ -125,6 +131,11 @@ export default function MyDashboard() {
     if (!lastApproval || !lastApproval.date) return false;
     return isToday(new Date(lastApproval.date));
   });
+
+  // Demandas recorrentes atribuídas ao membro
+  const myRecurring = recurringDemands.filter(
+    (rd) => rd.active && rd.assignees && Object.values(rd.assignees).includes(member.email)
+  );
 
   return (
     <div className="space-y-6 pb-20 lg:pb-0">
@@ -253,6 +264,35 @@ export default function MyDashboard() {
             </section>
           ));
         })()
+      )}
+
+      {/* Demandas Recorrentes */}
+      {myRecurring.length > 0 && (
+        <section>
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-2 h-2 rounded-full bg-blue-500" />
+            <h2 className="text-sm font-semibold">Demandas Recorrentes ({myRecurring.length})</h2>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+            {myRecurring.map((rd) => (
+              <div key={rd.id} className="bg-card rounded-xl border border-blue-200 p-4 hover:shadow-md transition-all">
+                <div className="flex items-start justify-between gap-2 mb-2">
+                  <p className="font-semibold text-sm line-clamp-2">{rd.title}</p>
+                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700 shrink-0 font-medium">
+                    {rd.recurrence_type}
+                  </span>
+                </div>
+                {rd.description && (
+                  <p className="text-xs text-muted-foreground line-clamp-2 mb-2">{rd.description}</p>
+                )}
+                <div className="flex items-center justify-between pt-2 border-t border-blue-100">
+                  <span className="text-xs text-muted-foreground">{rd.client_name}</span>
+                  <span className="text-xs text-blue-600 font-medium">📅 Recorrente</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
       )}
 
       {/* Concluídas por mim (reabríveis) */}
