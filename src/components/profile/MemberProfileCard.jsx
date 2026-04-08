@@ -77,9 +77,13 @@ export default function MemberProfileCard({ member, onUpdated }) {
   if (typeof window !== "undefined") initTheme();
 
   const initials = member.name?.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase();
-  const birthdayFormatted = member.birthday ?
-  format(new Date(member.birthday + "T12:00:00"), "dd 'de' MMMM", { locale: ptBR }) :
-  null;
+  const birthdayFormatted = member.birthday ? (() => {
+    try {
+      return format(new Date(member.birthday + "T12:00:00"), "dd 'de' MMMM", { locale: ptBR });
+    } catch {
+      return null;
+    }
+  })() : null;
 
   return (
     <>
