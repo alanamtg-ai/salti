@@ -9,7 +9,8 @@ import NoticeBoard from "@/components/notices/NoticeBoard";
 import CompletedByMeSection from "@/components/demands/CompletedByMeSection";
 import { getStepsForRole, getStepLabel, STEPS } from "@/lib/flowConfig";
 import { cn } from "@/lib/utils";
-import { isPast, isToday, differenceInDays, parseISO } from "date-fns";
+import { isPast, isToday, differenceInDays, parseISO, addDays, startOfMonth, startOfWeek, isBefore } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 export default function CollaboratorDashboard() {
   const { member, isLoading } = useCurrentMember();
@@ -101,16 +102,84 @@ export default function CollaboratorDashboard() {
     </div>
   );
 
+  // Calcular variações e métricas adicionais
+  const now = new Date();
+  const yesterday = addDays(now, -1);
+  const in48h = addDays(now, 2);
+  const monthStart = startOfMonth(now);
+  const weekStart = startOfWeek(now);
+
+  // Atrasadas vs ontem
+  const overdueYesterday = demands.filter((d) => {
+    const dl = d.step_deadlines?.[d.current_step] || d.deadline;
+    return dl && isPast(new Date(dl)) && !isToday(new Date(dl)) && new Date(dl) <= yesterday;
+  }).length;
+  const overdueVariation = overdue.length - overdueYesterday;
+
+  // Vencem em breve (próximas 48h)
+  const dueSoon = myDemands.filter((d) => {
+    const dl = d.step_deadlines?.[d.current_step] || d.deadline;
+    if (!dl) return false;
+    const dlDate = new Date(dl);
+    return isBefore(dlDate, in48h) && !isPast(dlDate);
+  }).length;
+
+  // Finalizadas no mês
+  const completedThisMonth = demands.filter((d) => {
+    if (d.status !== "finalizado") return false;
+    const updated = d.updated_date ? new Date(d.updated_date) : null;
+    return updated && updated >= monthStart;
+  }).length;
+
+  // Finalizadas nesta semana
+  const completedThisWeek = demands.filter((d) => {
+    if (d.status !== "finalizado") return false;
+    const updated = d.updated_date ? new Date(d.updated_date) : null;
+    return updated && updated >= weekStart;
+  }).length;
+
+  const weekVariation = completedThisWeek > 0 ? completedThisWeek : 0;
+
+  // Finalizadas no ano
+  const yearStart = new Date(now.getFullYear(), 0, 1);
+  const completedThisYear = demands.filter((d) => {
+    if (d.status !== "finalizado") return false;
+    const updated = d.updated_date ? new Date(d.updated_date) : null;
+    return updated && updated >= yearStart;
+  }).length;
+
+  const getGreeting = () => {
+    const day = now.getDay();
+    const greetings = [
+      "Que domingo produtivo!",
+      "Segunda é hora de bombar!",
+      "Terça em ritmo!",
+      "Quarta já tá bom!",
+      "Quinta pro detalhe!",
+      "Sexta é quase lá!",
+      "Sábado também conta!"
+    ];
+    return greetings[day];
+  };
+
   return (
     <div className="space-y-6 pb-20 lg:pb-0">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">
-          Olá, {member?.name?.split(" ")[0]} 👋
-        </h1>
-        <p className="text-sm text-muted-foreground mt-0.5">
-          {roleLabel} · suas tarefas e métricas
-        </p>
+      <div className="space-y-3">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Olá, {member?.name?.split(" ")[0]} 👋
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">{getGreeting()}</p>
+        </div>
+        {myRankPos >= 0 && (
+          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-primary/5 w-fit">
+            <Trophy className="w-4 h-4 text-amber-500" />
+            <span className="text-sm font-semibold text-foreground">
+              #{myRankPos + 1} no ranking da equipe
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Quadro de Avisos */}
@@ -118,29 +187,62 @@ export default function CollaboratorDashboard() {
         <NoticeBoard member={member} />
       </div>
 
-      {/* Métricas pessoais */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        {[
-          { label: "Em aberto", value: myDemands.length, icon: Clock, cls: "bg-primary/10 text-primary" },
-          { label: "Atrasadas", value: overdue.length, icon: AlertTriangle, cls: overdue.length > 0 ? "bg-red-100 text-red-500" : "bg-muted text-muted-foreground" },
-          { label: "Concluídas por mim", value: metrics.delivered, icon: Send, cls: "bg-teal-100 text-teal-600" },
-          {
-            label: "Tempo médio",
-            value: metrics.avgDays ? `${metrics.avgDays}d` : "—",
-            icon: Star,
-            cls: "bg-amber-100 text-amber-600"
-          },
-        ].map((s) => (
-          <div key={s.label} className="bg-card rounded-xl border border-border p-4 flex items-center gap-3">
-            <div className={cn("w-9 h-9 rounded-lg flex items-center justify-center shrink-0", s.cls)}>
-              <s.icon className="w-4 h-4" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold leading-none">{s.value}</p>
-              <p className="text-[11px] text-muted-foreground mt-1">{s.label}</p>
-            </div>
+      {/* KPIs - 5 colunas */}
+      <div className="grid grid-cols-1 sm:grid-cols-5 gap-3">
+        {/* Atrasadas */}
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+          <div className="flex items-center justify-between mb-1">
+            <p className="text-xs font-semibold text-red-600 uppercase tracking-wider">Atrasadas</p>
+            <AlertTriangle className="w-4 h-4 text-red-500" />
           </div>
-        ))}
+          <p className="text-3xl font-bold text-red-600">{overdue.length}</p>
+          {overdueVariation !== 0 && (
+            <p className={cn("text-xs mt-2", overdueVariation > 0 ? "text-red-600" : "text-emerald-600")}>
+              {overdueVariation > 0 ? "↑" : "↓"} {Math.abs(overdueVariation)} vs ontem
+            </p>
+          )}
+        </div>
+
+        {/* Vencem em breve */}
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+          <div className="flex items-center justify-between mb-1">
+            <p className="text-xs font-semibold text-amber-600 uppercase tracking-wider">Próx. 48h</p>
+            <Clock className="w-4 h-4 text-amber-500" />
+          </div>
+          <p className="text-3xl font-bold text-amber-600">{dueSoon}</p>
+          <p className="text-xs text-muted-foreground mt-2">demandas</p>
+        </div>
+
+        {/* Em produção */}
+        <div className="bg-violet-50 border border-violet-200 rounded-xl p-4">
+          <div className="flex items-center justify-between mb-1">
+            <p className="text-xs font-semibold text-violet-600 uppercase tracking-wider">Produção</p>
+            <Send className="w-4 h-4 text-violet-500" />
+          </div>
+          <p className="text-3xl font-bold text-violet-600">{myDemands.length}</p>
+          <p className="text-xs text-muted-foreground mt-2">em andamento</p>
+        </div>
+
+        {/* Produção no mês */}
+        <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
+          <div className="flex items-center justify-between mb-1">
+            <p className="text-xs font-semibold text-emerald-600 uppercase tracking-wider">Mês</p>
+            <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+          </div>
+          <p className="text-3xl font-bold text-emerald-600">{completedThisMonth}</p>
+          {weekVariation > 0 && (
+            <p className="text-xs text-emerald-600 mt-2">↑ {weekVariation} essa semana</p>
+          )}
+        </div>
+
+        {/* Produção no ano */}
+        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+          <div className="flex items-center justify-between mb-1">
+            <p className="text-xs font-semibold text-blue-600 uppercase tracking-wider">Ano</p>
+            <Star className="w-4 h-4 text-blue-500" />
+          </div>
+          <p className="text-3xl font-bold text-blue-600">{completedThisYear}</p>
+        </div>
       </div>
 
       {/* Ranking geral da equipe */}
