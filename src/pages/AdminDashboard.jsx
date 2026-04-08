@@ -39,13 +39,14 @@ function AddClientModal({ open, onClose, onSaved }) {
   const [name, setName] = useState("");
   const [company, setCompany] = useState("");
   const [email, setEmail] = useState("");
+  const [clientType, setClientType] = useState("mensalista");
   const [saving, setSaving] = useState(false);
 
   const handleSave = async () => {
     setSaving(true);
-    await base44.entities.Client.create({ name, company, email, active: true });
+    await base44.entities.Client.create({ name, company, email, active: true, client_type: clientType });
     setSaving(false);
-    setName(""); setCompany(""); setEmail("");
+    setName(""); setCompany(""); setEmail(""); setClientType("mensalista");
     onSaved();
     onClose();
   };
@@ -66,6 +67,26 @@ function AddClientModal({ open, onClose, onSaved }) {
           <div className="space-y-1.5">
             <Label>Email</Label>
             <Input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="email@cliente.com" />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Tipo de Cliente</Label>
+            <div className="flex gap-2">
+              {["mensalista", "avulso"].map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => setClientType(t)}
+                  className={cn(
+                    "flex-1 py-2 rounded-lg border text-sm font-medium transition-colors capitalize",
+                    clientType === t
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "border-input bg-background text-muted-foreground hover:bg-muted"
+                  )}
+                >
+                  {t === "mensalista" ? "📅 Mensalista" : "⚡ Avulso"}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
         <DialogFooter>
@@ -103,6 +124,8 @@ export default function AdminDashboard() {
   const currentYear = now.getFullYear();
 
   const active = demands.filter((d) => d.status === "ativo");
+  const mensalistas = clients.filter((c) => c.active && c.client_type !== "avulso");
+  const avulsos = clients.filter((c) => c.active && c.client_type === "avulso");
 
   // Tarefas do fluxo onde o admin (Alana) é responsável
   const adminSteps = getStepsForRole("admin");
@@ -193,7 +216,7 @@ export default function AdminDashboard() {
         {[
           { label: "Ativas", value: active.length, icon: Layers, cls: "bg-primary/10 text-primary" },
           { label: "Atrasadas", value: overdue.length, icon: AlertTriangle, cls: "bg-red-100 text-red-500" },
-          { label: "Clientes", value: clients.length, icon: Users, cls: "bg-emerald-100 text-emerald-600" },
+          { label: `Clientes (${mensalistas.length} mens. · ${avulsos.length} avul.)`, value: clients.length, icon: Users, cls: "bg-emerald-100 text-emerald-600" },
           { label: "Aguardando minha ação", value: myFlowTasks.length, icon: CheckCircle2, cls: "bg-violet-100 text-violet-600" },
         ].map((s) => (
           <div key={s.label} className="bg-card rounded-xl border border-border p-5 flex items-center gap-4">

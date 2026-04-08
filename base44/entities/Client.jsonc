@@ -25,6 +25,15 @@
       "type": "boolean",
       "default": true
     },
+    "client_type": {
+      "type": "string",
+      "enum": [
+        "mensalista",
+        "avulso"
+      ],
+      "default": "mensalista",
+      "description": "Tipo de contrato do cliente"
+    },
     "city": {
       "type": "string",
       "description": "Cidade do cliente"
