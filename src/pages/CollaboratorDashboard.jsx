@@ -29,7 +29,7 @@ export default function CollaboratorDashboard() {
   });
 
   const mySteps = useMemo(() => {
-    // Mapeia o papel do membro para as etapas que ele pode atuar
+    // Mapeia os papéis do membro para as etapas que ele pode atuar
     const roleStepsMap = {
       estrategista: ["estrategia"],
       redator: ["redacao"],
@@ -39,7 +39,14 @@ export default function CollaboratorDashboard() {
       admin: OFFICIAL_FLOW,
       cliente: ["aprovacao_cliente"]
     };
-    return roleStepsMap[member?.role] || [];
+    
+    const roles = Array.isArray(member?.role) ? member.role : [member?.role];
+    const allSteps = new Set();
+    roles.forEach((role) => {
+      const steps = roleStepsMap[role] || [];
+      steps.forEach((step) => allSteps.add(step));
+    });
+    return Array.from(allSteps);
   }, [member]);
 
   // Minhas tarefas abertas

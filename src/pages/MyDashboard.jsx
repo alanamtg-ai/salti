@@ -1,8 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useCurrentMember } from "@/lib/useCurrentMember";
-import { getStepLabel, STEPS, OFFICIAL_FLOW, getAllowedResponsiblesForStep } from "@/lib/flowConfig";
+import { getStepLabel, OFFICIAL_FLOW } from "@/lib/flowConfig";
 import { Loader2, Inbox, CheckCircle2, Clock, AlertTriangle, Trophy } from "lucide-react";
 import { isPast, isToday, startOfMonth, startOfYear } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -17,6 +17,27 @@ import CompletedByMeSection from "@/components/demands/CompletedByMeSection";
 export default function MyDashboard() {
   const { member, isLoading: loadingMember } = useCurrentMember();
   const [selectedDemand, setSelectedDemand] = useState(null);
+
+  // Mapeia os papéis do membro para as etapas que ele pode atuar
+  const mySteps = useMemo(() => {
+    const roleStepsMap = {
+      estrategista: ["estrategia"],
+      redator: ["redacao"],
+      designer: ["design"],
+      social_media: ["distribuicao"],
+      gestor_trafego: ["trafego_pago"],
+      admin: OFFICIAL_FLOW,
+      cliente: ["aprovacao_cliente"]
+    };
+    
+    const roles = Array.isArray(member?.role) ? member.role : [member?.role];
+    const allSteps = new Set();
+    roles.forEach((role) => {
+      const steps = roleStepsMap[role] || [];
+      steps.forEach((step) => allSteps.add(step));
+    });
+    return Array.from(allSteps);
+  }, [member]);
 
   // Aplicar tema salvo ao carregar
   useEffect(() => {

@@ -9,24 +9,30 @@
       "type": "string"
     },
     "role": {
-      "type": "string",
-      "enum": [
-        "admin",
-        "estrategista",
-        "redator",
-        "designer",
-        "social_media",
-        "gestor_trafego",
-        "videomaker",
-        "assistente_financeira",
-        "midia",
-        "cliente"
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "admin",
+          "estrategista",
+          "redator",
+          "designer",
+          "social_media",
+          "gestor_trafego",
+          "videomaker",
+          "assistente_financeira",
+          "midia",
+          "cliente"
+        ]
+      },
+      "default": [
+        "redator"
       ],
-      "default": "redator"
+      "description": "Pap\u00e9is do membro"
     },
     "client_id": {
       "type": "string",
-      "description": "Preenchido quando role=cliente"
+      "description": "Preenchido quando role inclui 'cliente'"
     },
     "monthly_goal": {
       "type": "number",

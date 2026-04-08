@@ -24,7 +24,7 @@ const roleConfig = {
 export default function TeamManagement() {
   const [formOpen, setFormOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
-  const [form, setForm] = useState({ name: "", email: "", role: "redator", client_id: "", monthly_goal: 25 });
+  const [form, setForm] = useState({ name: "", email: "", role: ["redator"], client_id: "", monthly_goal: 25 });
 
   const { data: members = [], refetch } = useQuery({ queryKey: ["team_members"], queryFn: () => base44.entities.TeamMember.list() });
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: () => base44.entities.Client.list() });
@@ -37,7 +37,7 @@ export default function TeamManagement() {
     } else {
       await base44.entities.TeamMember.create(form);
     }
-    setForm({ name: "", email: "", role: "redator", client_id: "", monthly_goal: 25 });
+    setForm({ name: "", email: "", role: ["redator"], client_id: "", monthly_goal: 25 });
     setFormOpen(false);
     refetch();
   };
@@ -46,7 +46,7 @@ export default function TeamManagement() {
     setForm({
       name: member.name,
       email: member.email,
-      role: member.role,
+      role: Array.isArray(member.role) ? member.role : [member.role],
       client_id: member.client_id || "",
       monthly_goal: member.monthly_goal || 25,
     });
@@ -60,7 +60,10 @@ export default function TeamManagement() {
   };
 
   const grouped = Object.keys(roleConfig).reduce((acc, role) => {
-    acc[role] = members.filter((m) => m.role === role);
+    acc[role] = members.filter((m) => {
+      const roles = Array.isArray(m.role) ? m.role : [m.role];
+      return roles.includes(role);
+    });
     return acc;
   }, {});
 
@@ -94,7 +97,12 @@ export default function TeamManagement() {
                      <div className="min-w-0">
                        <p className="font-semibold text-sm">{m.name}</p>
                        <p className="text-xs text-muted-foreground truncate">{m.email}</p>
-                       {m.role === "cliente" && m.client_id && (
+                       <div className="flex gap-1 flex-wrap mt-1">
+                         {(Array.isArray(m.role) ? m.role : [m.role]).map((r) => (
+                           <Badge key={r} className="text-[9px] px-1.5 py-0 h-auto">{roleConfig[r]?.label?.split(" ")[0] || r}</Badge>
+                         ))}
+                       </div>
+                       {(Array.isArray(m.role) ? m.role : [m.role]).includes("cliente") && m.client_id && (
                          <p className="text-[10px] text-orange-600 mt-0.5">
                            {clients.find((c) => c.id === m.client_id)?.name || "cliente"}
                          </p>
@@ -105,7 +113,7 @@ export default function TeamManagement() {
                      <Trash2 className="w-4 h-4" />
                    </Button>
                  </div>
-                 {m.role !== "cliente" && (
+                 {!(Array.isArray(m.role) ? m.role : [m.role]).includes("cliente") && (
                    <div className="bg-muted/40 rounded-lg p-2.5 flex items-center justify-between border border-border/60">
                      <span className="text-xs text-muted-foreground">Meta mensal:</span>
                      <button
@@ -146,17 +154,28 @@ export default function TeamManagement() {
               <Input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="email@exemplo.com" />
             </div>
             <div className="space-y-1.5">
-              <Label>Função</Label>
-              <Select value={form.role} onValueChange={(v) => setForm({ ...form, role: v })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {Object.entries(roleConfig).map(([k, v]) => (
-                    <SelectItem key={k} value={k}>{v.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label>Papéis (múltipla seleção)</Label>
+              <div className="bg-muted/40 border border-border rounded-lg p-3 space-y-2 max-h-48 overflow-y-auto">
+                {Object.entries(roleConfig).map(([k, v]) => (
+                  <label key={k} className="flex items-center gap-2 cursor-pointer hover:bg-muted/60 p-1.5 rounded transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={form.role.includes(k)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setForm({ ...form, role: [...form.role, k] });
+                        } else {
+                          setForm({ ...form, role: form.role.filter((r) => r !== k) });
+                        }
+                      }}
+                      className="rounded w-4 h-4"
+                    />
+                    <span className="text-sm">{v.label}</span>
+                  </label>
+                ))}
+              </div>
             </div>
-            {form.role === "cliente" && (
+            {form.role.includes("cliente") && (
              <div className="space-y-1.5">
                <Label>Cliente Vinculado</Label>
                <Select value={form.client_id} onValueChange={(v) => setForm({ ...form, client_id: v })}>
@@ -167,7 +186,7 @@ export default function TeamManagement() {
                </Select>
              </div>
             )}
-            {form.role !== "cliente" && (
+            {!form.role.includes("cliente") && form.role.length > 0 && (
              <div className="space-y-1.5">
                <Label>Meta Mensal (demandas)</Label>
                <Input 
