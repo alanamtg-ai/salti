@@ -30,6 +30,7 @@ export default function DemandDetailModal({ demand, member, onClose, onUpdated }
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [activeTab, setActiveTab] = useState("briefing");
+  const [selectedDesigner, setSelectedDesigner] = useState(demand?.assignees?.design || "");
 
   const { data: members = [] } = useQuery({
     queryKey: ["team_members"],
@@ -67,6 +68,12 @@ export default function DemandDetailModal({ demand, member, onClose, onUpdated }
 
   // ✅ APROVAR — avança para próxima etapa
   const handleAprovar = async () => {
+    // Se estou em redação e preciso designar designer, validar
+    if (currentStep === "redacao" && stepsFlow.includes("design") && !selectedDesigner.trim()) {
+      alert("Selecione um designer para a próxima etapa");
+      return;
+    }
+
     setLoading(true);
     const nextIndex = stepIndex + 1;
     const nextStep  = stepsFlow[nextIndex] || "finalizado";
@@ -83,6 +90,11 @@ export default function DemandDetailModal({ demand, member, onClose, onUpdated }
     // Salvar conteúdo de redação se houver
     if (currentStep === "redacao" && contentText.trim()) {
       updates.content_text = contentText;
+    }
+
+    // Atualizar assignee do design se em redação
+    if (currentStep === "redacao" && selectedDesigner.trim()) {
+      updates.assignees = { ...demand.assignees, design: selectedDesigner };
     }
 
     await base44.entities.Demand.update(demand.id, updates);
@@ -344,8 +356,26 @@ export default function DemandDetailModal({ demand, member, onClose, onUpdated }
                   <p className="text-[10px] text-muted-foreground">Seu conteúdo será salvo ao enviar para aprovação.</p>
                 </div>
               )}
-            </div>
-          )}
+              </div>
+              )}
+
+              {/* Seleção de Designer (ao aprovar redação) */}
+              {currentStep === "redacao" && stepsFlow.includes("design") && canAct && (
+              <div className="border-t pt-4">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Designar Designer para Próxima Etapa *</p>
+              <Select value={selectedDesigner} onValueChange={setSelectedDesigner}>
+                <SelectTrigger className="h-9"><SelectValue placeholder="Selecione um designer..." /></SelectTrigger>
+                <SelectContent>
+                  {members.filter((m) => m.role === "designer" || m.role === "admin").map((m) => (
+                    <SelectItem key={m.id} value={m.email}>{m.name}</SelectItem>
+                  ))}
+                  {members.filter((m) => m.role === "designer" || m.role === "admin").length === 0 && (
+                    <SelectItem value={null} disabled>Nenhum designer disponível</SelectItem>
+                  )}
+                </SelectContent>
+              </Select>
+              </div>
+              )}
 
           {/* ── AÇÕES ── */}
           {canAct && currentStep !== "finalizado" && currentStep !== "estrategia" && (
