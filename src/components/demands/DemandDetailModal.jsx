@@ -3,14 +3,15 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useState } from "react";
+import { Input } from "@/components/ui/input";
+import { useState, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { format, differenceInDays, isPast, isToday } from "date-fns";
 import { getStepLabel, getStepLight, STEPS, REJECTION_STEP } from "@/lib/flowConfig";
 import DemandTimeline from "./DemandTimeline";
 import ContentCardsEditor from "./ContentCardsEditor";
-import { CheckCircle2, XCircle, RotateCcw, Clock, AlertTriangle, ChevronRight, BookOpen, FileText } from "lucide-react";
+import { CheckCircle2, XCircle, RotateCcw, Clock, AlertTriangle, ChevronRight, BookOpen, FileText, Upload, Link as LinkIcon, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const priorityConfig = {
@@ -24,6 +25,7 @@ const priorityConfig = {
 
 
 export default function DemandDetailModal({ demand, member, onClose, onUpdated }) {
+  const fileRef = useRef(null);
   const [note, setNote]                         = useState("");
   const [contentText, setContentText]           = useState(demand?.content_text || "");
   const [loading, setLoading]                   = useState(false);
@@ -31,6 +33,9 @@ export default function DemandDetailModal({ demand, member, onClose, onUpdated }
   const [deleting, setDeleting] = useState(false);
   const [activeTab, setActiveTab] = useState("briefing");
   const [selectedDesigner, setSelectedDesigner] = useState(demand?.assignees?.design || "");
+  const [fileUrls, setFileUrls] = useState(demand?.file_urls || []);
+  const [newLink, setNewLink] = useState("");
+  const [uploading, setUploading] = useState(false);
 
   const { data: members = [] } = useQuery({
     queryKey: ["team_members"],
@@ -95,6 +100,11 @@ export default function DemandDetailModal({ demand, member, onClose, onUpdated }
     // Atualizar assignee do design se em redação
     if (currentStep === "redacao" && selectedDesigner.trim()) {
       updates.assignees = { ...demand.assignees, design: selectedDesigner };
+    }
+
+    // Salvar file_urls se em design
+    if (currentStep === "design" && fileUrls.length > 0) {
+      updates.file_urls = fileUrls;
     }
 
     await base44.entities.Demand.update(demand.id, updates);
@@ -162,6 +172,27 @@ export default function DemandDetailModal({ demand, member, onClose, onUpdated }
     setShowDeleteConfirm(false);
     onUpdated();
     onClose();
+  };
+
+  const handleFileUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    const { file_url } = await base44.integrations.Core.UploadFile({ file });
+    setFileUrls([...fileUrls, file_url]);
+    setUploading(false);
+    e.target.value = "";
+  };
+
+  const handleAddLink = () => {
+    if (newLink.trim()) {
+      setFileUrls([...fileUrls, newLink]);
+      setNewLink("");
+    }
+  };
+
+  const handleRemoveFile = (index) => {
+    setFileUrls(fileUrls.filter((_, i) => i !== index));
   };
 
   // Admin pode deletar sempre; estrategista pode deletar em briefing/estratégia ou logo após envio para redação
@@ -361,20 +392,92 @@ export default function DemandDetailModal({ demand, member, onClose, onUpdated }
 
               {/* Seleção de Designer (ao aprovar redação) */}
               {currentStep === "redacao" && stepsFlow.includes("design") && canAct && (
-              <div className="border-t pt-4">
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Designar Designer para Próxima Etapa *</p>
-              <Select value={selectedDesigner} onValueChange={setSelectedDesigner}>
-                <SelectTrigger className="h-9"><SelectValue placeholder="Selecione um designer..." /></SelectTrigger>
-                <SelectContent>
-                  {members.filter((m) => m.role === "designer" || m.role === "admin").map((m) => (
-                    <SelectItem key={m.id} value={m.email}>{m.name}</SelectItem>
-                  ))}
-                  {members.filter((m) => m.role === "designer" || m.role === "admin").length === 0 && (
-                    <SelectItem value={null} disabled>Nenhum designer disponível</SelectItem>
+                <div className="border-t pt-4">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Designar Designer para Próxima Etapa *</p>
+                  <Select value={selectedDesigner} onValueChange={setSelectedDesigner}>
+                    <SelectTrigger className="h-9"><SelectValue placeholder="Selecione um designer..." /></SelectTrigger>
+                    <SelectContent>
+                      {members.filter((m) => m.role === "designer" || m.role === "admin").map((m) => (
+                        <SelectItem key={m.id} value={m.email}>{m.name}</SelectItem>
+                      ))}
+                      {members.filter((m) => m.role === "designer" || m.role === "admin").length === 0 && (
+                        <SelectItem value={null} disabled>Nenhum designer disponível</SelectItem>
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              {/* Upload de arquivos e links (etapa design) */}
+              {currentStep === "design" && canAct && (
+                <div className="border-t pt-4 space-y-3">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Materiais para Design</p>
+
+                  {/* Upload de arquivos */}
+                  <div>
+                    <input
+                      ref={fileRef}
+                      type="file"
+                      className="hidden"
+                      onChange={handleFileUpload}
+                      disabled={uploading}
+                    />
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => fileRef.current?.click()}
+                      disabled={uploading}
+                      className="w-full"
+                    >
+                      <Upload className="w-4 h-4 mr-1" />
+                      {uploading ? "Enviando..." : "Upload de Arquivo"}
+                    </Button>
+                  </div>
+
+                  {/* Adicionar link */}
+                  <div className="flex gap-2">
+                    <Input
+                      value={newLink}
+                      onChange={(e) => setNewLink(e.target.value)}
+                      placeholder="Cole um link (ex: Figma, Pinterest...)"
+                      className="text-sm"
+                      onKeyDown={(e) => e.key === "Enter" && handleAddLink()}
+                    />
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={handleAddLink}
+                      disabled={!newLink.trim()}
+                    >
+                      <LinkIcon className="w-4 h-4" />
+                    </Button>
+                  </div>
+
+                  {/* Lista de arquivos/links */}
+                  {fileUrls.length > 0 && (
+                    <div className="space-y-2 bg-muted/30 rounded-lg p-3">
+                      {fileUrls.map((url, idx) => (
+                        <div key={idx} className="flex items-center justify-between text-xs p-2 bg-background rounded border border-border">
+                          <a
+                            href={url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-primary hover:underline truncate flex-1 flex items-center gap-1"
+                          >
+                            {url.startsWith("http") ? <LinkIcon className="w-3 h-3 shrink-0" /> : <Upload className="w-3 h-3 shrink-0" />}
+                            {url.split("/").pop().slice(0, 30)}
+                          </a>
+                          <button
+                            onClick={() => handleRemoveFile(idx)}
+                            className="ml-2 p-1 hover:bg-red-100 rounded transition-colors text-red-600"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
                   )}
-                </SelectContent>
-              </Select>
-              </div>
+                </div>
               )}
 
           {/* ── AÇÕES ── */}
