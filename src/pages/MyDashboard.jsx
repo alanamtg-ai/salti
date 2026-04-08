@@ -52,13 +52,10 @@ export default function MyDashboard() {
       (d) => d.current_step === "aprovacao_cliente" && d.client_id === member.client_id && d.status === "ativo"
     );
   } else {
-    // Colaboradores e admins: ver demandas onde estão atribuídos à etapa atual (ou sem atribuição se faz parte do fluxo)
+    // Colaboradores e admins: ver apenas demandas designadas a eles
     myDemands = demands.filter((d) => {
       if (d.current_step === "finalizado" || d.status !== "ativo") return false;
-      if (!mySteps.includes(d.current_step)) return false;
-      // Se tem responsável definido, filtra pelo email; senão, mostra para todos da etapa
-      if (d.assignees?.[d.current_step] && d.assignees[d.current_step] !== member.email) return false;
-      return true;
+      return d.assignees?.[d.current_step] === member.email;
     });
   }
 
