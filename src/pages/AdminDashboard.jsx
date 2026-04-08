@@ -204,7 +204,7 @@ export default function AdminDashboard() {
           </div>
           <div>
             <p className="text-3xl font-bold">{concluded.length}</p>
-            <p className="text-xs text-muted-foreground">Concluídas (Redes Sociais)</p>
+            <p className="text-xs text-muted-foreground">Postadas (Redes Sociais)</p>
             <p className="text-[10px] text-muted-foreground mt-0.5">
               {concludedThisMonth.length} esse mês · {concludedThisYear.length} esse ano
             </p>
@@ -216,7 +216,7 @@ export default function AdminDashboard() {
           </div>
           <div>
             <p className="text-3xl font-bold">{finalized.length}</p>
-            <p className="text-xs text-muted-foreground">Finalizadas (Entregas diretas)</p>
+            <p className="text-xs text-muted-foreground">Entregues (Artes avulsas)</p>
             <p className="text-[10px] text-muted-foreground mt-0.5">
               {finalizedThisMonth.length} esse mês · flyers, banners, artes avulsas
             </p>
