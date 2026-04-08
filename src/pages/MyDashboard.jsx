@@ -53,10 +53,17 @@ export default function MyDashboard() {
       (d) => d.current_step === "aprovacao_cliente" && d.client_id === member.client_id && d.status === "ativo"
     );
   } else {
-    // Colaboradores e admins: ver apenas demandas designadas a eles
+    // Colaboradores e admins: ver demandas designadas a eles
     myDemands = demands.filter((d) => {
       if (d.current_step === "finalizado" || d.status !== "ativo") return false;
-      return d.assignees?.[d.current_step] === member.email;
+      
+      // Se está designado a ele, mostra
+      if (d.assignees?.[d.current_step] === member.email) return true;
+      
+      // Se é redação e ele é redator sem assignee definido, mostra
+      if (d.current_step === "redacao" && member.role === "redator" && !d.assignees?.["redacao"]) return true;
+      
+      return false;
     });
   }
 
