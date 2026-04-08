@@ -3,11 +3,13 @@ import { base44 } from "@/api/base44Client";
 import { useCurrentMember } from "@/lib/useCurrentMember";
 import DemandDetailModal from "@/components/demands/DemandDetailModal";
 import MyTaskCard from "@/components/demands/MyTaskCard";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Loader2, CheckCircle2, AlertTriangle, Clock, Trophy, Star, Send } from "lucide-react";
 import NoticeBoard from "@/components/notices/NoticeBoard";
 import CompletedByMeSection from "@/components/demands/CompletedByMeSection";
-import ProductivityGoalCard from "@/components/dashboard/ProductivityGoalCard";
+import MemberProfileCard from "@/components/profile/MemberProfileCard";
+import DeadlineAlertsCompact from "@/components/dashboard/DeadlineAlertsCompact";
+import MonthlyGoalsCard from "@/components/dashboard/MonthlyGoalsCard";
 import { getStepLabel, STEPS, OFFICIAL_FLOW } from "@/lib/flowConfig";
 import { cn } from "@/lib/utils";
 import { isPast, isToday, differenceInDays, parseISO, addDays, startOfMonth, startOfWeek, isBefore } from "date-fns";
@@ -16,6 +18,13 @@ import { ptBR } from "date-fns/locale";
 export default function CollaboratorDashboard() {
   const { member, isLoading } = useCurrentMember();
   const [selected, setSelected] = useState(null);
+
+  // Aplicar tema salvo ao carregar
+  useEffect(() => {
+    if (!member) return;
+    if (member.theme === "dark") document.documentElement.classList.add("dark");else
+    document.documentElement.classList.remove("dark");
+  }, [member?.theme]);
 
   const { data: demands = [], refetch } = useQuery({
     queryKey: ["demands"],
@@ -121,27 +130,8 @@ export default function CollaboratorDashboard() {
   });
   const normal = myDemands.filter((d) => !overdue.includes(d));
 
-  const roleLabel = STEPS[mySteps[0]]?.label || member?.role;
-
-  if (isLoading) return (
-    <div className="flex items-center justify-center h-64">
-      <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-    </div>
-  );
-
-  // Calcular variações e métricas adicionais
   const now = new Date();
-  const yesterday = addDays(now, -1);
   const in48h = addDays(now, 2);
-  const monthStart = startOfMonth(now);
-  const weekStart = startOfWeek(now);
-
-  // Atrasadas vs ontem
-  const overdueYesterday = demands.filter((d) => {
-    const dl = d.step_deadlines?.[d.current_step] || d.deadline;
-    return dl && isPast(new Date(dl)) && !isToday(new Date(dl)) && new Date(dl) <= yesterday;
-  }).length;
-  const overdueVariation = overdue.length - overdueYesterday;
 
   // Vencem em breve (próximas 48h)
   const dueSoon = myDemands.filter((d) => {
@@ -149,30 +139,6 @@ export default function CollaboratorDashboard() {
     if (!dl) return false;
     const dlDate = new Date(dl);
     return isBefore(dlDate, in48h) && !isPast(dlDate);
-  }).length;
-
-  // Finalizadas no mês
-  const completedThisMonth = demands.filter((d) => {
-    if (d.status !== "finalizado") return false;
-    const updated = d.updated_date ? new Date(d.updated_date) : null;
-    return updated && updated >= monthStart;
-  }).length;
-
-  // Finalizadas nesta semana
-  const completedThisWeek = demands.filter((d) => {
-    if (d.status !== "finalizado") return false;
-    const updated = d.updated_date ? new Date(d.updated_date) : null;
-    return updated && updated >= weekStart;
-  }).length;
-
-  const weekVariation = completedThisWeek > 0 ? completedThisWeek : 0;
-
-  // Finalizadas no ano
-  const yearStart = new Date(now.getFullYear(), 0, 1);
-  const completedThisYear = demands.filter((d) => {
-    if (d.status !== "finalizado") return false;
-    const updated = d.updated_date ? new Date(d.updated_date) : null;
-    return updated && updated >= yearStart;
   }).length;
 
   const getGreeting = () => {
@@ -189,91 +155,96 @@ export default function CollaboratorDashboard() {
     return greetings[day];
   };
 
+  if (isLoading) return (
+    <div className="flex items-center justify-center h-64">
+      <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+    </div>
+  );
+
+  // Contar aprovações no mês e ano
+  const concludedThisMonth = useMemo(() => {
+    const monthStart = startOfMonth(new Date());
+    const approvals = new Set();
+    demands.forEach((d) => {
+      (d.history || []).forEach((h) => {
+        if (h.acao === "aprovado" && h.by === member?.email && h.date && new Date(h.date) >= monthStart) {
+          approvals.add(d.id);
+        }
+      });
+    });
+    return approvals.size;
+  }, [demands, member?.email]);
+
+  const concludedThisYear = useMemo(() => {
+    const yearStart = new Date(new Date().getFullYear(), 0, 1);
+    const approvals = new Set();
+    demands.forEach((d) => {
+      (d.history || []).forEach((h) => {
+        if (h.acao === "aprovado" && h.by === member?.email && h.date && new Date(h.date) >= yearStart) {
+          approvals.add(d.id);
+        }
+      });
+    });
+    return approvals.size;
+  }, [demands, member?.email]);
+
   return (
     <div className="space-y-6 pb-20 lg:pb-0">
+      {/* Perfil do membro */}
+      <MemberProfileCard member={member} onUpdated={refetch} />
+
       {/* Header */}
-      <div className="space-y-3">
+      <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">
+          <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
             Olá, {member?.name?.split(" ")[0]} 👋
+            {myRankPos >= 0 &&
+            <span className="flex items-center gap-1 text-sm font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 border border-amber-200">
+                <Trophy className="w-3.5 h-3.5" />
+                #{myRankPos + 1} ranking
+              </span>
+            }
           </h1>
-          <p className="text-sm text-muted-foreground mt-1">{getGreeting()}</p>
+          <p className="text-sm text-muted-foreground mt-0.5">{getGreeting()}</p>
         </div>
-        {myRankPos >= 0 && (
-          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-primary/5 w-fit">
-            <Trophy className="w-4 h-4 text-amber-500" />
-            <span className="text-sm font-semibold text-foreground">
-              #{myRankPos + 1} no ranking da equipe
-            </span>
-          </div>
-        )}
       </div>
 
       {/* Quadro de Avisos */}
-      <div className="bg-card rounded-xl border border-border p-5">
+      <div className="bg-[#f1efea] p-5 rounded-xl border border-border">
         <NoticeBoard member={member} />
       </div>
 
-      {/* KPIs - 5 colunas */}
-      <div className="grid grid-cols-1 sm:grid-cols-5 gap-3">
-        {/* Atrasadas */}
-        <div className="bg-red-50 border border-red-200 rounded-xl p-4">
-          <div className="flex items-center justify-between mb-1">
-            <p className="text-xs font-semibold text-red-600 uppercase tracking-wider">Atrasadas</p>
-            <AlertTriangle className="w-4 h-4 text-red-500" />
-          </div>
-          <p className="text-3xl font-bold text-red-600">{overdue.length}</p>
-          {overdueVariation !== 0 && (
-            <p className={cn("text-xs mt-2", overdueVariation > 0 ? "text-red-600" : "text-emerald-600")}>
-              {overdueVariation > 0 ? "↑" : "↓"} {Math.abs(overdueVariation)} vs ontem
-            </p>
-          )}
-        </div>
-
-        {/* Vencem em breve */}
-        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
-          <div className="flex items-center justify-between mb-1">
-            <p className="text-xs font-semibold text-amber-600 uppercase tracking-wider">Próx. 48h</p>
-            <Clock className="w-4 h-4 text-amber-500" />
-          </div>
-          <p className="text-3xl font-bold text-amber-600">{dueSoon}</p>
-          <p className="text-xs text-muted-foreground mt-2">demandas</p>
-        </div>
-
-        {/* Em produção */}
-        <div className="bg-violet-50 border border-violet-200 rounded-xl p-4">
-          <div className="flex items-center justify-between mb-1">
-            <p className="text-xs font-semibold text-violet-600 uppercase tracking-wider">Produção</p>
-            <Send className="w-4 h-4 text-violet-500" />
-          </div>
-          <p className="text-3xl font-bold text-violet-600">{myDemands.length}</p>
-          <p className="text-xs text-muted-foreground mt-2">em andamento</p>
-        </div>
-
-        {/* Produção no mês */}
-        <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
-          <div className="flex items-center justify-between mb-1">
-            <p className="text-xs font-semibold text-emerald-600 uppercase tracking-wider">Mês</p>
-            <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-          </div>
-          <p className="text-3xl font-bold text-emerald-600">{completedThisMonth}</p>
-          {weekVariation > 0 && (
-            <p className="text-xs text-emerald-600 mt-2">↑ {weekVariation} essa semana</p>
-          )}
-        </div>
-
-        {/* Produção no ano */}
-        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-          <div className="flex items-center justify-between mb-1">
-            <p className="text-xs font-semibold text-blue-600 uppercase tracking-wider">Ano</p>
-            <Star className="w-4 h-4 text-blue-500" />
-          </div>
-          <p className="text-3xl font-bold text-blue-600">{completedThisYear}</p>
-        </div>
-      </div>
+      {/* Alertas de prazos */}
+      <DeadlineAlertsCompact userEmail={member?.email} />
 
       {/* Meta mensal */}
-      <ProductivityGoalCard demands={demands} member={member} />
+      <MonthlyGoalsCard demands={demands} member={member} concludedThisMonth={concludedThisMonth} />
+
+      {/* Stats rápidas */}
+      {myDemands.length > 0 &&
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+          <div className="bg-card rounded-xl border border-border p-3 text-center">
+            <p className="text-2xl font-bold text-foreground">{myDemands.length}</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">Em aberto</p>
+          </div>
+          <div className={cn("rounded-xl border p-3 text-center", overdue.length > 0 ? "bg-red-50 border-red-200" : "bg-card border-border")}>
+            <p className={cn("text-2xl font-bold", overdue.length > 0 ? "text-red-600" : "text-foreground")}>{overdue.length}</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">Atrasadas</p>
+          </div>
+          <div className={cn("rounded-xl border p-3 text-center", dueSoon > 0 ? "bg-amber-50 border-amber-200" : "bg-card border-border")}>
+            <p className={cn("text-2xl font-bold", dueSoon > 0 ? "text-amber-600" : "text-foreground")}>{dueSoon}</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">Vencem hoje</p>
+          </div>
+          <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-center">
+            <p className="text-2xl font-bold text-emerald-600">{concludedThisMonth}</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">Concluídas/mês</p>
+          </div>
+          <div className="bg-violet-50 border border-violet-200 rounded-xl p-3 text-center">
+            <p className="text-2xl font-bold text-violet-600">{concludedThisYear}</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">Concluídas/ano</p>
+          </div>
+        </div>
+      }
 
       {/* Ranking geral da equipe */}
       {ranking.length > 0 && (
