@@ -5,6 +5,7 @@ import DemandDetailModal from "@/components/demands/DemandDetailModal";
 import MyTaskCard from "@/components/demands/MyTaskCard";
 import { useState, useMemo } from "react";
 import { Loader2, CheckCircle2, AlertTriangle, Clock, Trophy, Star } from "lucide-react";
+import NoticeBoard from "@/components/notices/NoticeBoard";
 import { getStepsForRole, getStepLabel, STEPS } from "@/lib/flowConfig";
 import { cn } from "@/lib/utils";
 import { isPast, isToday, differenceInDays, parseISO } from "date-fns";
@@ -107,6 +108,11 @@ export default function CollaboratorDashboard() {
         <p className="text-sm text-muted-foreground mt-0.5">
           {roleLabel} · suas tarefas e métricas
         </p>
+      </div>
+
+      {/* Quadro de Avisos */}
+      <div className="bg-card rounded-xl border border-border p-5">
+        <NoticeBoard member={member} />
       </div>
 
       {/* Métricas pessoais */}

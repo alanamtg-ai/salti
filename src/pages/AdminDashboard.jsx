@@ -19,6 +19,7 @@ import LiveClock from "@/components/dashboard/LiveClock";
 import NewDemandForm from "@/components/demands/NewDemandForm";
 import ClientPerformancePanel from "@/components/dashboard/ClientPerformancePanel";
 import DeadlineAlerts from "@/components/dashboard/DeadlineAlerts";
+import NoticeBoard from "@/components/notices/NoticeBoard";
 import { useCurrentMember } from "@/lib/useCurrentMember";
 import { isPast, isToday } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -151,6 +152,11 @@ export default function AdminDashboard() {
             </div>
           </div>
         ))}
+      </div>
+
+      {/* Quadro de Avisos */}
+      <div className="bg-card rounded-xl border border-border p-5">
+        <NoticeBoard member={member} />
       </div>
 
       {/* Alertas de Prazos */}

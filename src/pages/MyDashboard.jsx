@@ -10,6 +10,7 @@ import { Loader2, Inbox, CheckCircle2, Clock, AlertTriangle, Trophy } from "luci
 import { isPast, isToday, startOfMonth, startOfYear } from "date-fns";
 import { cn } from "@/lib/utils";
 import MemberProfileCard from "@/components/profile/MemberProfileCard";
+import NoticeBoard from "@/components/notices/NoticeBoard";
 
 export default function MyDashboard() {
   const { member, isLoading: loadingMember } = useCurrentMember();
@@ -149,6 +150,11 @@ export default function MyDashboard() {
               : `Suas tarefas como ${roleLabel}`}
           </p>
         </div>
+      </div>
+
+      {/* Quadro de Avisos */}
+      <div className="bg-card rounded-xl border border-border p-5">
+        <NoticeBoard member={member} />
       </div>
 
       {/* Alertas de prazos */}
