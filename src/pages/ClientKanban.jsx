@@ -1,9 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { useState } from "react";
-import { Plus, ChevronLeft, Columns, BookOpen, BarChart2 } from "lucide-react";
+import { Plus, ChevronLeft, Columns, BookOpen, BarChart2, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import DemandCardV2 from "@/components/demands/DemandCardV2";
 import DemandDetailModal from "@/components/demands/DemandDetailModal";
 import NewDemandForm from "@/components/demands/NewDemandForm";
@@ -22,7 +24,16 @@ import TikTokSection from "@/components/client-profile/TikTokSection";
 import SocialMetricsSection from "@/components/client-profile/SocialMetricsSection";
 import AdsMetricsSection from "@/components/client-profile/AdsMetricsSection";
 
-const STEP_ORDER = ["briefing", "estrategia", "redacao", "design", "aprovacao_cliente", "distribuicao", "finalizado"];
+const STEP_ORDER = [
+  "estrategia",
+  "redacao",
+  "aprovacao_interna_redacao",
+  "design",
+  "aprovacao_interna_design",
+  "aprovacao_cliente",
+  "distribuicao",
+  "finalizado",
+];
 
 const TABS = [
   { key: "briefing", label: "📋 Briefing", icon: BookOpen },
@@ -52,15 +63,27 @@ export default function ClientKanban() {
   const clientDemands = demands.filter((d) => d.client_id === clientId);
   const profile = profiles[0] || null;
 
+  // Demandas publicadas (finalizadas com scheduled_date — são os cards de conteúdo)
+  const publishedDemands = clientDemands.filter((d) =>
+    d.status === "finalizado" && d.scheduled_date
+  );
+
   // Inclui etapas com demandas ativas + "estrategia" se houver demandas mãe finalizadas lá
   const activeSteps = STEP_ORDER.filter((s) => {
+    if (s === "finalizado") return false;
     if (clientDemands.some((d) => d.current_step === s && d.status !== "finalizado")) return true;
     if (s === "estrategia" && clientDemands.some((d) => d.status === "finalizado" && (d.history || []).some((h) => h.etapa_origem === "estrategia"))) return true;
     return false;
   });
-  const columns = activeSteps.length > 0 ? activeSteps : STEP_ORDER.slice(0, 5);
+  const columns = activeSteps.length > 0 ? activeSteps : STEP_ORDER.slice(0, 6);
 
   const isAdmin = member?.role === "admin";
+
+  const sortByDate = (arr) => [...arr].sort((a, b) => {
+    if (!a.scheduled_date) return 1;
+    if (!b.scheduled_date) return -1;
+    return new Date(a.scheduled_date) - new Date(b.scheduled_date);
+  });
 
   return (
     <div className="space-y-5 pb-20 lg:pb-0">
@@ -114,59 +137,109 @@ export default function ClientKanban() {
 
       {/* Kanban */}
       {activeTab === "kanban" && (
-        <div className="flex gap-4 overflow-x-auto pb-4">
-          {columns.map((step) => {
-            // Demandas ativas nessa etapa
-            let stepDemands = clientDemands.filter((d) => d.current_step === step && d.status !== "finalizado");
-            // Demandas de estratégia que foram concluídas (mãe enviou cards para redação)
-            const doneDemands = step === "estrategia"
-              ? clientDemands.filter((d) => d.status === "finalizado" && (d.history || []).some((h) => h.etapa_origem === "estrategia"))
-              : [];
-            // Ordenar por data de postagem crescente
-            const sort = (arr) => arr.sort((a, b) => {
-              if (!a.scheduled_date) return 1;
-              if (!b.scheduled_date) return -1;
-              return new Date(a.scheduled_date) - new Date(b.scheduled_date);
-            });
-            stepDemands = sort(stepDemands);
-            const color = getStepColor(step);
-            return (
-              <div key={step} className="min-w-[260px] max-w-[300px] flex-shrink-0 bg-muted/40 rounded-xl">
+        <>
+          <div className="flex gap-4 overflow-x-auto pb-4">
+            {columns.map((step) => {
+              const stepDemands = sortByDate(
+                clientDemands.filter((d) => d.current_step === step && d.status !== "finalizado")
+              );
+              // Demandas de estratégia concluídas (mãe enviou cards para redação)
+              const doneDemands = step === "estrategia"
+                ? clientDemands.filter((d) => d.status === "finalizado" && (d.history || []).some((h) => h.etapa_origem === "estrategia"))
+                : [];
+              const color = getStepColor(step);
+              return (
+                <div key={step} className="min-w-[260px] max-w-[300px] flex-shrink-0 bg-muted/40 rounded-xl">
+                  <div className="p-3 flex items-center gap-2">
+                    <div className={cn("w-2.5 h-2.5 rounded-full", color)} />
+                    <span className="text-xs font-semibold">{getStepLabel(step)}</span>
+                    <span className="ml-auto text-xs bg-background rounded-full px-2 py-0.5 font-medium">
+                      {stepDemands.length + doneDemands.length}
+                    </span>
+                  </div>
+                  <div className="p-2 space-y-2 min-h-[150px] max-h-[calc(100vh-300px)] overflow-y-auto">
+                    {stepDemands.map((d) => (
+                      <DemandCardV2 key={d.id} demand={d} onClick={setSelectedDemand} />
+                    ))}
+                    {/* Demandas de estratégia concluídas — badge ✅ Feito */}
+                    {doneDemands.map((d) => (
+                      <div key={d.id} className="relative">
+                        <div className="absolute top-2 right-2 z-10 bg-emerald-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                          ✅ Feito
+                        </div>
+                        <div className="opacity-60 pointer-events-none">
+                          <DemandCardV2 demand={d} onClick={() => {}} />
+                        </div>
+                        <button
+                          onClick={() => setSelectedDemand(d)}
+                          className="absolute inset-0 w-full h-full cursor-pointer"
+                          aria-label="Ver demanda"
+                        />
+                      </div>
+                    ))}
+                    {stepDemands.length === 0 && doneDemands.length === 0 && (
+                      <p className="text-center text-xs text-muted-foreground py-6">Vazio</p>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+
+            {/* Coluna: Publicadas ✅ */}
+            {publishedDemands.length > 0 && (
+              <div className="min-w-[260px] max-w-[300px] flex-shrink-0 bg-emerald-50 dark:bg-emerald-950/20 rounded-xl border border-emerald-200 dark:border-emerald-800">
                 <div className="p-3 flex items-center gap-2">
-                  <div className={cn("w-2.5 h-2.5 rounded-full", color)} />
-                  <span className="text-xs font-semibold">{getStepLabel(step)}</span>
-                  <span className="ml-auto text-xs bg-background rounded-full px-2 py-0.5 font-medium">
-                    {stepDemands.length + doneDemands.length}
+                  <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+                  <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-400">✅ Publicadas</span>
+                  <span className="ml-auto text-xs bg-emerald-100 dark:bg-emerald-900 text-emerald-700 dark:text-emerald-300 rounded-full px-2 py-0.5 font-medium">
+                    {publishedDemands.length}
                   </span>
                 </div>
                 <div className="p-2 space-y-2 min-h-[150px] max-h-[calc(100vh-300px)] overflow-y-auto">
-                  {stepDemands.map((d) => (
-                    <DemandCardV2 key={d.id} demand={d} onClick={setSelectedDemand} />
-                  ))}
-                  {/* Demandas de estratégia concluídas — mostradas com badge ✅ */}
-                  {doneDemands.map((d) => (
-                    <div key={d.id} className="relative">
-                      <div className="absolute top-2 right-2 z-10 bg-emerald-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
-                        ✅ Feito
+                  {sortByDate(publishedDemands).map((d) => (
+                    <div key={d.id} onClick={() => setSelectedDemand(d)} className="bg-card rounded-xl border border-emerald-200 dark:border-emerald-800 p-3 cursor-pointer hover:shadow-md transition-all group">
+                      <div className="flex items-start gap-2 mb-1">
+                        <span className="text-emerald-500 shrink-0">✅</span>
+                        <h4 className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-2 flex-1">{d.title}</h4>
                       </div>
-                      <div className="opacity-60 pointer-events-none">
-                        <DemandCardV2 demand={d} onClick={() => {}} />
-                      </div>
-                      <button
-                        onClick={() => setSelectedDemand(d)}
-                        className="absolute inset-0 w-full h-full cursor-pointer"
-                        aria-label="Ver demanda"
-                      />
+                      {d.scheduled_date && (
+                        <div className="flex items-center gap-1 text-[10px] text-emerald-600 font-medium mt-1">
+                          <Calendar className="w-3 h-3" />
+                          {format(new Date(d.scheduled_date), "dd/MMM", { locale: ptBR })}
+                        </div>
+                      )}
                     </div>
                   ))}
-                  {stepDemands.length === 0 && doneDemands.length === 0 && (
-                    <p className="text-center text-xs text-muted-foreground py-6">Vazio</p>
-                  )}
                 </div>
               </div>
-            );
-          })}
-        </div>
+            )}
+          </div>
+
+          {/* Painel de Tráfego Pago */}
+          {publishedDemands.length > 0 && (
+            <div className="bg-card rounded-xl border border-border p-4">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+                💰 Tráfego Pago — Publicadas elegíveis
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {sortByDate(publishedDemands).map((d) => (
+                  <div
+                    key={d.id}
+                    onClick={() => setSelectedDemand(d)}
+                    className="flex items-center gap-2 bg-muted/60 rounded-lg px-3 py-2 cursor-pointer hover:bg-muted transition-colors text-xs"
+                  >
+                    <span className="font-medium truncate max-w-[180px]">{d.title}</span>
+                    {d.scheduled_date && (
+                      <span className="text-muted-foreground shrink-0">
+                        {format(new Date(d.scheduled_date), "dd/MM", { locale: ptBR })}
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </>
       )}
 
       {/* Perfil do Cliente */}
@@ -187,7 +260,6 @@ export default function ClientKanban() {
       {/* Resultados */}
       {activeTab === "resultados" && (
         <div className="space-y-6">
-          {/* Social Orgânico */}
           <div>
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">📊 Orgânico — Redes Sociais</p>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
@@ -197,7 +269,6 @@ export default function ClientKanban() {
               <SocialMetricsSection emoji="💼" title="LinkedIn — Métricas" fieldKey="linkedin_posts" linkPlaceholder="https://linkedin.com/posts/..." profile={profile} clientId={clientId} onUpdated={refetchProfile} />
             </div>
           </div>
-          {/* Ads */}
           <div>
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">💰 Tráfego Pago</p>
             <div className="space-y-5">
