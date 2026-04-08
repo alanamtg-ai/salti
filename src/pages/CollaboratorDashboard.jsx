@@ -58,6 +58,25 @@ export default function CollaboratorDashboard() {
     return Array.from(allSteps);
   }, [member]);
 
+  // Ranking da equipe
+  const ranking = useMemo(() => {
+    const scores = {};
+    demands.forEach((d) => {
+      (d.history || []).forEach((h) => {
+        if ((h.acao !== "aprovado" && h.action !== "avançado") || !h.by) return;
+        if (!scores[h.by]) scores[h.by] = { name: h.by_name || h.by, count: 0 };
+        scores[h.by].count++;
+      });
+    });
+    allMembers.forEach((m) => { if (scores[m.email]) scores[m.email].name = m.name; });
+    return Object.entries(scores)
+      .map(([email, v]) => ({ email, ...v }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5);
+  }, [demands, allMembers]);
+
+  const myRankPos = ranking.findIndex((r) => r.email === member?.email);
+
   // Minhas tarefas abertas
   const myDemands = useMemo(() => {
     if (!member) return [];
@@ -104,25 +123,6 @@ export default function CollaboratorDashboard() {
       avgDays: countDays > 0 ? (totalDays / countDays).toFixed(1) : null,
     };
   }, [demands, member, mySteps]);
-
-  // Ranking da equipe pelo mesmo papel
-  const ranking = useMemo(() => {
-    const scores = {};
-    demands.forEach((d) => {
-      (d.history || []).forEach((h) => {
-        if ((h.acao !== "aprovado" && h.action !== "avançado") || !h.by) return;
-        if (!scores[h.by]) scores[h.by] = { name: h.by_name || h.by, count: 0 };
-        scores[h.by].count++;
-      });
-    });
-    allMembers.forEach((m) => { if (scores[m.email]) scores[m.email].name = m.name; });
-    return Object.entries(scores)
-      .map(([email, v]) => ({ email, ...v }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 5);
-  }, [demands, allMembers]);
-
-  const myRankPos = ranking.findIndex((r) => r.email === member?.email);
 
   const overdue = myDemands.filter((d) => {
     const dl = d.step_deadlines?.[d.current_step] || d.deadline;
