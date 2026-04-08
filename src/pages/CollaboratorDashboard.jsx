@@ -7,6 +7,7 @@ import { useState, useMemo } from "react";
 import { Loader2, CheckCircle2, AlertTriangle, Clock, Trophy, Star, Send } from "lucide-react";
 import NoticeBoard from "@/components/notices/NoticeBoard";
 import CompletedByMeSection from "@/components/demands/CompletedByMeSection";
+import ProductivityGoalCard from "@/components/dashboard/ProductivityGoalCard";
 import { getStepsForRole, getStepLabel, STEPS } from "@/lib/flowConfig";
 import { cn } from "@/lib/utils";
 import { isPast, isToday, differenceInDays, parseISO, addDays, startOfMonth, startOfWeek, isBefore } from "date-fns";
@@ -244,6 +245,9 @@ export default function CollaboratorDashboard() {
           <p className="text-3xl font-bold text-blue-600">{completedThisYear}</p>
         </div>
       </div>
+
+      {/* Meta mensal */}
+      <ProductivityGoalCard demands={demands} member={member} />
 
       {/* Ranking geral da equipe */}
       {ranking.length > 0 && (
