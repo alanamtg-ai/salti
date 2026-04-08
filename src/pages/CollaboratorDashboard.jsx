@@ -46,10 +46,17 @@ export default function CollaboratorDashboard() {
   const myDemands = useMemo(() => {
     if (!member) return [];
     return demands.filter((d) => {
-      if (d.current_step === "finalizado") return false;
+      if (d.current_step === "finalizado" || d.status !== "ativo") return false;
       if (!mySteps.includes(d.current_step)) return false;
-      if (d.assignees?.[d.current_step] && d.assignees[d.current_step] !== member.email) return false;
-      return true;
+      
+      // Verifica se é assignee na etapa atual
+      const assigneeThisStep = d.assignees?.[d.current_step];
+      if (assigneeThisStep === member.email) return true;
+      
+      // Se ninguém foi atribuído, pode agir
+      if (!assigneeThisStep) return true;
+      
+      return false;
     });
   }, [demands, member, mySteps]);
 

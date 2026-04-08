@@ -55,11 +55,15 @@ export default function MyDashboard() {
     myDemands = demands.filter((d) => {
       if (d.current_step === "finalizado" || d.status !== "ativo") return false;
       
-      // Se é o responsável atual, mostra
-      if (d.responsavel_atual_email === member.email) return true;
-      
       // Se é admin, mostra todas as demandas ativas
       if (member.role === "admin") return true;
+      
+      // Verifica se o membro é assignee na etapa atual
+      const assigneeThisStep = d.assignees?.[d.current_step];
+      if (assigneeThisStep === member.email) return true;
+      
+      // Se ninguém foi atribuído e o membro tem esse role, pode agir
+      if (!assigneeThisStep && mySteps.includes(d.current_step)) return true;
       
       return false;
     });
