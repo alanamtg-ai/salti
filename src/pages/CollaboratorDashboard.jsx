@@ -8,7 +8,7 @@ import { Loader2, CheckCircle2, AlertTriangle, Clock, Trophy, Star, Send } from 
 import NoticeBoard from "@/components/notices/NoticeBoard";
 import CompletedByMeSection from "@/components/demands/CompletedByMeSection";
 import ProductivityGoalCard from "@/components/dashboard/ProductivityGoalCard";
-import { getStepsForRole, getStepLabel, STEPS } from "@/lib/flowConfig";
+import { getStepLabel, STEPS, OFFICIAL_FLOW } from "@/lib/flowConfig";
 import { cn } from "@/lib/utils";
 import { isPast, isToday, differenceInDays, parseISO, addDays, startOfMonth, startOfWeek, isBefore } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -28,7 +28,19 @@ export default function CollaboratorDashboard() {
     queryFn: () => base44.entities.TeamMember.list(),
   });
 
-  const mySteps = useMemo(() => getStepsForRole(member?.role), [member]);
+  const mySteps = useMemo(() => {
+    // Mapeia o papel do membro para as etapas que ele pode atuar
+    const roleStepsMap = {
+      estrategista: ["estrategia"],
+      redator: ["redacao"],
+      designer: ["design"],
+      social_media: ["distribuicao"],
+      gestor_trafego: ["trafego_pago"],
+      admin: OFFICIAL_FLOW,
+      cliente: ["aprovacao_cliente"]
+    };
+    return roleStepsMap[member?.role] || [];
+  }, [member]);
 
   // Minhas tarefas abertas
   const myDemands = useMemo(() => {

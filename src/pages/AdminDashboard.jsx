@@ -25,7 +25,7 @@ import MyTaskCard from "@/components/demands/MyTaskCard";
 import { useCurrentMember } from "@/lib/useCurrentMember";
 import { isPast, isToday } from "date-fns";
 import { cn } from "@/lib/utils";
-import { getStepLabel, getStepLight, STEPS, getStepsForRole } from "@/lib/flowConfig";
+import { getStepLabel, getStepLight, STEPS, OFFICIAL_FLOW } from "@/lib/flowConfig";
 
 const CLIENT_COLORS = [
   "bg-violet-500", "bg-blue-500", "bg-emerald-500", "bg-pink-500",
@@ -128,7 +128,7 @@ export default function AdminDashboard() {
   const avulsos = clients.filter((c) => c.active && c.client_type === "avulso");
 
   // Tarefas do fluxo onde o admin (Alana) é responsável
-  const adminSteps = getStepsForRole("admin");
+  const adminSteps = OFFICIAL_FLOW;
   const myFlowTasks = active.filter((d) => {
     const step = d.current_step;
     const assignee = d.assignees?.[step];
