@@ -203,13 +203,9 @@ export default function DemandDetailModal({ demand, member, onClose, onUpdated }
     if (currentStep === "estrategia") return null; // estrategia usa ContentCardsEditor
     if (currentStep === "redacao") return "Enviar para Aprovação";
     if (currentStep === "design") return "Enviar para Aprovação";
-    if (currentStep === "aprovacao_interna_design") return "Aprovar Design → Cliente";
     if (isLastStep) return "Finalizar";
     return "Aprovar";
   };
-
-  // Reprovar na aprovação interna de design: escolhe se volta para redação ou design
-  const isInternalDesignApproval = currentStep === "aprovacao_interna_design";
 
   return (
     <Dialog open={!!demand} onOpenChange={onClose}>
@@ -516,51 +512,25 @@ export default function DemandDetailModal({ demand, member, onClose, onUpdated }
                     className="h-20 text-sm"
                   />
                   <div className="flex flex-wrap gap-2 items-center">
-                    {/* Reprovar — aprovação interna de design: escolhe destino */}
-                    {isInternalDesignApproval ? (
-                      <>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleReprovar("redacao")}
-                          disabled={loading || !note.trim()}
-                          className="text-red-600 border-red-200 hover:bg-red-50"
-                        >
-                          <XCircle className="w-4 h-4 mr-1" /> Reprovar → Redação
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleReprovar("design")}
-                          disabled={loading || !note.trim()}
-                          className="text-amber-600 border-amber-200 hover:bg-amber-50"
-                        >
-                          <RotateCcw className="w-4 h-4 mr-1" /> Reprovar → Design
-                        </Button>
-                      </>
-                    ) : (
-                      <>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleReprovar()}
-                          disabled={loading || !note.trim()}
-                          className="text-red-600 border-red-200 hover:bg-red-50"
-                        >
-                          <XCircle className="w-4 h-4 mr-1" /> Reprovar
-                        </Button>
-                        {stepIndex > 0 && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={handleRevisar}
-                            disabled={loading || !note.trim()}
-                            className="text-amber-600 border-amber-200 hover:bg-amber-50"
-                          >
-                            <RotateCcw className="w-4 h-4 mr-1" /> Revisar
-                          </Button>
-                        )}
-                      </>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleReprovar()}
+                      disabled={loading || !note.trim()}
+                      className="text-red-600 border-red-200 hover:bg-red-50"
+                    >
+                      <XCircle className="w-4 h-4 mr-1" /> Reprovar
+                    </Button>
+                    {stepIndex > 0 && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleRevisar}
+                        disabled={loading || !note.trim()}
+                        className="text-amber-600 border-amber-200 hover:bg-amber-50"
+                      >
+                        <RotateCcw className="w-4 h-4 mr-1" /> Revisar
+                      </Button>
                     )}
 
                     {/* Aprovar */}
