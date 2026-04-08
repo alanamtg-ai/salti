@@ -15,6 +15,7 @@ import ClientKanban from '@/pages/ClientKanban';
 import TeamManagement from '@/pages/TeamManagement';
 import Reports from '@/pages/Reports';
 import RecurringDemands from '@/pages/RecurringDemands';
+import SearchDemands from '@/pages/SearchDemands';
 import { useCurrentMember } from '@/lib/useCurrentMember';
 
 const RootPage = () => {
@@ -51,6 +52,7 @@ const AuthenticatedApp = () => {
         <Route path="/relatorios" element={<Reports />} />
         <Route path="/recorrentes" element={<RecurringDemands />} />
         <Route path="/minhas-tarefas" element={<MyDashboard />} />
+        <Route path="/busca" element={<SearchDemands />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
