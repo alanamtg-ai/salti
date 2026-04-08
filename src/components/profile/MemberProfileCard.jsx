@@ -28,17 +28,17 @@ export default function MemberProfileCard({ member, onUpdated }) {
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const fileRef = useRef(null);
 
-  const [form, setForm] = useState({
-    name: member.name || "",
-    whatsapp: member.whatsapp || "",
-    instagram: member.instagram || "",
-    linkedin: member.linkedin || "",
-    behance: member.behance || "",
-    bio: member.bio || "",
-    birthday: member.birthday || "",
-    avatar_url: member.avatar_url || "",
-    theme: member.theme || "light",
-  });
+  const [form, setForm] = useState(() => ({
+    name: member?.name || "",
+    whatsapp: member?.whatsapp || "",
+    instagram: member?.instagram || "",
+    linkedin: member?.linkedin || "",
+    behance: member?.behance || "",
+    bio: member?.bio || "",
+    birthday: member?.birthday || "",
+    avatar_url: member?.avatar_url || "",
+    theme: member?.theme || "light",
+  }));
 
   const handlePhotoUpload = async (e) => {
     const file = e.target.files?.[0];

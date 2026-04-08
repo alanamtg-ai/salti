@@ -33,7 +33,7 @@ export default function MemberProfileMini({ member, onUpdated }) {
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const fileRef = useRef(null);
 
-  const [form, setForm] = useState({
+  const [form, setForm] = useState(() => ({
     name: member?.name || "",
     whatsapp: member?.whatsapp || "",
     instagram: member?.instagram || "",
@@ -42,7 +42,7 @@ export default function MemberProfileMini({ member, onUpdated }) {
     bio: member?.bio || "",
     birthday: member?.birthday || "",
     avatar_url: member?.avatar_url || "",
-  });
+  }));
 
   if (!member) return null;
 
