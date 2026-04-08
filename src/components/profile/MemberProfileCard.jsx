@@ -141,6 +141,7 @@ export default function MemberProfileCard({ member, onUpdated }) {
         </div>
 
         {/* Botão editar */}
+        {member?.id && (
         <div className="flex flex-col gap-2 shrink-0">
           <Button size="sm" variant="outline" onClick={() => setOpen(true)} className="h-8 text-xs">
             <Edit2 className="w-3.5 h-3.5 mr-1" /> Editar
@@ -160,6 +161,7 @@ export default function MemberProfileCard({ member, onUpdated }) {
             {(member.theme || "light") === "light" ? "Escuro" : "Claro"}
           </button>
         </div>
+        )}
       </div>
 
       {/* Modal de edição */}

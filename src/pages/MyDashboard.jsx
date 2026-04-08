@@ -86,6 +86,9 @@ export default function MyDashboard() {
       // Se ninguém foi atribuído e o membro tem esse role, pode agir
       if (!assigneeThisStep && mySteps.includes(d.current_step)) return true;
       
+      // Incluir demandas urgentes mesmo que não seja assignee direto (para visualização e ação)
+      if (d.priority === "urgente" && mySteps.includes(d.current_step)) return true;
+      
       return false;
     });
   }

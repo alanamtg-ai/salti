@@ -91,6 +91,9 @@ export default function CollaboratorDashboard() {
       // Se ninguém foi atribuído, pode agir
       if (!assigneeThisStep) return true;
       
+      // Incluir demandas urgentes mesmo que não seja assignee direto (para visualização e ação)
+      if (d.priority === "urgente" && mySteps.includes(d.current_step)) return true;
+      
       return false;
     });
   }, [demands, member, mySteps]);
