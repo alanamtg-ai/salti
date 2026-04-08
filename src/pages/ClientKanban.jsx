@@ -52,7 +52,12 @@ export default function ClientKanban() {
   const clientDemands = demands.filter((d) => d.client_id === clientId);
   const profile = profiles[0] || null;
 
-  const activeSteps = STEP_ORDER.filter((s) => clientDemands.some((d) => d.current_step === s));
+  // Inclui etapas com demandas ativas + "estrategia" se houver demandas mãe finalizadas lá
+  const activeSteps = STEP_ORDER.filter((s) => {
+    if (clientDemands.some((d) => d.current_step === s && d.status !== "finalizado")) return true;
+    if (s === "estrategia" && clientDemands.some((d) => d.status === "finalizado" && (d.history || []).some((h) => h.etapa_origem === "estrategia"))) return true;
+    return false;
+  });
   const columns = activeSteps.length > 0 ? activeSteps : STEP_ORDER.slice(0, 5);
 
   const isAdmin = member?.role === "admin";
@@ -111,15 +116,19 @@ export default function ClientKanban() {
       {activeTab === "kanban" && (
         <div className="flex gap-4 overflow-x-auto pb-4">
           {columns.map((step) => {
-            let stepDemands = clientDemands.filter((d) => d.current_step === step);
-            // Ordenar por data de postagem crescente (primeiro card do mês)
-            stepDemands = stepDemands.sort((a, b) => {
-              const dateA = a.scheduled_date;
-              const dateB = b.scheduled_date;
-              if (!dateA) return 1;
-              if (!dateB) return -1;
-              return new Date(dateA) - new Date(dateB);
+            // Demandas ativas nessa etapa
+            let stepDemands = clientDemands.filter((d) => d.current_step === step && d.status !== "finalizado");
+            // Demandas de estratégia que foram concluídas (mãe enviou cards para redação)
+            const doneDemands = step === "estrategia"
+              ? clientDemands.filter((d) => d.status === "finalizado" && (d.history || []).some((h) => h.etapa_origem === "estrategia"))
+              : [];
+            // Ordenar por data de postagem crescente
+            const sort = (arr) => arr.sort((a, b) => {
+              if (!a.scheduled_date) return 1;
+              if (!b.scheduled_date) return -1;
+              return new Date(a.scheduled_date) - new Date(b.scheduled_date);
             });
+            stepDemands = sort(stepDemands);
             const color = getStepColor(step);
             return (
               <div key={step} className="min-w-[260px] max-w-[300px] flex-shrink-0 bg-muted/40 rounded-xl">
@@ -127,14 +136,30 @@ export default function ClientKanban() {
                   <div className={cn("w-2.5 h-2.5 rounded-full", color)} />
                   <span className="text-xs font-semibold">{getStepLabel(step)}</span>
                   <span className="ml-auto text-xs bg-background rounded-full px-2 py-0.5 font-medium">
-                    {stepDemands.length}
+                    {stepDemands.length + doneDemands.length}
                   </span>
                 </div>
                 <div className="p-2 space-y-2 min-h-[150px] max-h-[calc(100vh-300px)] overflow-y-auto">
                   {stepDemands.map((d) => (
                     <DemandCardV2 key={d.id} demand={d} onClick={setSelectedDemand} />
                   ))}
-                  {stepDemands.length === 0 && (
+                  {/* Demandas de estratégia concluídas — mostradas com badge ✅ */}
+                  {doneDemands.map((d) => (
+                    <div key={d.id} className="relative">
+                      <div className="absolute top-2 right-2 z-10 bg-emerald-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
+                        ✅ Feito
+                      </div>
+                      <div className="opacity-60 pointer-events-none">
+                        <DemandCardV2 demand={d} onClick={() => {}} />
+                      </div>
+                      <button
+                        onClick={() => setSelectedDemand(d)}
+                        className="absolute inset-0 w-full h-full cursor-pointer"
+                        aria-label="Ver demanda"
+                      />
+                    </div>
+                  ))}
+                  {stepDemands.length === 0 && doneDemands.length === 0 && (
                     <p className="text-center text-xs text-muted-foreground py-6">Vazio</p>
                   )}
                 </div>
