@@ -39,7 +39,7 @@ export default function CollaboratorDashboard() {
     });
   }, [demands, member, mySteps]);
 
-  // Métricas pessoais via history
+  // Métricas pessoais via history — conta apenas aprovações nas etapas do papel do membro
   const metrics = useMemo(() => {
     if (!member) return { delivered: 0, avgDays: 0 };
     let delivered = 0;
@@ -49,9 +49,11 @@ export default function CollaboratorDashboard() {
     demands.forEach((d) => {
       const history = d.history || [];
       history.forEach((h, i) => {
-        if (h.by !== member.email || (h.acao !== "aprovado" && h.action !== "avançado")) return;
+        if (h.by !== member.email) return;
+        if (h.acao !== "aprovado" && h.action !== "avançado") return;
+        // Só conta se a etapa de origem é uma etapa do papel desse membro
+        if (h.etapa_origem && !mySteps.includes(h.etapa_origem)) return;
         delivered++;
-        // Calcula tempo nessa etapa
         const prev = history[i - 1];
         if (prev?.date && h.date) {
           const days = Math.abs(differenceInDays(parseISO(h.date), parseISO(prev.date)));
@@ -64,7 +66,7 @@ export default function CollaboratorDashboard() {
       delivered,
       avgDays: countDays > 0 ? (totalDays / countDays).toFixed(1) : null,
     };
-  }, [demands, member]);
+  }, [demands, member, mySteps]);
 
   // Ranking da equipe pelo mesmo papel
   const ranking = useMemo(() => {
