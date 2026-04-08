@@ -33,9 +33,9 @@ export default function ClientDashboard() {
     </div>
   );
 
-  // Admins veem tudo; clientes veem só as suas
-  const isAdmin = member?.role === "admin";
-  const clientFilter = (d) => isAdmin || d.client_id === member?.client_id;
+  // Admins e colaboradores veem tudo; clientes veem só as suas
+  const isClient = member?.role === "cliente";
+  const clientFilter = (d) => !isClient || d.client_id === member?.client_id;
 
   // Demandas aguardando aprovação deste cliente
   const pending = demands.filter(
