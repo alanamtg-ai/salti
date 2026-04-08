@@ -263,8 +263,15 @@ export default function AdminDashboard() {
         <h2 className="text-lg font-semibold mb-4">Concluídas em Abril</h2>
         <div className="space-y-2">
           {(() => {
-            const aprilStart = new Date(currentYear, 3, 1); // Abril é mês 3 (0-indexed)
+            const aprilStart = new Date(currentYear, 3, 1);
             const aprilEnd = new Date(currentYear, 4, 0, 23, 59, 59);
+            
+            // Mapa de aliases para consolidar nomes iguais
+            const nameAliases = {
+              "alana": "Alana Montagna Dias",
+              "alana montagna dias": "Alana Montagna Dias",
+              "admin": "Alana Montagna Dias",
+            };
             
             const memberCounts = {};
             demands.forEach((d) => {
@@ -272,7 +279,9 @@ export default function AdminDashboard() {
                 if (h.acao === "aprovado" && h.by && h.date) {
                   const hDate = new Date(h.date);
                   if (hDate >= aprilStart && hDate <= aprilEnd) {
-                    memberCounts[h.by_name || h.by] = (memberCounts[h.by_name || h.by] || 0) + 1;
+                    const displayName = h.by_name || h.by;
+                    const normalized = nameAliases[displayName?.toLowerCase()] || displayName;
+                    memberCounts[normalized] = (memberCounts[normalized] || 0) + 1;
                   }
                 }
               });
