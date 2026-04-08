@@ -1,0 +1,58 @@
+{
+  "name": "TeamMemberAbsence",
+  "type": "object",
+  "properties": {
+    "member_id": {
+      "type": "string",
+      "description": "ID do membro"
+    },
+    "member_name": {
+      "type": "string",
+      "description": "Nome do membro"
+    },
+    "member_email": {
+      "type": "string",
+      "description": "Email do membro"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Data de in\u00edcio da aus\u00eancia"
+    },
+    "end_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Data de t\u00e9rmino da aus\u00eancia"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "ferias",
+        "licenca",
+        "outro"
+      ],
+      "default": "ferias",
+      "description": "Tipo de aus\u00eancia"
+    },
+    "reason": {
+      "type": "string",
+      "description": "Motivo adicional"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "ativo",
+        "finalizado"
+      ],
+      "default": "ativo",
+      "description": "Status do per\u00edodo"
+    }
+  },
+  "required": [
+    "member_id",
+    "member_name",
+    "member_email",
+    "start_date",
+    "end_date"
+  ]
+}

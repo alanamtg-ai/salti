@@ -1,5 +1,6 @@
 import { useCurrentMember } from "@/lib/useCurrentMember";
 import MemberProfileCard from "@/components/profile/MemberProfileCard";
+import AbsenceRegistration from "@/components/profile/AbsenceRegistration";
 import { Loader2 } from "lucide-react";
 
 export default function MyProfile() {
@@ -28,6 +29,9 @@ export default function MyProfile() {
         member={member} 
         onUpdated={() => window.location.reload()} 
       />
+      <div className="bg-card rounded-xl border border-border p-5">
+        <AbsenceRegistration member={member} />
+      </div>
     </div>
   );
 }
