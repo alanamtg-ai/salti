@@ -3,7 +3,6 @@ export const STEPS = {
   briefing:                { label: "Briefing",                   role: "admin",                 color: "bg-slate-500",   light: "bg-slate-100 text-slate-700" },
   estrategia:              { label: "Estratégia",                  role: "estrategista",          color: "bg-violet-500",  light: "bg-violet-100 text-violet-700" },
   redacao:                 { label: "Redação",                     role: "redator",               color: "bg-blue-500",    light: "bg-blue-100 text-blue-700" },
-  aprovacao_interna_redacao: { label: "Aprovação Interna (Copy)", role: "admin",                 color: "bg-indigo-500",  light: "bg-indigo-100 text-indigo-700" },
   design:                  { label: "Design",                      role: "designer",              color: "bg-pink-500",    light: "bg-pink-100 text-pink-700" },
   aprovacao_interna_design: { label: "Aprovação Interna (Design)", role: "admin",                color: "bg-rose-500",    light: "bg-rose-100 text-rose-700" },
   aprovacao_cliente:       { label: "Aprovação Cliente",           role: "cliente",               color: "bg-orange-500",  light: "bg-orange-100 text-orange-700" },

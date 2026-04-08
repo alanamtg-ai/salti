@@ -10,9 +10,8 @@ import { format, differenceInDays, isPast, isToday } from "date-fns";
 import { getStepLabel, getStepLight, STEPS, REJECTION_STEP } from "@/lib/flowConfig";
 import DemandTimeline from "./DemandTimeline";
 import ContentCardsEditor from "./ContentCardsEditor";
-import { CheckCircle2, XCircle, RotateCcw, Clock, AlertTriangle, ChevronRight, Palette, BookOpen, FileText } from "lucide-react";
+import { CheckCircle2, XCircle, RotateCcw, Clock, AlertTriangle, ChevronRight, BookOpen, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { UNIVERSAL_MEMBERS } from "@/lib/universalMembers";
 
 const priorityConfig = {
   baixa:   "bg-emerald-100 text-emerald-700",
@@ -23,38 +22,11 @@ const priorityConfig = {
 
 
 
-// Seletor de designer para enviar após aprovação interna de copy
-function DesignerPicker({ members, onPick }) {
-  const [email, setEmail] = useState("");
-  const designers = members.filter((m) => {
-    if (m.role === "designer" || m.role === "admin") return true;
-    if (UNIVERSAL_MEMBERS.some((name) => m.name?.toLowerCase().includes(name) || m.email === name)) return true;
-    return false;
-  });
-
-  return (
-    <div className="space-y-3">
-      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
-        <Palette className="w-3.5 h-3.5" /> Enviar para qual designer?
-      </p>
-      <Select value={email} onValueChange={setEmail}>
-        <SelectTrigger className="text-sm"><SelectValue placeholder="Selecione o designer..." /></SelectTrigger>
-        <SelectContent>
-          {designers.map((m) => <SelectItem key={m.id} value={m.email}>{m.name}</SelectItem>)}
-        </SelectContent>
-      </Select>
-      <Button size="sm" disabled={!email} onClick={() => onPick(email)} className="w-full">
-        <Palette className="w-4 h-4 mr-1" /> Enviar para Design
-      </Button>
-    </div>
-  );
-}
 
 export default function DemandDetailModal({ demand, member, onClose, onUpdated }) {
   const [note, setNote]                         = useState("");
   const [contentText, setContentText]           = useState(demand?.content_text || "");
   const [loading, setLoading]                   = useState(false);
-  const [showDesignerPicker, setShowDesignerPicker] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [activeTab, setActiveTab] = useState("briefing");
@@ -77,8 +49,6 @@ export default function DemandDetailModal({ demand, member, onClose, onUpdated }
 
   const myRole  = member?.role;
   const stepRole = STEPS[currentStep]?.role;
-  // Na etapa de redação, apenas o assignee (redatora) pode agir — não o admin
-  // O admin age na etapa de aprovação interna, não na redação em si
   const isRedacaoStep = currentStep === "redacao";
   const isAssignee = demand.assignees?.[currentStep] === member?.email;
   const canAct = isRedacaoStep
@@ -96,13 +66,7 @@ export default function DemandDetailModal({ demand, member, onClose, onUpdated }
   });
 
   // ✅ APROVAR — avança para próxima etapa
-  const handleAprovar = async (designerEmail = null) => {
-    // Aprovação interna de copy → precisa escolher designer
-    if (currentStep === "aprovacao_interna_redacao" && !designerEmail) {
-      setShowDesignerPicker(true);
-      return;
-    }
-
+  const handleAprovar = async () => {
     setLoading(true);
     const nextIndex = stepIndex + 1;
     const nextStep  = stepsFlow[nextIndex] || "finalizado";
@@ -116,11 +80,6 @@ export default function DemandDetailModal({ demand, member, onClose, onUpdated }
       history: [...(demand.history || []), buildEntry(currentStep, nextStep, "aprovado")],
     };
 
-    // Se aprovação interna de copy, atribui o designer escolhido
-    if (currentStep === "aprovacao_interna_redacao" && designerEmail) {
-      updates.assignees = { ...(demand.assignees || {}), design: designerEmail };
-    }
-
     // Salvar conteúdo de redação se houver
     if (currentStep === "redacao" && contentText.trim()) {
       updates.content_text = contentText;
@@ -129,7 +88,6 @@ export default function DemandDetailModal({ demand, member, onClose, onUpdated }
     await base44.entities.Demand.update(demand.id, updates);
     setNote("");
     setLoading(false);
-    setShowDesignerPicker(false);
     onUpdated();
     onClose();
   };
@@ -201,7 +159,6 @@ export default function DemandDetailModal({ demand, member, onClose, onUpdated }
   const approveLabel = () => {
     if (currentStep === "estrategia") return null; // estrategia usa ContentCardsEditor
     if (currentStep === "redacao") return "Enviar para Aprovação";
-    if (currentStep === "aprovacao_interna_redacao") return "Aprovar Copy → Design";
     if (currentStep === "design") return "Enviar para Aprovação";
     if (currentStep === "aprovacao_interna_design") return "Aprovar Design → Cliente";
     if (isLastStep) return "Finalizar";
@@ -330,7 +287,7 @@ export default function DemandDetailModal({ demand, member, onClose, onUpdated }
                 >
                   <BookOpen className="w-3.5 h-3.5" /> Briefing
                 </button>
-                {(currentStep === "redacao" || currentStep === "aprovacao_interna_redacao") && (
+                {currentStep === "redacao" && (
                   <button
                     onClick={() => setActiveTab("conteudo")}
                     className={cn("flex items-center gap-1.5 px-3 py-2 text-xs font-medium border-b-2 transition-colors", 
@@ -375,21 +332,16 @@ export default function DemandDetailModal({ demand, member, onClose, onUpdated }
               )}
 
               {/* Aba Conteúdo (redação: editável | aprovação interna: leitura) */}
-              {activeTab === "conteudo" && (currentStep === "redacao" || currentStep === "aprovacao_interna_redacao") && (
+              {activeTab === "conteudo" && currentStep === "redacao" && (
                 <div className="space-y-2">
-                  <p className="text-xs font-semibold text-muted-foreground mb-1">
-                    {currentStep === "redacao" ? "Escrever Conteúdo" : "Conteúdo para Aprovação"}
-                  </p>
+                  <p className="text-xs font-semibold text-muted-foreground mb-1">Escrever Conteúdo</p>
                   <Textarea
-                    value={currentStep === "redacao" ? contentText : (demand.content_text || "")}
-                    onChange={(e) => currentStep === "redacao" && setContentText(e.target.value)}
-                    readOnly={currentStep !== "redacao"}
-                    placeholder={currentStep === "redacao" ? "Escreva o conteúdo aqui..." : "Nenhum conteúdo escrito ainda."}
+                    value={contentText}
+                    onChange={(e) => setContentText(e.target.value)}
+                    placeholder="Escreva o conteúdo aqui..."
                     className="h-48 text-sm resize-none"
                   />
-                  {currentStep === "redacao" && (
-                    <p className="text-[10px] text-muted-foreground">Seu conteúdo será salvo ao enviar para aprovação.</p>
-                  )}
+                  <p className="text-[10px] text-muted-foreground">Seu conteúdo será salvo ao enviar para aprovação.</p>
                 </div>
               )}
             </div>
@@ -422,10 +374,7 @@ export default function DemandDetailModal({ demand, member, onClose, onUpdated }
                   </div>
                 </div>
               )}
-              {showDesignerPicker ? (
-                <DesignerPicker members={members} onPick={(email) => handleAprovar(null, email)} />
-              ) : (
-                <>
+              <>
                   <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Sua Ação</p>
                   <Textarea
                     value={note}
@@ -495,8 +444,7 @@ export default function DemandDetailModal({ demand, member, onClose, onUpdated }
                       </Button>
                     )}
                   </div>
-                </>
-              )}
+              </>
             </div>
           )}
 
