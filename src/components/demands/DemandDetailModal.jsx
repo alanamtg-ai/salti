@@ -77,7 +77,13 @@ export default function DemandDetailModal({ demand, member, onClose, onUpdated }
 
   const myRole  = member?.role;
   const stepRole = STEPS[currentStep]?.role;
-  const canAct  = myRole === stepRole || myRole === "admin";
+  // Na etapa de redação, apenas o assignee (redatora) pode agir — não o admin
+  // O admin age na etapa de aprovação interna, não na redação em si
+  const isRedacaoStep = currentStep === "redacao";
+  const isAssignee = demand.assignees?.[currentStep] === member?.email;
+  const canAct = isRedacaoStep
+    ? (isAssignee || (myRole === "redator" && !demand.assignees?.[currentStep]))
+    : (myRole === stepRole || myRole === "admin");
 
   const buildEntry = (etapa_origem, etapa_destino, acao, observacao = "") => ({
     etapa_origem,
@@ -324,7 +330,7 @@ export default function DemandDetailModal({ demand, member, onClose, onUpdated }
                 >
                   <BookOpen className="w-3.5 h-3.5" /> Briefing
                 </button>
-                {currentStep === "redacao" && (
+                {(currentStep === "redacao" || currentStep === "aprovacao_interna_redacao") && (
                   <button
                     onClick={() => setActiveTab("conteudo")}
                     className={cn("flex items-center gap-1.5 px-3 py-2 text-xs font-medium border-b-2 transition-colors", 
@@ -368,17 +374,22 @@ export default function DemandDetailModal({ demand, member, onClose, onUpdated }
                 </div>
               )}
 
-              {/* Aba Conteúdo (apenas em redação) */}
-              {activeTab === "conteudo" && currentStep === "redacao" && (
+              {/* Aba Conteúdo (redação: editável | aprovação interna: leitura) */}
+              {activeTab === "conteudo" && (currentStep === "redacao" || currentStep === "aprovacao_interna_redacao") && (
                 <div className="space-y-2">
-                  <p className="text-xs font-semibold text-muted-foreground mb-1">Escrever Conteúdo</p>
+                  <p className="text-xs font-semibold text-muted-foreground mb-1">
+                    {currentStep === "redacao" ? "Escrever Conteúdo" : "Conteúdo para Aprovação"}
+                  </p>
                   <Textarea
-                    value={contentText}
-                    onChange={(e) => setContentText(e.target.value)}
-                    placeholder="Escreva o conteúdo aqui..."
+                    value={currentStep === "redacao" ? contentText : (demand.content_text || "")}
+                    onChange={(e) => currentStep === "redacao" && setContentText(e.target.value)}
+                    readOnly={currentStep !== "redacao"}
+                    placeholder={currentStep === "redacao" ? "Escreva o conteúdo aqui..." : "Nenhum conteúdo escrito ainda."}
                     className="h-48 text-sm resize-none"
                   />
-                  <p className="text-[10px] text-muted-foreground">Seu conteúdo será salvo ao enviar para aprovação.</p>
+                  {currentStep === "redacao" && (
+                    <p className="text-[10px] text-muted-foreground">Seu conteúdo será salvo ao enviar para aprovação.</p>
+                  )}
                 </div>
               )}
             </div>
@@ -475,7 +486,7 @@ export default function DemandDetailModal({ demand, member, onClose, onUpdated }
                       <Button
                         size="sm"
                         onClick={() => handleAprovar()}
-                        disabled={loading}
+                        disabled={loading || (currentStep === "redacao" && !contentText.trim())}
                         className="ml-auto"
                       >
                         <CheckCircle2 className="w-4 h-4 mr-1" />
