@@ -1,15 +1,17 @@
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
+import { useQuery } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
+import { base44 } from "@/api/base44Client";
 import { useCurrentMember } from "@/lib/useCurrentMember";
-import { getStepsForRole, getStepLabel, STEPS } from "@/lib/flowConfig";
+import { getStepLabel, STEPS, OFFICIAL_FLOW, getAllowedResponsiblesForStep } from "@/lib/flowConfig";
+import { Loader2, Inbox, CheckCircle2, Clock, AlertTriangle, Trophy } from "lucide-react";
+import { isPast, isToday, startOfMonth, startOfYear } from "date-fns";
+import { cn } from "@/lib/utils";
 import MyTaskCard from "@/components/demands/MyTaskCard";
 import DemandDetailModal from "@/components/demands/DemandDetailModal";
 import DeadlineAlertsCompact from "@/components/dashboard/DeadlineAlertsCompact";
 import MonthlyGoalsCard from "@/components/dashboard/MonthlyGoalsCard";
-import { useState, useEffect } from "react";
-import { Loader2, Inbox, CheckCircle2, Clock, AlertTriangle, Trophy } from "lucide-react";
-import { isPast, isToday, startOfMonth, startOfYear } from "date-fns";
-import { cn } from "@/lib/utils";
 import MemberProfileCard from "@/components/profile/MemberProfileCard";
 import NoticeBoard from "@/components/notices/NoticeBoard";
 import CompletedByMeSection from "@/components/demands/CompletedByMeSection";
@@ -44,8 +46,6 @@ export default function MyDashboard() {
     </div>);
 
 
-  const mySteps = getStepsForRole(member.role);
-
   // Filtrar demandas que são minhas
   let myDemands;
   if (member.role === "cliente") {
@@ -53,18 +53,15 @@ export default function MyDashboard() {
       (d) => d.current_step === "aprovacao_cliente" && d.client_id === member.client_id && d.status === "ativo"
     );
   } else {
-    // Colaboradores e admins: ver demandas designadas a eles
+    // Colaboradores: ver demandas onde é o responsável atual
     myDemands = demands.filter((d) => {
       if (d.current_step === "finalizado" || d.status !== "ativo") return false;
       
-      // Se está designado a ele na etapa atual, mostra
-      if (d.assignees?.[d.current_step] === member.email) return true;
+      // Se é o responsável atual, mostra
+      if (d.responsavel_atual_email === member.email) return true;
       
-      // Se está mencionado em qualquer etapa dos assignees, mostra
-      if (Object.values(d.assignees || {}).includes(member.email)) return true;
-      
-      // Se é redação e ele é redator sem assignee definido, mostra
-      if (d.current_step === "redacao" && member.role === "redator" && !d.assignees?.["redacao"]) return true;
+      // Se é admin, mostra todas as demandas ativas
+      if (member.role === "admin") return true;
       
       return false;
     });
@@ -97,14 +94,14 @@ export default function MyDashboard() {
 
   const roleLabel = member.role === "cliente" ?
   "Aprovações" :
-  STEPS[mySteps[0]]?.label || member.role;
+  STEPS[OFFICIAL_FLOW[0]]?.label || member.role;
 
   // Ranking: contar aprovações por colaborador no histórico
   const rankingMap = {};
   demands.forEach((d) => {
     (d.history || []).forEach((h) => {
-      if (h.acao === "aprovado" && h.by) {
-        rankingMap[h.by] = (rankingMap[h.by] || 0) + 1;
+      if (h.acao === "aprovou" && h.usuario_email) {
+        rankingMap[h.usuario_email] = (rankingMap[h.usuario_email] || 0) + 1;
       }
     });
   });
@@ -120,7 +117,7 @@ export default function MyDashboard() {
     const approvals = new Set();
     demands.forEach((d) => {
       (d.history || []).forEach((h) => {
-        if (h.acao === "aprovado" && h.by === member.email && h.date && new Date(h.date) >= targetDate) {
+        if (h.acao === "aprovou" && h.usuario_email === member.email && h.date && new Date(h.date) >= targetDate) {
           approvals.add(d.id);
         }
       });
@@ -133,7 +130,7 @@ export default function MyDashboard() {
 
   // Demandas que você aprovou hoje (para mostrar como concluídas)
   const approvedToday = demands.filter((d) => {
-    const lastApproval = [...(d.history || [])].reverse().find((h) => h.acao === "aprovado" && h.by === member.email);
+    const lastApproval = [...(d.history || [])].reverse().find((h) => h.acao === "aprovou" && h.usuario_email === member.email);
     if (!lastApproval || !lastApproval.date) return false;
     return isToday(new Date(lastApproval.date));
   });
