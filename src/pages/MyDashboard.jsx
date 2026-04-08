@@ -108,16 +108,14 @@ export default function MyDashboard() {
   const rankingSorted = Object.entries(rankingMap).sort((a, b) => b[1] - a[1]);
   const myRankPos = rankingSorted.findIndex(([email]) => email === member.email) + 1;
 
-  // Concluídas no mês e no ano
+  // Concluídas no mês e no ano (todas que você aprovou)
   const now = new Date();
   const monthStart = startOfMonth(now);
   const yearStart = startOfYear(now);
   const concludedThisMonth = demands.filter((d) =>
-    d.status === "finalizado" &&
     (d.history || []).some((h) => h.acao === "aprovado" && h.by === member.email && h.date && new Date(h.date) >= monthStart)
   ).length;
   const concludedThisYear = demands.filter((d) =>
-    d.status === "finalizado" &&
     (d.history || []).some((h) => h.acao === "aprovado" && h.by === member.email && h.date && new Date(h.date) >= yearStart)
   ).length;
 
