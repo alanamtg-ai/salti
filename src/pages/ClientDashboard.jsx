@@ -33,18 +33,22 @@ export default function ClientDashboard() {
     </div>
   );
 
+  // Admins veem tudo; clientes veem só as suas
+  const isAdmin = member?.role === "admin";
+  const clientFilter = (d) => isAdmin || d.client_id === member?.client_id;
+
   // Demandas aguardando aprovação deste cliente
   const pending = demands.filter(
-    (d) => d.current_step === "aprovacao_cliente" && d.client_id === member?.client_id
+    (d) => d.current_step === "aprovacao_cliente" && clientFilter(d)
   );
 
   const approved = demands.filter(
-    (d) => d.status === "finalizado" && d.client_id === member?.client_id
+    (d) => d.status === "finalizado" && clientFilter(d)
   );
 
   // Demandas avulsas (ativas, mas não aguardando aprovação do cliente)
   const freelance = demands.filter(
-    (d) => d.status === "ativo" && d.client_id === member?.client_id && d.current_step !== "aprovacao_cliente"
+    (d) => d.status === "ativo" && clientFilter(d) && d.current_step !== "aprovacao_cliente"
   );
 
   return (
