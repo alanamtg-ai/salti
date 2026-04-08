@@ -141,26 +141,6 @@ export default function CollaboratorDashboard() {
     return isBefore(dlDate, in48h) && !isPast(dlDate);
   }).length;
 
-  const getGreeting = () => {
-    const day = now.getDay();
-    const greetings = [
-      "Que domingo produtivo!",
-      "Segunda é hora de bombar!",
-      "Terça em ritmo!",
-      "Quarta já tá bom!",
-      "Quinta pro detalhe!",
-      "Sexta é quase lá!",
-      "Sábado também conta!"
-    ];
-    return greetings[day];
-  };
-
-  if (isLoading) return (
-    <div className="flex items-center justify-center h-64">
-      <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-    </div>
-  );
-
   // Contar aprovações no mês e ano
   const concludedThisMonth = useMemo(() => {
     const monthStart = startOfMonth(new Date());
@@ -187,6 +167,26 @@ export default function CollaboratorDashboard() {
     });
     return approvals.size;
   }, [demands, member?.email]) || 0;
+
+  const getGreeting = () => {
+    const day = now.getDay();
+    const greetings = [
+      "Que domingo produtivo!",
+      "Segunda é hora de bombar!",
+      "Terça em ritmo!",
+      "Quarta já tá bom!",
+      "Quinta pro detalhe!",
+      "Sexta é quase lá!",
+      "Sábado também conta!"
+    ];
+    return greetings[day];
+  };
+
+  if (isLoading) return (
+    <div className="flex items-center justify-center h-64">
+      <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+    </div>
+  );
 
   return (
     <div className="space-y-6 pb-20 lg:pb-0">
