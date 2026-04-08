@@ -258,6 +258,42 @@ export default function AdminDashboard() {
         </div>
       </div>
 
+      {/* Concluídas em Abril por Membro */}
+      <div className="bg-card rounded-xl border border-border p-5">
+        <h2 className="text-lg font-semibold mb-4">Concluídas em Abril</h2>
+        <div className="space-y-2">
+          {(() => {
+            const aprilStart = new Date(currentYear, 3, 1); // Abril é mês 3 (0-indexed)
+            const aprilEnd = new Date(currentYear, 4, 0, 23, 59, 59);
+            
+            const memberCounts = {};
+            demands.forEach((d) => {
+              (d.history || []).forEach((h) => {
+                if (h.acao === "aprovado" && h.by && h.date) {
+                  const hDate = new Date(h.date);
+                  if (hDate >= aprilStart && hDate <= aprilEnd) {
+                    memberCounts[h.by_name || h.by] = (memberCounts[h.by_name || h.by] || 0) + 1;
+                  }
+                }
+              });
+            });
+            
+            const sorted = Object.entries(memberCounts).sort((a, b) => b[1] - a[1]);
+            
+            if (sorted.length === 0) {
+              return <p className="text-sm text-muted-foreground text-center py-4">Nenhuma conclusão em abril ainda</p>;
+            }
+            
+            return sorted.map(([name, count]) => (
+              <div key={name} className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/30 transition-colors">
+                <span className="text-sm font-medium">{name}</span>
+                <span className="text-sm font-bold text-primary">{count} tarefa{count > 1 ? 's' : ''}</span>
+              </div>
+            ));
+          })()}
+        </div>
+      </div>
+
       {/* Quadro de Avisos */}
       <div className="bg-card rounded-xl border border-border p-5">
         <NoticeBoard member={member} />
