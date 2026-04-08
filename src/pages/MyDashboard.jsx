@@ -101,18 +101,25 @@ export default function MyDashboard() {
   const rankingSorted = Object.entries(rankingMap).sort((a, b) => b[1] - a[1]);
   const myRankPos = rankingSorted.findIndex(([email]) => email === member.email) + 1;
 
-  // Concluídas no mês e no ano
+  // Concluídas no mês e no ano — conta aprovações (avanços de etapa), não status final
   const now = new Date();
   const monthStart = startOfMonth(now);
   const yearStart = startOfYear(now);
-  const concludedThisMonth = demands.filter((d) =>
-  d.status === "finalizado" &&
-  (d.history || []).some((h) => h.acao === "aprovado" && h.by === member.email && h.date && new Date(h.date) >= monthStart)
-  ).length;
-  const concludedThisYear = demands.filter((d) =>
-  d.status === "finalizado" &&
-  (d.history || []).some((h) => h.acao === "aprovado" && h.by === member.email && h.date && new Date(h.date) >= yearStart)
-  ).length;
+  
+  const getApprovalsByMember = (targetDate) => {
+    const approvals = new Set();
+    demands.forEach((d) => {
+      (d.history || []).forEach((h) => {
+        if (h.acao === "aprovado" && h.by === member.email && h.date && new Date(h.date) >= targetDate) {
+          approvals.add(d.id);
+        }
+      });
+    });
+    return approvals.size;
+  };
+  
+  const concludedThisMonth = getApprovalsByMember(monthStart);
+  const concludedThisYear = getApprovalsByMember(yearStart);
 
   // Demandas que você aprovou hoje (para mostrar como concluídas)
   const approvedToday = demands.filter((d) => {
