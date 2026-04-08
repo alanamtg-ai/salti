@@ -8,7 +8,7 @@ import { useState, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { format, differenceInDays, isPast, isToday } from "date-fns";
-import { getStepLabel, getStepLight, STEPS, REJECTION_STEP } from "@/lib/flowConfig";
+import { getStepLabel, getStepLight, STEPS, getPreviousStep } from "@/lib/flowConfig";
 import DemandTimeline from "./DemandTimeline";
 import ContentCardsEditor from "./ContentCardsEditor";
 import { CheckCircle2, XCircle, RotateCcw, Clock, AlertTriangle, ChevronRight, BookOpen, FileText, Upload, Link as LinkIcon, X } from "lucide-react";
@@ -145,9 +145,9 @@ export default function DemandDetailModal({ demand, member, onClose, onUpdated }
       targetStep = targetOverride;
       targetIndex = stepsFlow.indexOf(targetStep);
     } else {
-      // padrão: volta para estrategia
-      targetStep = REJECTION_STEP;
-      targetIndex = stepsFlow.indexOf(targetStep);
+      // padrão: volta para etapa anterior
+      targetStep = getPreviousStep(currentStep);
+      targetIndex = targetStep ? stepsFlow.indexOf(targetStep) : 0;
     }
 
     await base44.entities.Demand.update(demand.id, {

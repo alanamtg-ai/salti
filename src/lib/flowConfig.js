@@ -1,61 +1,75 @@
-// Etapas oficiais do fluxo Salti Design
+// FLUXO OFICIAL SALTI DESIGN
+// Etapas fixas e responsáveis permitidos por etapa
+
 export const STEPS = {
-  briefing:                { label: "Briefing",                   role: "admin",                 color: "bg-slate-500",   light: "bg-slate-100 text-slate-700" },
-  estrategia:              { label: "Estratégia",                  role: "estrategista",          color: "bg-violet-500",  light: "bg-violet-100 text-violet-700" },
-  redacao:                 { label: "Redação",                     role: "redator",               color: "bg-blue-500",    light: "bg-blue-100 text-blue-700" },
-  design:                  { label: "Design",                      role: "designer",              color: "bg-pink-500",    light: "bg-pink-100 text-pink-700" },
-  aprovacao_interna_design: { label: "Aprovação Interna (Design)", role: "admin",                color: "bg-rose-500",    light: "bg-rose-100 text-rose-700" },
-  aprovacao_cliente:       { label: "Aprovação Cliente",           role: "cliente",               color: "bg-orange-500",  light: "bg-orange-100 text-orange-700" },
-  agendamento:             { label: "Agendamento",                  role: "social_media",          color: "bg-teal-500",    light: "bg-teal-100 text-teal-700" },
-  criar_campanha:          { label: "Criar Campanha",               role: "gestor_trafego",        color: "bg-cyan-500",    light: "bg-cyan-100 text-cyan-700" },
-  distribuicao:            { label: "Distribuição",                 role: "social_media",          color: "bg-emerald-500", light: "bg-emerald-100 text-emerald-700" },
-  trafego:                 { label: "Gestor de Tráfego",            role: "gestor_trafego",        color: "bg-cyan-600",    light: "bg-cyan-100 text-cyan-800" },
-  revisao_financeira:      { label: "Revisão Financeira",          role: "assistente_financeira",  color: "bg-yellow-500",  light: "bg-yellow-100 text-yellow-700" },
-  finalizado:              { label: "Finalizado",                   role: null,                    color: "bg-slate-400",   light: "bg-slate-100 text-slate-500" },
-};
-
-// Fluxo padrão — único fluxo oficial
-export const FLOW_TEMPLATES = {
-  padrao: {
-    label: "Fluxo Padrão Salti",
-    steps: ["briefing", "estrategia", "redacao", "design", "aprovacao_cliente", "agendamento", "finalizado"],
+  estrategia: {
+    label: "Estratégia",
+    color: "bg-violet-500",
+    light: "bg-violet-100 text-violet-700",
+    allowedResponsibles: ["Alana"], // somente Alana
   },
-  com_trafego: {
-    label: "Com Gestor de Tráfego",
-    steps: ["briefing", "estrategia", "redacao", "design", "aprovacao_cliente", "criar_campanha", "trafego", "finalizado"],
+  redacao: {
+    label: "Redação",
+    color: "bg-blue-500",
+    light: "bg-blue-100 text-blue-700",
+    allowedResponsibles: ["Alana", "Pamela", "Abner", "Gabriel"],
   },
-  completo: {
-    label: "Fluxo Completo",
-    steps: ["briefing", "estrategia", "redacao", "design", "aprovacao_cliente", "agendamento", "criar_campanha", "finalizado"],
+  design: {
+    label: "Design",
+    color: "bg-pink-500",
+    light: "bg-pink-100 text-pink-700",
+    allowedResponsibles: ["Alana", "Pamela", "Gabriel", "Joilson", "Bruno", "Luis"],
   },
-  sem_redacao: {
-    label: "Sem Redação",
-    steps: ["briefing", "estrategia", "design", "aprovacao_cliente", "agendamento", "finalizado"],
+  aprovacao_cliente: {
+    label: "Aprovação Cliente",
+    color: "bg-orange-500",
+    light: "bg-orange-100 text-orange-700",
+    allowedResponsibles: ["cliente"],
   },
-  sem_distribuicao: {
-    label: "Sem Social Media",
-    steps: ["briefing", "estrategia", "redacao", "design", "aprovacao_cliente", "finalizado"],
+  distribuicao: {
+    label: "Distribuição",
+    color: "bg-emerald-500",
+    light: "bg-emerald-100 text-emerald-700",
+    allowedResponsibles: ["Pamela"], // somente Pamela
   },
-  estrategia_only: {
-    label: "Só Estratégia",
-    steps: ["briefing", "estrategia", "aprovacao_cliente", "finalizado"],
+  trafego_pago: {
+    label: "Tráfego Pago",
+    color: "bg-cyan-500",
+    light: "bg-cyan-100 text-cyan-700",
+    allowedResponsibles: ["Jones"], // somente Jones
   },
-  administrativo: {
-    label: "Fluxo Administrativo",
-    steps: ["briefing", "aprovacao_cliente", "finalizado"],
-  },
-  financeiro: {
-    label: "Fluxo Financeiro",
-    steps: ["briefing", "revisao_financeira", "aprovacao_cliente", "finalizado"],
-  },
-  relatorio_trafego: {
-    label: "Relatório Gestão de Tráfego",
-    steps: ["briefing", "trafego", "aprovacao_cliente", "finalizado"],
+  finalizado: {
+    label: "Finalizado",
+    color: "bg-slate-400",
+    light: "bg-slate-100 text-slate-500",
+    allowedResponsibles: ["Pamela"],
   },
 };
 
-// Etapa de rejeição total — sempre volta para estrategia
-export const REJECTION_STEP = "estrategia";
+// FLUXO ÚNICO OFICIAL
+export const OFFICIAL_FLOW = [
+  "estrategia",
+  "redacao",
+  "design",
+  "aprovacao_cliente",
+  "distribuicao",
+  "trafego_pago",
+  "finalizado"
+];
+
+// Etapa inicial padrão
+export const INITIAL_STEP = "estrategia";
+export const INITIAL_RESPONSIBLE = "Alana";
+
+// Responsável por padrão na etapa de aprovação do cliente
+export const CLIENTE_APPROVAL_NEXT_STEP = "distribuicao";
+export const CLIENTE_APPROVAL_NEXT_RESPONSIBLE = "Pamela";
+
+// Responsável final da demanda
+export const FINAL_RESPONSIBLE = "Pamela";
+
+// Etapa de rejeição — volta para a anterior
+export const REJECTION_STEP_BEHAVIOR = "previous";
 
 export function getStepLabel(step) {
   return STEPS[step]?.label || step || "—";
@@ -69,12 +83,34 @@ export function getStepLight(step) {
   return STEPS[step]?.light || "bg-slate-100 text-slate-600";
 }
 
-export function getRoleForStep(step) {
-  return STEPS[step]?.role || null;
+// Obter responsáveis permitidos para uma etapa
+export function getAllowedResponsiblesForStep(step) {
+  return STEPS[step]?.allowedResponsibles || [];
 }
 
-export function getStepsForRole(role) {
-  return Object.entries(STEPS)
-    .filter(([, v]) => v.role === role)
-    .map(([k]) => k);
+// Obter próxima etapa no fluxo
+export function getNextStep(currentStep) {
+  const index = OFFICIAL_FLOW.indexOf(currentStep);
+  if (index === -1 || index === OFFICIAL_FLOW.length - 1) return null;
+  return OFFICIAL_FLOW[index + 1];
+}
+
+// Obter etapa anterior no fluxo
+export function getPreviousStep(currentStep) {
+  const index = OFFICIAL_FLOW.indexOf(currentStep);
+  if (index <= 0) return null;
+  return OFFICIAL_FLOW[index - 1];
+}
+
+// Validar se um responsável é permitido em uma etapa
+export function isResponsibleAllowedInStep(responsible, step) {
+  const allowed = getAllowedResponsiblesForStep(step);
+  return allowed.includes(responsible);
+}
+
+// Obter responsável automático para uma etapa (quando há somente um)
+export function getAutomaticResponsible(step) {
+  const allowed = getAllowedResponsiblesForStep(step);
+  if (allowed.length === 1) return allowed[0];
+  return null;
 }
