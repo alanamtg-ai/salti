@@ -30,6 +30,39 @@
     },
     "avatar_color": {
       "type": "string"
+    },
+    "avatar_url": {
+      "type": "string",
+      "description": "URL da foto de perfil"
+    },
+    "whatsapp": {
+      "type": "string"
+    },
+    "instagram": {
+      "type": "string"
+    },
+    "linkedin": {
+      "type": "string"
+    },
+    "behance": {
+      "type": "string"
+    },
+    "bio": {
+      "type": "string",
+      "description": "Mini bio"
+    },
+    "birthday": {
+      "type": "string",
+      "format": "date",
+      "description": "Data de anivers\u00e1rio"
+    },
+    "theme": {
+      "type": "string",
+      "enum": [
+        "light",
+        "dark"
+      ],
+      "default": "light"
     }
   },
   "required": [

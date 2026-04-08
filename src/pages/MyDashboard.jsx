@@ -5,14 +5,22 @@ import { getStepsForRole, getStepLabel, STEPS } from "@/lib/flowConfig";
 import MyTaskCard from "@/components/demands/MyTaskCard";
 import DemandDetailModal from "@/components/demands/DemandDetailModal";
 import DeadlineAlertsCompact from "@/components/dashboard/DeadlineAlertsCompact";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Loader2, Inbox, CheckCircle2, Clock, AlertTriangle, Trophy } from "lucide-react";
 import { isPast, isToday, startOfMonth, startOfYear } from "date-fns";
 import { cn } from "@/lib/utils";
+import MemberProfileCard from "@/components/profile/MemberProfileCard";
 
 export default function MyDashboard() {
   const { member, isLoading: loadingMember } = useCurrentMember();
   const [selectedDemand, setSelectedDemand] = useState(null);
+
+  // Aplicar tema salvo ao carregar
+  useEffect(() => {
+    if (!member) return;
+    if (member.theme === "dark") document.documentElement.classList.add("dark");
+    else document.documentElement.classList.remove("dark");
+  }, [member?.theme]);
 
   const { data: demands = [], refetch } = useQuery({
     queryKey: ["demands"],
@@ -120,6 +128,9 @@ export default function MyDashboard() {
 
   return (
     <div className="space-y-6 pb-20 lg:pb-0">
+      {/* Perfil do membro */}
+      <MemberProfileCard member={member} onUpdated={refetch} />
+
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
