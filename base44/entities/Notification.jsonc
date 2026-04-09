@@ -1,0 +1,42 @@
+{
+  "name": "Notification",
+  "type": "object",
+  "properties": {
+    "recipient_email": {
+      "type": "string",
+      "description": "Email do destinat\u00e1rio"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "demand_assigned",
+        "step_changed",
+        "deadline_warning",
+        "deadline_overdue"
+      ],
+      "description": "Tipo da notifica\u00e7\u00e3o"
+    },
+    "title": {
+      "type": "string"
+    },
+    "message": {
+      "type": "string"
+    },
+    "demand_id": {
+      "type": "string"
+    },
+    "demand_title": {
+      "type": "string"
+    },
+    "read": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "recipient_email",
+    "type",
+    "title",
+    "message"
+  ]
+}

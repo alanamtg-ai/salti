@@ -3,6 +3,7 @@ import { LayoutDashboard, Users2, BarChart3, Users, Inbox, Layers, ListTodo, Rep
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { useCurrentMember } from "@/lib/useCurrentMember";
+import NotificationBell from "@/components/notifications/NotificationBell";
 
 const getNavItems = (role) => {
   if (role === "admin") return [
@@ -53,10 +54,11 @@ Demandas Flow</h1>
               <div className="w-7 h-7 rounded-full bg-primary/15 flex items-center justify-center">
                 <span className="text-xs font-bold text-primary">{member.name.charAt(0)}</span>
               </div>
-              <div>
-                <p className="text-xs font-semibold truncate max-w-[140px]">{member.name}</p>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-semibold truncate max-w-[110px]">{member.name}</p>
                 <p className="text-[10px] text-muted-foreground capitalize">{member.role}</p>
               </div>
+              <NotificationBell memberEmail={member.email} />
             </div>
           </div>
         }
@@ -87,13 +89,16 @@ Demandas Flow</h1>
           </div>
           <span className="font-bold text-sm">DemandFlow</span>
         </div>
-        <button onClick={() => setMobileOpen(!mobileOpen)} className="p-2">
+        <div className="flex items-center gap-1">
+          {member && <NotificationBell memberEmail={member.email} />}
+          <button onClick={() => setMobileOpen(!mobileOpen)} className="p-2">
           <div className="space-y-1">
             <span className="block w-5 h-0.5 bg-foreground rounded" />
             <span className="block w-5 h-0.5 bg-foreground rounded" />
             <span className="block w-5 h-0.5 bg-foreground rounded" />
           </div>
         </button>
+        </div>
       </div>
 
       {mobileOpen &&
