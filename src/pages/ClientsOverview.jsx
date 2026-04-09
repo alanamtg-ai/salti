@@ -44,6 +44,60 @@ export default function ClientsOverview() {
     return { total: cd.length, active, published };
   };
 
+  const recorrentes = clients.filter((c) => c.active && c.client_type !== "avulso");
+  const pontuais = clients.filter((c) => c.active && c.client_type === "avulso");
+  const inativos = clients.filter((c) => !c.active);
+
+  const renderClientCard = (client, i) => {
+    const stats = getClientStats(client.id);
+    const color = CLIENT_COLORS[i % CLIENT_COLORS.length];
+    return (
+      <Link key={client.id} to={`/kanban-cliente?id=${client.id}`}>
+        <div className="bg-card rounded-xl border border-border p-5 hover:shadow-md hover:border-primary/20 transition-all cursor-pointer group">
+          <div className="flex items-start justify-between mb-3">
+            <div className="flex items-center gap-3">
+              <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-sm shrink-0", color)}>
+                {client.name.charAt(0).toUpperCase()}
+              </div>
+              <div>
+                <p className="font-semibold text-sm group-hover:text-primary transition-colors">{client.name}</p>
+                {(client.city || client.state) && (
+                  <p className="text-[11px] text-muted-foreground">{[client.city, client.state].filter(Boolean).join(" - ")}</p>
+                )}
+                {client.company && !client.city && <p className="text-xs text-muted-foreground">{client.company}</p>}
+              </div>
+            </div>
+            <ExternalLink className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+          </div>
+
+          {client.contents_count && (
+            <div className="mb-3 px-2.5 py-1.5 bg-primary/8 rounded-lg flex items-center gap-1.5">
+              <span className="text-xs font-bold text-primary">{client.contents_count}</span>
+              <span className="text-[11px] text-muted-foreground">
+                conteúdos por {client.contents_period === "mes" ? "mês" : "semana"}
+              </span>
+            </div>
+          )}
+
+          <div className="flex gap-3">
+            <div className="text-center flex-1 bg-muted/50 rounded-lg py-2">
+              <p className="text-lg font-bold">{stats.active}</p>
+              <p className="text-[10px] text-muted-foreground">Ativas</p>
+            </div>
+            <div className="text-center flex-1 bg-muted/50 rounded-lg py-2">
+              <p className="text-lg font-bold text-emerald-600">{stats.published}</p>
+              <p className="text-[10px] text-muted-foreground">Publicadas</p>
+            </div>
+            <div className="text-center flex-1 bg-muted/50 rounded-lg py-2">
+              <p className="text-lg font-bold text-muted-foreground">{stats.total}</p>
+              <p className="text-[10px] text-muted-foreground">Total</p>
+            </div>
+          </div>
+        </div>
+      </Link>
+    );
+  };
+
   return (
     <div className="space-y-6 pb-20 lg:pb-0">
       <div className="flex items-center justify-between">
@@ -58,57 +112,43 @@ export default function ClientsOverview() {
         )}
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {clients.map((client, i) => {
-          const stats = getClientStats(client.id);
-          const color = CLIENT_COLORS[i % CLIENT_COLORS.length];
-          return (
-            <Link key={client.id} to={`/kanban-cliente?id=${client.id}`}>
-              <div className="bg-card rounded-xl border border-border p-5 hover:shadow-md hover:border-primary/20 transition-all cursor-pointer group">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex items-center gap-3">
-                    <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-sm shrink-0", color)}>
-                      {client.name.charAt(0).toUpperCase()}
-                    </div>
-                    <div>
-                      <p className="font-semibold text-sm group-hover:text-primary transition-colors">{client.name}</p>
-                      {(client.city || client.state) && (
-                        <p className="text-[11px] text-muted-foreground">{[client.city, client.state].filter(Boolean).join(" - ")}</p>
-                      )}
-                      {client.company && !client.city && <p className="text-xs text-muted-foreground">{client.company}</p>}
-                    </div>
-                  </div>
-                  <ExternalLink className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
-                </div>
+      {/* Clientes Recorrência */}
+      {recorrentes.length > 0 && (
+        <div>
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
+            <span className="inline-block w-2 h-2 rounded-full bg-emerald-500"></span>
+            Clientes Recorrência ({recorrentes.length})
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {recorrentes.map((client, i) => renderClientCard(client, i))}
+          </div>
+        </div>
+      )}
 
-                {client.contents_count && (
-                  <div className="mb-3 px-2.5 py-1.5 bg-primary/8 rounded-lg flex items-center gap-1.5">
-                    <span className="text-xs font-bold text-primary">{client.contents_count}</span>
-                    <span className="text-[11px] text-muted-foreground">
-                      conteúdos por {client.contents_period === "mes" ? "mês" : "semana"}
-                    </span>
-                  </div>
-                )}
+      {/* Clientes Pontuais */}
+      {pontuais.length > 0 && (
+        <div>
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
+            <span className="inline-block w-2 h-2 rounded-full bg-amber-500"></span>
+            Clientes Pontuais ({pontuais.length})
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {pontuais.map((client, i) => renderClientCard(client, i))}
+          </div>
+        </div>
+      )}
 
-                <div className="flex gap-3">
-                  <div className="text-center flex-1 bg-muted/50 rounded-lg py-2">
-                    <p className="text-lg font-bold">{stats.active}</p>
-                    <p className="text-[10px] text-muted-foreground">Ativas</p>
-                  </div>
-                  <div className="text-center flex-1 bg-muted/50 rounded-lg py-2">
-                    <p className="text-lg font-bold text-emerald-600">{stats.published}</p>
-                    <p className="text-[10px] text-muted-foreground">Publicadas</p>
-                  </div>
-                  <div className="text-center flex-1 bg-muted/50 rounded-lg py-2">
-                    <p className="text-lg font-bold text-muted-foreground">{stats.total}</p>
-                    <p className="text-[10px] text-muted-foreground">Total</p>
-                  </div>
-                </div>
-              </div>
-            </Link>
-          );
-        })}
-      </div>
+      {inativos.length > 0 && (
+        <div>
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
+            <span className="inline-block w-2 h-2 rounded-full bg-muted-foreground"></span>
+            Inativos ({inativos.length})
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 opacity-60">
+            {inativos.map((client, i) => renderClientCard(client, i))}
+          </div>
+        </div>
+      )}
 
       {clients.length === 0 && (
         <div className="text-center py-16 text-muted-foreground">
