@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Link } from "react-router-dom";
 import { Plus, ExternalLink, Layers } from "lucide-react";
+import { Link as RouterLink } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -101,10 +102,19 @@ export default function ClientsOverview() {
 
   return (
     <div className="space-y-6 pb-20 lg:pb-0">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Clientes</h1>
-          <p className="text-sm text-muted-foreground">{clients.length} clientes cadastrados</p>
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div className="flex items-center gap-3">
+          <div className="flex rounded-xl border border-border overflow-hidden">
+            <div className="px-4 py-2 text-sm font-semibold bg-primary text-primary-foreground">
+              📅 Recorrência ({recorrentes.length})
+            </div>
+            <RouterLink
+              to="/clientes-pontuais"
+              className="px-4 py-2 text-sm font-medium text-muted-foreground bg-background hover:bg-muted transition-colors"
+            >
+              ⚡ Pontuais ({pontuais.length})
+            </RouterLink>
+          </div>
         </div>
         {isAdmin && (
           <Button size="sm" onClick={() => setFormOpen(true)}>
@@ -113,41 +123,9 @@ export default function ClientsOverview() {
         )}
       </div>
 
-      {/* Clientes Recorrência */}
       {recorrentes.length > 0 && (
-        <div>
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
-            <span className="inline-block w-2 h-2 rounded-full bg-emerald-500"></span>
-            Clientes Recorrência ({recorrentes.length})
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {recorrentes.map((client, i) => renderClientCard(client, i))}
-          </div>
-        </div>
-      )}
-
-      {/* Clientes Pontuais */}
-      {pontuais.length > 0 && (
-        <div>
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
-            <span className="inline-block w-2 h-2 rounded-full bg-amber-500"></span>
-            Clientes Pontuais ({pontuais.length})
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {pontuais.map((client, i) => renderClientCard(client, i))}
-          </div>
-        </div>
-      )}
-
-      {inativos.length > 0 && (
-        <div>
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
-            <span className="inline-block w-2 h-2 rounded-full bg-muted-foreground"></span>
-            Inativos ({inativos.length})
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 opacity-60">
-            {inativos.map((client, i) => renderClientCard(client, i))}
-          </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {recorrentes.map((client, i) => renderClientCard(client, i))}
         </div>
       )}
 

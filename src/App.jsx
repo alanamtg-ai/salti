@@ -16,6 +16,7 @@ import TeamManagement from '@/pages/TeamManagement';
 import Reports from '@/pages/Reports';
 import RecurringDemands from '@/pages/RecurringDemands';
 import SearchDemands from '@/pages/SearchDemands';
+import ClientsPontuais from '@/pages/ClientsPontuais';
 import MyProfile from '@/pages/MyProfile';
 import { useCurrentMember } from '@/lib/useCurrentMember';
 
@@ -55,6 +56,7 @@ const AuthenticatedApp = () => {
         <Route path="/minhas-tarefas" element={<MyDashboard />} />
         <Route path="/meu-perfil" element={<MyProfile />} />
         <Route path="/busca" element={<SearchDemands />} />
+        <Route path="/clientes-pontuais" element={<ClientsPontuais />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
