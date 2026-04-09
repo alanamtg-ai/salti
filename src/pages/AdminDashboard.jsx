@@ -303,6 +303,20 @@ export default function AdminDashboard() {
         </div>
       </div>
 
+      {/* Minhas Tarefas */}
+      {myFlowTasks.length > 0 && (
+        <div className="bg-card rounded-xl border border-border p-5">
+          <h2 className="text-base font-semibold mb-4 flex items-center gap-2">
+            <Layers className="w-4 h-4 text-primary" /> Minhas Tarefas ({myFlowTasks.length})
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+            {myFlowTasks.map((d) => (
+              <MyTaskCard key={d.id} demand={d} member={member} onUpdated={refetchDemands} onOpenDetail={setSelectedDemand} />
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Quadro de Avisos */}
       <div className="bg-card rounded-xl border border-border p-5">
         <NoticeBoard member={member} />
