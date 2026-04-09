@@ -24,6 +24,7 @@ export default function ClientsOverview() {
   const [name, setName] = useState("");
   const [company, setCompany] = useState("");
   const [email, setEmail] = useState("");
+  const [clientType, setClientType] = useState("mensalista");
 
   const { data: clients = [], refetch } = useQuery({ queryKey: ["clients"], queryFn: () => base44.entities.Client.list() });
   const { data: demands = [] } = useQuery({ queryKey: ["demands"], queryFn: () => base44.entities.Demand.list("-created_date", 500) });
@@ -31,8 +32,8 @@ export default function ClientsOverview() {
   const isAdmin = member?.role === "admin";
 
   const handleAdd = async () => {
-    await base44.entities.Client.create({ name, company, email, active: true });
-    setName(""); setCompany(""); setEmail("");
+    await base44.entities.Client.create({ name, company, email, active: true, client_type: clientType });
+    setName(""); setCompany(""); setEmail(""); setClientType("mensalista");
     setFormOpen(false);
     refetch();
   };
@@ -172,6 +173,26 @@ export default function ClientsOverview() {
             <div className="space-y-1.5">
               <Label>Email</Label>
               <Input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="email@cliente.com" />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Tipo de Cliente</Label>
+              <div className="flex gap-2">
+                {[{ value: "mensalista", label: "📅 Recorrência" }, { value: "avulso", label: "⚡ Pontual" }].map((t) => (
+                  <button
+                    key={t.value}
+                    type="button"
+                    onClick={() => setClientType(t.value)}
+                    className={cn(
+                      "flex-1 py-2 rounded-lg border text-sm font-medium transition-colors",
+                      clientType === t.value
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "border-input bg-background text-muted-foreground hover:bg-muted"
+                    )}
+                  >
+                    {t.label}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
           <DialogFooter>
