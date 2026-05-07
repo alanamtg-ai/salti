@@ -19,12 +19,16 @@ export default function NotificationBell({ memberEmail }) {
 
   const fetchNotifs = async () => {
     if (!memberEmail) return;
-    const data = await base44.entities.Notification.filter(
-      { recipient_email: memberEmail },
-      "-created_date",
-      50
-    );
-    setNotifications(data);
+    try {
+      const data = await base44.entities.Notification.filter(
+        { recipient_email: memberEmail },
+        "-created_date",
+        50
+      );
+      setNotifications(data);
+    } catch {
+      // silently ignore network errors on poll
+    }
   };
 
   useEffect(() => {
