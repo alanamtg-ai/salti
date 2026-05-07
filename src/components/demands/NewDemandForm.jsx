@@ -200,7 +200,8 @@ export default function NewDemandForm({ open, onClose, onSave, preselectedClient
 
   const getMembersForRole = (role) => {
     return members.filter((m) => {
-      if (m.role === role || m.role === "admin") return true;
+      const memberRoles = Array.isArray(m.role) ? m.role : (m.role ? [m.role] : []);
+      if (memberRoles.includes(role) || memberRoles.includes("admin")) return true;
       if (UNIVERSAL_MEMBERS.some((name) => m.name?.toLowerCase().includes(name))) return true;
       return false;
     });

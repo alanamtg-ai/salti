@@ -21,14 +21,14 @@ function getCompletedByMe(demands, member) {
   if (!member) return [];
 
   return demands.filter((d) => {
-    // Se ainda está na etapa do membro, não é "concluída para ele"
-    const history = d.history || [];
+  // Se ainda está na etapa do membro, não é "concluída para ele"
+  const history = d.history || [];
 
-    // Verifica se o membro aprovou alguma etapa nessa demanda
-    const myApproval = history.some(
-      (h) => h.by === member.email && h.acao === "aprovado"
-    );
-    if (!myApproval) return false;
+  // Verifica se o membro aprovou alguma etapa nessa demanda (suporta "aprovou" e "aprovado")
+  const myApproval = history.some(
+    (h) => (h.by === member.email || h.usuario_email === member.email) && (h.acao === "aprovado" || h.acao === "aprovou")
+  );
+  if (!myApproval) return false;
 
     // Verifica que a demanda NÃO está mais aguardando ação desse membro
     // (ou seja, a etapa atual não é mais de responsabilidade dele, ou ele não é o assignee)
@@ -42,7 +42,7 @@ function getCompletedByMe(demands, member) {
   }).filter((d) => {
     // Garante que não está atualmente aguardando ação do membro
     const myStepApprovals = (d.history || []).filter(
-      (h) => h.by === member.email && h.acao === "aprovado"
+      (h) => (h.by === member.email || h.usuario_email === member.email) && (h.acao === "aprovado" || h.acao === "aprovou")
     );
     // Pega a aprovação mais recente dele
     const lastApproval = myStepApprovals[myStepApprovals.length - 1];
@@ -91,7 +91,7 @@ export default function CompletedByMeSection({ demands, member, onOpenDetail }) 
           {visible.map((d) => {
             const p = priorityConfig[d.priority] || priorityConfig.media;
             const lastApproval = [...(d.history || [])].reverse().find(
-              (h) => h.by === member.email && h.acao === "aprovado"
+              (h) => (h.by === member.email || h.usuario_email === member.email) && (h.acao === "aprovado" || h.acao === "aprovou")
             );
             return (
               <div

@@ -26,11 +26,14 @@ export default function MyDashboard() {
       designer: ["design"],
       social_media: ["distribuicao"],
       gestor_trafego: ["trafego_pago"],
+      videomaker: ["design"],
+      midia: ["distribuicao", "trafego_pago"],
+      assistente_financeira: [],
       admin: OFFICIAL_FLOW,
       cliente: ["aprovacao_cliente"]
     };
     
-    const roles = Array.isArray(member?.role) ? member.role : [member?.role];
+    const roles = Array.isArray(member?.role) ? member.role : (member?.role ? [member.role] : []);
     const allSteps = new Set();
     roles.forEach((role) => {
       const steps = roleStepsMap[role] || [];
@@ -127,11 +130,14 @@ export default function MyDashboard() {
   STEPS[OFFICIAL_FLOW[0]]?.label || roles[0];
 
   // Ranking: contar aprovações por colaborador no histórico
+  // suporta tanto "aprovou" quanto "aprovado" por consistência
   const rankingMap = {};
   demands.forEach((d) => {
     (d.history || []).forEach((h) => {
-      if (h.acao === "aprovou" && h.usuario_email) {
-        rankingMap[h.usuario_email] = (rankingMap[h.usuario_email] || 0) + 1;
+      const isApproval = h.acao === "aprovou" || h.acao === "aprovado";
+      const email = h.by || h.usuario_email;
+      if (isApproval && email) {
+        rankingMap[email] = (rankingMap[email] || 0) + 1;
       }
     });
   });
@@ -147,7 +153,9 @@ export default function MyDashboard() {
     const approvals = new Set();
     demands.forEach((d) => {
       (d.history || []).forEach((h) => {
-        if (h.acao === "aprovou" && h.usuario_email === member.email && h.date && new Date(h.date) >= targetDate) {
+        const isApproval = h.acao === "aprovou" || h.acao === "aprovado";
+        const email = h.by || h.usuario_email;
+        if (isApproval && email === member.email && h.date && new Date(h.date) >= targetDate) {
           approvals.add(d.id);
         }
       });
@@ -160,7 +168,11 @@ export default function MyDashboard() {
 
   // Demandas que você aprovou hoje (para mostrar como concluídas)
   const approvedToday = demands.filter((d) => {
-    const lastApproval = [...(d.history || [])].reverse().find((h) => h.acao === "aprovou" && h.usuario_email === member.email);
+    const lastApproval = [...(d.history || [])].reverse().find((h) => {
+      const isApproval = h.acao === "aprovou" || h.acao === "aprovado";
+      const email = h.by || h.usuario_email;
+      return isApproval && email === member.email;
+    });
     if (!lastApproval || !lastApproval.date) return false;
     return isToday(new Date(lastApproval.date));
   });
