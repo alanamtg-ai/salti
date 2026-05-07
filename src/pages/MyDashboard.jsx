@@ -66,8 +66,12 @@ export default function MyDashboard() {
 
 
   // Filtrar demandas que são minhas
+  const roles = Array.isArray(member.role) ? member.role : [member.role];
+  const isCliente = roles.includes("cliente");
+  const isAdmin = roles.includes("admin");
+
   let myDemands;
-  if (member.role === "cliente") {
+  if (isCliente) {
     myDemands = demands.filter(
       (d) => d.current_step === "aprovacao_cliente" && d.client_id === member.client_id && d.status === "ativo"
     );
@@ -77,7 +81,7 @@ export default function MyDashboard() {
       if (d.current_step === "finalizado" || d.status !== "ativo") return false;
       
       // Se é admin, mostra todas as demandas ativas
-      if (member.role === "admin") return true;
+      if (isAdmin) return true;
       
       // Verifica se o membro é assignee na etapa atual
       const assigneeThisStep = d.assignees?.[d.current_step];
@@ -118,9 +122,9 @@ export default function MyDashboard() {
     return dl && isToday(new Date(dl));
   }).length;
 
-  const roleLabel = member.role === "cliente" ?
+  const roleLabel = isCliente ?
   "Aprovações" :
-  STEPS[OFFICIAL_FLOW[0]]?.label || member.role;
+  STEPS[OFFICIAL_FLOW[0]]?.label || roles[0];
 
   // Ranking: contar aprovações por colaborador no histórico
   const rankingMap = {};
@@ -179,7 +183,7 @@ export default function MyDashboard() {
             }
           </h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            {member.role === "cliente" ?
+            {isCliente ?
             "Demandas aguardando sua aprovação" :
             `Suas tarefas como ${roleLabel}`}
           </p>
