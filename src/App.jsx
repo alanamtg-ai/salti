@@ -23,8 +23,9 @@ import { useCurrentMember } from '@/lib/useCurrentMember';
 const RootPage = () => {
   const { member, isLoading } = useCurrentMember();
   if (isLoading) return null;
-  if (member?.role === 'admin') return <AdminDashboard />;
-  if (member?.role === 'cliente') return <ClientDashboard />;
+  const roles = Array.isArray(member?.role) ? member.role : (member?.role ? [member.role] : []);
+  if (roles.includes('admin')) return <AdminDashboard />;
+  if (roles.includes('cliente')) return <ClientDashboard />;
   return <CollaboratorDashboard />;
 };
 

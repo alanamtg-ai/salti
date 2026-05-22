@@ -5,8 +5,9 @@ import { useState } from "react";
 import { useCurrentMember } from "@/lib/useCurrentMember";
 import NotificationBell from "@/components/notifications/NotificationBell";
 
-const getNavItems = (role) => {
-  if (role === "admin") return [
+const getNavItems = (roles) => {
+  const roleArr = Array.isArray(roles) ? roles : (roles ? [roles] : []);
+  if (roleArr.includes("admin")) return [
   { path: "/", label: "Visão Geral", icon: LayoutDashboard },
   { path: "/minhas-tarefas", label: "Minhas Tarefas", icon: ListTodo },
   { path: "/busca", label: "Buscar", icon: Search },
@@ -15,7 +16,7 @@ const getNavItems = (role) => {
   { path: "/relatorios", label: "Relatórios", icon: BarChart3 },
   { path: "/recorrentes", label: "Recorrentes", icon: Repeat }];
 
-  if (role === "cliente") return [
+  if (roleArr.includes("cliente")) return [
   { path: "/", label: "Minhas Aprovações", icon: Inbox }];
 
   return [
@@ -56,7 +57,7 @@ Demandas Flow</h1>
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-semibold truncate max-w-[110px]">{member.name}</p>
-                <p className="text-[10px] text-muted-foreground capitalize">{member.role}</p>
+                <p className="text-[10px] text-muted-foreground capitalize">{Array.isArray(member.role) ? member.role.join(", ") : member.role}</p>
               </div>
               <NotificationBell memberEmail={member.email} />
             </div>
