@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Link } from "react-router-dom";
-import { Plus, ExternalLink, Layers, Trash2 } from "lucide-react";
+import { Plus, ExternalLink, Layers, Trash2, EyeOff, Zap } from "lucide-react";
 import { Link as RouterLink } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -24,6 +24,8 @@ export default function ClientsOverview() {
   const [formOpen, setFormOpen] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState(null);
   const [deleting, setDeleting] = useState(false);
+  const [inactivating, setInactivating] = useState(false);
+  const [inactivateConfirmId, setInactivateConfirmId] = useState(null);
   const [name, setName] = useState("");
   const [company, setCompany] = useState("");
   const [email, setEmail] = useState("");
@@ -41,6 +43,19 @@ export default function ClientsOverview() {
     await base44.entities.Client.delete(clientId);
     setDeleteConfirmId(null);
     setDeleting(false);
+    refetch();
+  };
+
+  const handleInactivate = async (clientId) => {
+    setInactivating(true);
+    await base44.entities.Client.update(clientId, { active: false });
+    setInactivateConfirmId(null);
+    setInactivating(false);
+    refetch();
+  };
+
+  const handleChangeToPontual = async (clientId) => {
+    await base44.entities.Client.update(clientId, { client_type: "avulso" });
     refetch();
   };
 
@@ -111,13 +126,29 @@ export default function ClientsOverview() {
         </div>
         </Link>
         {isAlana && (
-          <button
-            onClick={(e) => { e.preventDefault(); setDeleteConfirmId(client.id); }}
-            className="absolute top-2 right-2 p-1.5 rounded-lg bg-red-50 text-red-500 opacity-0 group-hover:opacity-100 hover:bg-red-100 transition-all z-10"
-            title="Excluir cliente"
-          >
-            <Trash2 className="w-3.5 h-3.5" />
-          </button>
+          <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-all z-10">
+            <button
+              onClick={(e) => { e.preventDefault(); handleChangeToPontual(client.id); }}
+              className="p-1.5 rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100 transition-colors"
+              title="Alterar para Pontual"
+            >
+              <Zap className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={(e) => { e.preventDefault(); setInactivateConfirmId(client.id); }}
+              className="p-1.5 rounded-lg bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors"
+              title="Inativar cliente"
+            >
+              <EyeOff className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={(e) => { e.preventDefault(); setDeleteConfirmId(client.id); }}
+              className="p-1.5 rounded-lg bg-red-50 text-red-500 hover:bg-red-100 transition-colors"
+              title="Excluir cliente"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </button>
+          </div>
         )}
       </div>
     );
@@ -158,6 +189,20 @@ export default function ClientsOverview() {
           <p className="text-sm">Nenhum cliente cadastrado</p>
         </div>
       )}
+
+      {/* Dialog confirmar inativação */}
+      <Dialog open={!!inactivateConfirmId} onOpenChange={() => setInactivateConfirmId(null)}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader><DialogTitle>Inativar Cliente</DialogTitle></DialogHeader>
+          <p className="text-sm text-muted-foreground">O cliente será inativado e não aparecerá mais nas listas ativas. Você pode reativá-lo depois.</p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setInactivateConfirmId(null)}>Cancelar</Button>
+            <Button variant="secondary" onClick={() => handleInactivate(inactivateConfirmId)} disabled={inactivating}>
+              {inactivating ? "Inativando..." : "Inativar"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Dialog confirmar exclusão */}
       <Dialog open={!!deleteConfirmId} onOpenChange={() => setDeleteConfirmId(null)}>
