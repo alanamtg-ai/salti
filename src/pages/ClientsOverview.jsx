@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Link } from "react-router-dom";
-import { Plus, ExternalLink, Layers } from "lucide-react";
+import { Plus, ExternalLink, Layers, Trash2 } from "lucide-react";
 import { Link as RouterLink } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -22,6 +22,8 @@ const CLIENT_COLORS = [
 export default function ClientsOverview() {
   const { member } = useCurrentMember();
   const [formOpen, setFormOpen] = useState(false);
+  const [deleteConfirmId, setDeleteConfirmId] = useState(null);
+  const [deleting, setDeleting] = useState(false);
   const [name, setName] = useState("");
   const [company, setCompany] = useState("");
   const [email, setEmail] = useState("");
@@ -30,7 +32,17 @@ export default function ClientsOverview() {
   const { data: clients = [], refetch } = useQuery({ queryKey: ["clients"], queryFn: () => base44.entities.Client.list() });
   const { data: demands = [] } = useQuery({ queryKey: ["demands"], queryFn: () => base44.entities.Demand.list("-created_date", 500) });
 
-  const isAdmin = member?.role === "admin";
+  const roles = Array.isArray(member?.role) ? member.role : (member?.role ? [member.role] : []);
+  const isAdmin = roles.includes("admin");
+  const isAlana = member?.name?.toLowerCase().includes("alana");
+
+  const handleDelete = async (clientId) => {
+    setDeleting(true);
+    await base44.entities.Client.delete(clientId);
+    setDeleteConfirmId(null);
+    setDeleting(false);
+    refetch();
+  };
 
   const handleAdd = async () => {
     await base44.entities.Client.create({ name, company, email, active: true, client_type: clientType });
@@ -54,7 +66,8 @@ export default function ClientsOverview() {
     const stats = getClientStats(client.id);
     const color = CLIENT_COLORS[i % CLIENT_COLORS.length];
     return (
-      <Link key={client.id} to={`/kanban-cliente?id=${client.id}`}>
+      <div key={client.id} className="relative group">
+        <Link to={`/kanban-cliente?id=${client.id}`}>
         <div className="bg-card rounded-xl border border-border p-5 hover:shadow-md hover:border-primary/20 transition-all cursor-pointer group">
           <div className="flex items-start justify-between mb-3">
             <div className="flex items-center gap-3">
@@ -96,7 +109,17 @@ export default function ClientsOverview() {
             </div>
           </div>
         </div>
-      </Link>
+        </Link>
+        {isAlana && (
+          <button
+            onClick={(e) => { e.preventDefault(); setDeleteConfirmId(client.id); }}
+            className="absolute top-2 right-2 p-1.5 rounded-lg bg-red-50 text-red-500 opacity-0 group-hover:opacity-100 hover:bg-red-100 transition-all z-10"
+            title="Excluir cliente"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+          </button>
+        )}
+      </div>
     );
   };
 
@@ -135,6 +158,20 @@ export default function ClientsOverview() {
           <p className="text-sm">Nenhum cliente cadastrado</p>
         </div>
       )}
+
+      {/* Dialog confirmar exclusão */}
+      <Dialog open={!!deleteConfirmId} onOpenChange={() => setDeleteConfirmId(null)}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader><DialogTitle>Excluir Cliente</DialogTitle></DialogHeader>
+          <p className="text-sm text-muted-foreground">Tem certeza que deseja excluir este cliente? Esta ação não pode ser desfeita.</p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteConfirmId(null)}>Cancelar</Button>
+            <Button variant="destructive" onClick={() => handleDelete(deleteConfirmId)} disabled={deleting}>
+              {deleting ? "Excluindo..." : "Excluir"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={formOpen} onOpenChange={setFormOpen}>
         <DialogContent className="sm:max-w-md">
