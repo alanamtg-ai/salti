@@ -22,6 +22,7 @@ const CLIENT_COLORS = [
 export default function ClientsOverview() {
   const { member } = useCurrentMember();
   const [formOpen, setFormOpen] = useState(false);
+  const [showInativos, setShowInativos] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState(null);
   const [deleting, setDeleting] = useState(false);
   const [inactivating, setInactivating] = useState(false);
@@ -164,10 +165,16 @@ export default function ClientsOverview() {
             </div>
             <RouterLink
               to="/clientes-pontuais"
-              className="px-4 py-2 text-sm font-medium text-muted-foreground bg-background hover:bg-muted transition-colors"
+              className="px-4 py-2 text-sm font-medium text-muted-foreground bg-background hover:bg-muted transition-colors border-l border-border"
             >
               ⚡ Pontuais ({pontuais.length})
             </RouterLink>
+            <button
+              onClick={() => setShowInativos(!showInativos)}
+              className={cn("px-4 py-2 text-sm font-medium transition-colors border-l border-border", showInativos ? "bg-slate-200 text-slate-700 font-semibold" : "text-muted-foreground bg-background hover:bg-muted")}
+            >
+              🚫 Inativos ({inativos.length})
+            </button>
           </div>
         </div>
         {isAdmin && (
@@ -177,10 +184,54 @@ export default function ClientsOverview() {
         )}
       </div>
 
-      {recorrentes.length > 0 && (
+      {!showInativos && recorrentes.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {recorrentes.map((client, i) => renderClientCard(client, i))}
         </div>
+      )}
+
+      {showInativos && (
+        inativos.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {inativos.map((client, i) => (
+              <div key={client.id} className="relative group">
+                <div className="bg-card rounded-xl border border-border p-5 opacity-60">
+                  <div className="flex items-center gap-3">
+                    <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-sm shrink-0", CLIENT_COLORS[i % CLIENT_COLORS.length])}>
+                      {client.name.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-sm">{client.name}</p>
+                      {client.company && <p className="text-xs text-muted-foreground">{client.company}</p>}
+                    </div>
+                  </div>
+                </div>
+                {isAlana && (
+                  <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-all z-10">
+                    <button
+                      onClick={() => base44.entities.Client.update(client.id, { active: true }).then(refetch)}
+                      className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-colors"
+                      title="Reativar cliente"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => setDeleteConfirmId(client.id)}
+                      className="p-1.5 rounded-lg bg-red-50 text-red-500 hover:bg-red-100 transition-colors"
+                      title="Excluir cliente"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-16 text-muted-foreground">
+            <p className="text-sm">Nenhum cliente inativo</p>
+          </div>
+        )
       )}
 
       {clients.length === 0 && (
