@@ -53,13 +53,13 @@ export default function DemandDetailModal({ demand, member, onClose, onUpdated }
   const isOverdue    = deadline && isPast(new Date(deadline)) && !isToday(new Date(deadline));
   const daysLate     = deadline ? Math.abs(differenceInDays(new Date(deadline), new Date())) : 0;
 
-  const myRole  = member?.role;
+  const myRoles = Array.isArray(member?.role) ? member.role : (member?.role ? [member.role] : []);
   const stepRole = STEPS[currentStep]?.role;
   const isRedacaoStep = currentStep === "redacao";
   const isAssignee = demand.assignees?.[currentStep] === member?.email;
   const canAct = isRedacaoStep
-    ? (isAssignee || (myRole === "redator" && !demand.assignees?.[currentStep]))
-    : (myRole === stepRole || myRole === "admin");
+    ? (isAssignee || (myRoles.includes("redator") && !demand.assignees?.[currentStep]))
+    : (myRoles.includes(stepRole) || myRoles.includes("admin"));
 
   const buildEntry = (etapa_origem, etapa_destino, acao, observacao = "") => ({
     etapa_origem,
@@ -196,7 +196,7 @@ export default function DemandDetailModal({ demand, member, onClose, onUpdated }
   };
 
   // Admin pode deletar sempre; estrategista pode deletar em briefing/estratégia ou logo após envio para redação
-  const canDelete = myRole === "admin" || (myRole === "estrategista" && (demand.current_step === "estrategia" || demand.current_step === "redacao"));
+  const canDelete = myRoles.includes("admin") || (myRoles.includes("estrategista") && (demand.current_step === "estrategia" || demand.current_step === "redacao"));
 
   // Label do botão de aprovação por contexto
   const approveLabel = () => {
@@ -393,10 +393,10 @@ export default function DemandDetailModal({ demand, member, onClose, onUpdated }
                   <Select value={selectedDesigner} onValueChange={setSelectedDesigner}>
                     <SelectTrigger className="h-9"><SelectValue placeholder="Selecione um designer..." /></SelectTrigger>
                     <SelectContent>
-                      {members.filter((m) => m.role === "designer" || m.role === "admin").map((m) => (
+                      {members.filter((m) => { const r = Array.isArray(m.role) ? m.role : (m.role ? [m.role] : []); return r.includes("designer") || r.includes("admin"); }).map((m) => (
                         <SelectItem key={m.id} value={m.email}>{m.name}</SelectItem>
                       ))}
-                      {members.filter((m) => m.role === "designer" || m.role === "admin").length === 0 && (
+                      {members.filter((m) => { const r = Array.isArray(m.role) ? m.role : (m.role ? [m.role] : []); return r.includes("designer") || r.includes("admin"); }).length === 0 && (
                         <SelectItem value={null} disabled>Nenhum designer disponível</SelectItem>
                       )}
                     </SelectContent>

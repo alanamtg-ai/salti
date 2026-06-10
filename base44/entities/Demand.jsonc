@@ -244,10 +244,5 @@
   "required": [
     "title",
     "client_id"
-  ],
-  "rls": {
-    "delete": {
-      "created_by": "{{user.email}}"
-    }
-  }
+  ]
 }
