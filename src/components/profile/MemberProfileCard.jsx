@@ -54,7 +54,8 @@ export default function MemberProfileCard({ member, onUpdated }) {
 
   const handleSave = async () => {
     setSaving(true);
-    await base44.entities.TeamMember.update(member.id, form);
+    const role = Array.isArray(member.role) ? member.role : (member.role ? [member.role] : []);
+    await base44.entities.TeamMember.update(member.id, { ...form, role });
 
     // Aplica tema no documento imediatamente
     if (form.theme === "dark") {
