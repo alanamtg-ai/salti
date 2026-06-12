@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { useState } from "react";
-import { Plus, Trash2, UserCircle, Edit2 } from "lucide-react";
+import { Plus, Trash2, UserCircle, Edit2, Sparkles, Loader2, Image } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,19 +25,32 @@ export default function TeamManagement() {
   const [formOpen, setFormOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState({ name: "", email: "", role: ["redator"], client_id: "", monthly_goal: 25 });
+  const [avatarPrompt, setAvatarPrompt] = useState("");
+  const [generatingAvatar, setGeneratingAvatar] = useState(false);
+  const [generatedAvatarUrl, setGeneratedAvatarUrl] = useState("");
+
+  const handleGenerateAvatar = async () => {
+    if (!avatarPrompt.trim()) return;
+    setGeneratingAvatar(true);
+    const { url } = await base44.integrations.Core.GenerateImage({ prompt: `Um avatar profissional e moderno para perfil, estilo ilustração minimalista, cores e tema: ${avatarPrompt}. Fundo circular com gradiente suave, rosto estilizado ou monograma elegante.` });
+    setGeneratedAvatarUrl(url);
+    setGeneratingAvatar(false);
+  };
 
   const { data: members = [], refetch } = useQuery({ queryKey: ["team_members"], queryFn: () => base44.entities.TeamMember.list() });
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: () => base44.entities.Client.list() });
 
   const handleAdd = async () => {
     if (!form.name || !form.email) return;
+    const payload = { ...form, ...(generatedAvatarUrl ? { avatar_url: generatedAvatarUrl } : {}) };
     if (editingId) {
-      await base44.entities.TeamMember.update(editingId, form);
+      await base44.entities.TeamMember.update(editingId, payload);
       setEditingId(null);
     } else {
-      await base44.entities.TeamMember.create(form);
+      await base44.entities.TeamMember.create(payload);
     }
     setForm({ name: "", email: "", role: ["redator"], client_id: "", monthly_goal: 25 });
+    setAvatarPrompt(""); setGeneratedAvatarUrl("");
     setFormOpen(false);
     refetch();
   };
@@ -91,9 +104,13 @@ export default function TeamManagement() {
                <div key={m.id} className="bg-card rounded-xl border border-border p-4 space-y-3">
                  <div className="flex items-start justify-between">
                    <div className="flex items-center gap-3 flex-1">
-                     <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                       <span className="text-sm font-bold text-primary">{m.name.charAt(0)}</span>
-                     </div>
+                     <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0 overflow-hidden">
+                         {m.avatar_url ? (
+                           <img src={m.avatar_url} alt={m.name} className="w-full h-full object-cover" />
+                         ) : (
+                           <span className="text-sm font-bold text-primary">{m.name.charAt(0)}</span>
+                         )}
+                       </div>
                      <div className="min-w-0">
                        <p className="font-semibold text-sm">{m.name}</p>
                        <p className="text-xs text-muted-foreground truncate">{m.email}</p>
@@ -150,6 +167,39 @@ export default function TeamManagement() {
         <DialogContent className="sm:max-w-md">
           <DialogHeader><DialogTitle>{editingId ? "Editar Membro" : "Novo Membro"}</DialogTitle></DialogHeader>
           <div className="space-y-3 py-2">
+            <div className="bg-gradient-to-r from-violet-50 to-purple-50 dark:from-violet-950/30 dark:to-purple-950/30 rounded-xl p-3 border border-violet-200 dark:border-violet-800 space-y-2">
+              <Label className="flex items-center gap-1.5 text-violet-700 dark:text-violet-400">
+                <Image className="w-3.5 h-3.5" /> Gerar Avatar com IA
+              </Label>
+              <div className="flex gap-2">
+                <Input
+                  value={avatarPrompt}
+                  onChange={(e) => setAvatarPrompt(e.target.value)}
+                  placeholder="Ex: tons de azul, tema tecnologia..."
+                  className="text-sm flex-1"
+                  onKeyDown={(e) => e.key === "Enter" && handleGenerateAvatar()}
+                />
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={handleGenerateAvatar}
+                  disabled={generatingAvatar || !avatarPrompt.trim()}
+                  className="bg-violet-600 hover:bg-violet-700 text-white shrink-0"
+                >
+                  {generatingAvatar ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                </Button>
+              </div>
+              {generatingAvatar && <p className="text-xs text-muted-foreground text-center py-1">Gerando avatar...</p>}
+              {generatedAvatarUrl && (
+                <div className="flex items-center gap-3 p-2 bg-white dark:bg-background rounded-lg border border-border">
+                  <img src={generatedAvatarUrl} alt="Avatar gerado" className="w-12 h-12 rounded-full object-cover border-2 border-violet-200" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium text-emerald-600">✓ Avatar gerado</p>
+                    <button type="button" onClick={() => { setGeneratedAvatarUrl(""); }} className="text-[10px] text-red-500 hover:underline">Remover</button>
+                  </div>
+                </div>
+              )}
+            </div>
             <div className="space-y-1.5">
               <Label>Nome *</Label>
               <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Nome completo" />

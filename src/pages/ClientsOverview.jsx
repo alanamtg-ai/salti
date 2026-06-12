@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Link } from "react-router-dom";
-import { Plus, ExternalLink, Layers, Trash2, EyeOff, Zap } from "lucide-react";
+import { Plus, ExternalLink, Layers, Trash2, EyeOff, Zap, Sparkles, Loader2, Image } from "lucide-react";
 import { Link as RouterLink } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -31,6 +31,17 @@ export default function ClientsOverview() {
   const [company, setCompany] = useState("");
   const [email, setEmail] = useState("");
   const [clientType, setClientType] = useState("mensalista");
+  const [logoPrompt, setLogoPrompt] = useState("");
+  const [generatingLogo, setGeneratingLogo] = useState(false);
+  const [generatedLogoUrl, setGeneratedLogoUrl] = useState("");
+
+  const handleGenerateLogo = async () => {
+    if (!logoPrompt.trim()) return;
+    setGeneratingLogo(true);
+    const { url } = await base44.integrations.Core.GenerateImage({ prompt: `Um logotipo profissional e moderno para uma marca, estilo clean e minimalista, cores e tema: ${logoPrompt}. Ícone circular com gradiente elegante, design vetorial flat.` });
+    setGeneratedLogoUrl(url);
+    setGeneratingLogo(false);
+  };
 
   const { data: clients = [], refetch } = useQuery({ queryKey: ["clients"], queryFn: () => base44.entities.Client.list() });
   const { data: demands = [] } = useQuery({ queryKey: ["demands"], queryFn: () => base44.entities.Demand.list("-created_date", 500) });
@@ -61,8 +72,8 @@ export default function ClientsOverview() {
   };
 
   const handleAdd = async () => {
-    await base44.entities.Client.create({ name, company, email, active: true, client_type: clientType });
-    setName(""); setCompany(""); setEmail(""); setClientType("mensalista");
+    await base44.entities.Client.create({ name, company, email, active: true, client_type: clientType, ...(generatedLogoUrl ? { logo_url: generatedLogoUrl } : {}) });
+    setName(""); setCompany(""); setEmail(""); setClientType("mensalista"); setLogoPrompt(""); setGeneratedLogoUrl("");
     setFormOpen(false);
     refetch();
   };
@@ -87,8 +98,12 @@ export default function ClientsOverview() {
         <div className="bg-card rounded-xl border border-border p-5 hover:shadow-md hover:border-primary/20 transition-all cursor-pointer group">
           <div className="flex items-start justify-between mb-3">
             <div className="flex items-center gap-3">
-              <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-sm shrink-0", color)}>
-                {client.name.charAt(0).toUpperCase()}
+              <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-sm shrink-0 overflow-hidden", !client.logo_url && color)}>
+                {client.logo_url ? (
+                  <img src={client.logo_url} alt={client.name} className="w-full h-full object-cover" />
+                ) : (
+                  client.name.charAt(0).toUpperCase()
+                )}
               </div>
               <div>
                 <p className="font-semibold text-sm group-hover:text-primary transition-colors">{client.name}</p>
@@ -197,8 +212,12 @@ export default function ClientsOverview() {
               <div key={client.id} className="relative group">
                 <div className="bg-card rounded-xl border border-border p-5 opacity-60">
                   <div className="flex items-center gap-3">
-                    <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-sm shrink-0", CLIENT_COLORS[i % CLIENT_COLORS.length])}>
-                      {client.name.charAt(0).toUpperCase()}
+                    <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-sm shrink-0 overflow-hidden", !client.logo_url && CLIENT_COLORS[i % CLIENT_COLORS.length])}>
+                      {client.logo_url ? (
+                        <img src={client.logo_url} alt={client.name} className="w-full h-full object-cover" />
+                      ) : (
+                        client.name.charAt(0).toUpperCase()
+                      )}
                     </div>
                     <div>
                       <p className="font-semibold text-sm">{client.name}</p>
@@ -273,6 +292,39 @@ export default function ClientsOverview() {
         <DialogContent className="sm:max-w-md">
           <DialogHeader><DialogTitle>Novo Cliente</DialogTitle></DialogHeader>
           <div className="space-y-3 py-2">
+            <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 rounded-xl p-3 border border-amber-200 dark:border-amber-800 space-y-2">
+              <Label className="flex items-center gap-1.5 text-amber-700 dark:text-amber-400">
+                <Image className="w-3.5 h-3.5" /> Gerar Logotipo com IA
+              </Label>
+              <div className="flex gap-2">
+                <Input
+                  value={logoPrompt}
+                  onChange={(e) => setLogoPrompt(e.target.value)}
+                  placeholder="Ex: verde natureza, minimalista..."
+                  className="text-sm flex-1"
+                  onKeyDown={(e) => e.key === "Enter" && handleGenerateLogo()}
+                />
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={handleGenerateLogo}
+                  disabled={generatingLogo || !logoPrompt.trim()}
+                  className="bg-amber-600 hover:bg-amber-700 text-white shrink-0"
+                >
+                  {generatingLogo ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                </Button>
+              </div>
+              {generatingLogo && <p className="text-xs text-muted-foreground text-center py-1">Gerando logotipo...</p>}
+              {generatedLogoUrl && (
+                <div className="flex items-center gap-3 p-2 bg-white dark:bg-background rounded-lg border border-border">
+                  <img src={generatedLogoUrl} alt="Logotipo gerado" className="w-12 h-12 rounded-xl object-cover border-2 border-amber-200" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium text-emerald-600">✓ Logotipo gerado</p>
+                    <button type="button" onClick={() => { setGeneratedLogoUrl(""); }} className="text-[10px] text-red-500 hover:underline">Remover</button>
+                  </div>
+                </div>
+              )}
+            </div>
             <div className="space-y-1.5">
               <Label>Nome *</Label>
               <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nome do cliente" />
