@@ -4,42 +4,49 @@
 export const STEPS = {
   estrategia: {
     label: "Estratégia",
+    role: "estrategista",
     color: "bg-violet-500",
     light: "bg-violet-100 text-violet-700",
     allowedResponsibles: ["Alana"], // somente Alana
   },
   redacao: {
     label: "Redação",
+    role: "redator",
     color: "bg-blue-500",
     light: "bg-blue-100 text-blue-700",
     allowedResponsibles: ["Alana", "Pamela", "Abner", "Gabriel"],
   },
   design: {
     label: "Design",
+    role: "designer",
     color: "bg-pink-500",
     light: "bg-pink-100 text-pink-700",
     allowedResponsibles: ["Alana", "Pamela", "Gabriel", "Joilson", "Bruno", "Luis"],
   },
   aprovacao_cliente: {
     label: "Aprovação Cliente",
+    role: "cliente",
     color: "bg-orange-500",
     light: "bg-orange-100 text-orange-700",
     allowedResponsibles: ["cliente"],
   },
   distribuicao: {
     label: "Distribuição",
+    role: "social_media",
     color: "bg-emerald-500",
     light: "bg-emerald-100 text-emerald-700",
     allowedResponsibles: ["Pamela"], // somente Pamela
   },
   trafego_pago: {
     label: "Tráfego Pago",
+    role: "gestor_trafego",
     color: "bg-cyan-500",
     light: "bg-cyan-100 text-cyan-700",
     allowedResponsibles: ["Jones"], // somente Jones
   },
   finalizado: {
     label: "Finalizado",
+    role: "admin",
     color: "bg-slate-400",
     light: "bg-slate-100 text-slate-500",
     allowedResponsibles: ["Pamela"],
