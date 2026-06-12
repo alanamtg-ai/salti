@@ -11,7 +11,7 @@ import { STEPS } from "@/lib/flowConfig";
 import StepBuilder from "@/components/demands/StepBuilder";
 import { format } from "date-fns";
 import SketchPad from "@/components/demands/SketchPad";
-import { Plus, X, Link as LinkIcon, Upload, Loader2, Users, Check, Sparkles, Trash2 } from "lucide-react";
+import { Plus, X, Link as LinkIcon, Upload, Loader2, Users, Check, Sparkles, Trash2, Film } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const PRODUCT_TYPES = [
@@ -159,6 +159,9 @@ export default function NewDemandForm({ open, onClose, onSave, preselectedClient
   const [aiPrompt, setAiPrompt] = useState("");
   const [generatingImage, setGeneratingImage] = useState(false);
   const [generatedImageUrl, setGeneratedImageUrl] = useState("");
+  const [videoPrompt, setVideoPrompt] = useState("");
+  const [generatingVideo, setGeneratingVideo] = useState(false);
+  const [generatedVideoUrl, setGeneratedVideoUrl] = useState("");
   const fileInputRef = useRef(null);
 
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: () => base44.entities.Client.list() });
@@ -270,6 +273,19 @@ export default function NewDemandForm({ open, onClose, onSave, preselectedClient
     setGeneratingImage(false);
   };
 
+  const handleGenerateVideo = async () => {
+    if (!videoPrompt.trim()) return;
+    setGeneratingVideo(true);
+    const { url } = await base44.integrations.Core.GenerateVideo({
+      prompt: videoPrompt,
+      duration: 6,
+      aspect_ratio: "9:16",
+    });
+    setGeneratedVideoUrl(url);
+    setForm((f) => ({ ...f, file_urls: [...(f.file_urls || []), url] }));
+    setGeneratingVideo(false);
+  };
+
   const handleSave = async () => {
     setSaving(true);
     const now = format(new Date(), "yyyy-MM-dd'T'HH:mm:ss");
@@ -301,6 +317,10 @@ export default function NewDemandForm({ open, onClose, onSave, preselectedClient
     setStep(1);
     setSelectedClientIds(preselectedClientId ? [preselectedClientId] : []);
     setForm({ ...defaultForm, client_id: preselectedClientId || "" });
+    setAiPrompt("");
+    setGeneratedImageUrl("");
+    setVideoPrompt("");
+    setGeneratedVideoUrl("");
   };
 
   const canGoStep2 = form.title && selectedClientIds.length > 0 && form.product_type;
@@ -517,6 +537,59 @@ export default function NewDemandForm({ open, onClose, onSave, preselectedClient
                   </button>
                   <div className="absolute bottom-2 left-2 bg-black/60 text-white text-[10px] px-2 py-0.5 rounded-full">
                     ✓ Salva na demanda
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Gerar Vídeo com IA */}
+            <div className="space-y-2 bg-gradient-to-r from-rose-50 to-pink-50 dark:from-rose-950/30 dark:to-pink-950/30 rounded-xl p-4 border border-rose-200 dark:border-rose-800">
+              <Label className="flex items-center gap-1.5">
+                <Film className="w-3.5 h-3.5 text-rose-600" /> Gerar Vídeo com IA
+                <span className="text-[10px] text-muted-foreground font-normal">(vídeo vertical 9:16 · 6s)</span>
+              </Label>
+              <div className="flex gap-2">
+                <Input
+                  value={videoPrompt}
+                  onChange={(e) => setVideoPrompt(e.target.value)}
+                  placeholder="Descreva o vídeo promocional que deseja gerar..."
+                  className="text-sm flex-1"
+                  onKeyDown={(e) => e.key === "Enter" && handleGenerateVideo()}
+                />
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={handleGenerateVideo}
+                  disabled={generatingVideo || !videoPrompt.trim()}
+                  className="bg-rose-600 hover:bg-rose-700 text-white shrink-0"
+                >
+                  {generatingVideo ? (
+                    <><Loader2 className="w-4 h-4 mr-1 animate-spin" /> Gerando...</>
+                  ) : (
+                    <><Film className="w-4 h-4 mr-1" /> Gerar</>
+                  )}
+                </Button>
+              </div>
+              {generatingVideo && (
+                <p className="text-xs text-muted-foreground text-center py-2">
+                  Gerando vídeo... isso pode levar até 60 segundos.
+                </p>
+              )}
+              {generatedVideoUrl && (
+                <div className="relative group rounded-lg overflow-hidden border border-rose-200 dark:border-rose-800 mt-2">
+                  <video src={generatedVideoUrl} controls className="w-full max-h-64 bg-black" />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setGeneratedVideoUrl("");
+                      setForm((f) => ({ ...f, file_urls: f.file_urls.filter((u) => u !== generatedVideoUrl) }));
+                    }}
+                    className="absolute top-2 right-2 bg-black/60 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                  <div className="absolute bottom-2 left-2 bg-black/60 text-white text-[10px] px-2 py-0.5 rounded-full">
+                    ✓ Salvo na demanda
                   </div>
                 </div>
               )}
