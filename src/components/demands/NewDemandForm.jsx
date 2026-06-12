@@ -11,7 +11,7 @@ import { STEPS } from "@/lib/flowConfig";
 import StepBuilder from "@/components/demands/StepBuilder";
 import { format } from "date-fns";
 import SketchPad from "@/components/demands/SketchPad";
-import { Plus, X, Link as LinkIcon, Upload, Loader2, Users, Check } from "lucide-react";
+import { Plus, X, Link as LinkIcon, Upload, Loader2, Users, Check, Sparkles, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const PRODUCT_TYPES = [
@@ -156,6 +156,9 @@ export default function NewDemandForm({ open, onClose, onSave, preselectedClient
   const [saving, setSaving] = useState(false);
   const [newLink, setNewLink] = useState("");
   const [uploadingFile, setUploadingFile] = useState(false);
+  const [aiPrompt, setAiPrompt] = useState("");
+  const [generatingImage, setGeneratingImage] = useState(false);
+  const [generatedImageUrl, setGeneratedImageUrl] = useState("");
   const fileInputRef = useRef(null);
 
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: () => base44.entities.Client.list() });
@@ -256,6 +259,15 @@ export default function NewDemandForm({ open, onClose, onSave, preselectedClient
 
   const removeFile = (i) => {
     setForm((f) => ({ ...f, file_urls: f.file_urls.filter((_, idx) => idx !== i) }));
+  };
+
+  const handleGenerateImage = async () => {
+    if (!aiPrompt.trim()) return;
+    setGeneratingImage(true);
+    const { url } = await base44.integrations.Core.GenerateImage({ prompt: aiPrompt });
+    setGeneratedImageUrl(url);
+    setForm((f) => ({ ...f, file_urls: [...(f.file_urls || []), url] }));
+    setGeneratingImage(false);
   };
 
   const handleSave = async () => {
@@ -460,6 +472,54 @@ export default function NewDemandForm({ open, onClose, onSave, preselectedClient
                 <span className="text-[10px] text-muted-foreground font-normal">(estilo paint)</span>
               </Label>
               <SketchPad value={form.sketch_data} onChange={(v) => setForm({ ...form, sketch_data: v })} />
+            </div>
+
+            {/* Gerar Imagem com IA */}
+            <div className="space-y-2 bg-gradient-to-r from-violet-50 to-purple-50 dark:from-violet-950/30 dark:to-purple-950/30 rounded-xl p-4 border border-violet-200 dark:border-violet-800">
+              <Label className="flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-violet-600" /> Gerar Imagem com IA
+                <span className="text-[10px] text-muted-foreground font-normal">(imagem de capa)</span>
+              </Label>
+              <div className="flex gap-2">
+                <Input
+                  value={aiPrompt}
+                  onChange={(e) => setAiPrompt(e.target.value)}
+                  placeholder="Descreva a imagem que deseja gerar..."
+                  className="text-sm flex-1"
+                  onKeyDown={(e) => e.key === "Enter" && handleGenerateImage()}
+                />
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={handleGenerateImage}
+                  disabled={generatingImage || !aiPrompt.trim()}
+                  className="bg-violet-600 hover:bg-violet-700 text-white shrink-0"
+                >
+                  {generatingImage ? (
+                    <><Loader2 className="w-4 h-4 mr-1 animate-spin" /> Gerando...</>
+                  ) : (
+                    <><Sparkles className="w-4 h-4 mr-1" /> Gerar</>
+                  )}
+                </Button>
+              </div>
+              {generatedImageUrl && (
+                <div className="relative group rounded-lg overflow-hidden border border-violet-200 dark:border-violet-800 mt-2">
+                  <img src={generatedImageUrl} alt="IA gerada" className="w-full max-h-48 object-contain bg-slate-50 dark:bg-slate-900" />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setGeneratedImageUrl("");
+                      setForm((f) => ({ ...f, file_urls: f.file_urls.filter((u) => u !== generatedImageUrl) }));
+                    }}
+                    className="absolute top-2 right-2 bg-black/60 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                  <div className="absolute bottom-2 left-2 bg-black/60 text-white text-[10px] px-2 py-0.5 rounded-full">
+                    ✓ Salva na demanda
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Links de referência */}
