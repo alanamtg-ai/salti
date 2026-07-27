@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Users2, BarChart3, Users, Inbox, Layers, ListTodo, Repeat, Search } from "lucide-react";
+import { LayoutDashboard, Users2, BarChart3, Users, Inbox, Layers, ListTodo, Repeat, Search, UserCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { useCurrentMember } from "@/lib/useCurrentMember";
@@ -14,16 +14,19 @@ const getNavItems = (roles) => {
   { path: "/clientes", label: "Clientes", icon: Users2 },
   { path: "/equipe", label: "Equipe", icon: Users },
   { path: "/relatorios", label: "Relatórios", icon: BarChart3 },
-  { path: "/recorrentes", label: "Recorrentes", icon: Repeat }];
+  { path: "/recorrentes", label: "Recorrentes", icon: Repeat },
+  { path: "/meu-perfil", label: "Meu Perfil", icon: UserCircle }];
 
   if (roleArr.includes("cliente")) return [
-  { path: "/", label: "Minhas Aprovações", icon: Inbox }];
+  { path: "/", label: "Minhas Aprovações", icon: Inbox },
+  { path: "/meu-perfil", label: "Meu Perfil", icon: UserCircle }];
 
   return [
   { path: "/", label: "Minhas Tarefas", icon: Inbox },
   { path: "/busca", label: "Buscar", icon: Search },
   { path: "/clientes", label: "Clientes", icon: Users2 },
-  { path: "/relatorios", label: "Relatórios", icon: BarChart3 }];
+  { path: "/relatorios", label: "Relatórios", icon: BarChart3 },
+  { path: "/meu-perfil", label: "Meu Perfil", icon: UserCircle }];
 
 };
 

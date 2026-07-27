@@ -23,6 +23,7 @@ import NoticeBoard from "@/components/notices/NoticeBoard";
 import CompletedByMeSection from "@/components/demands/CompletedByMeSection";
 import MyTaskCard from "@/components/demands/MyTaskCard";
 import { useCurrentMember } from "@/lib/useCurrentMember";
+import PendingApprovals from "@/components/admin/PendingApprovals";
 import { isPast, isToday } from "date-fns";
 import { cn } from "@/lib/utils";
 import { getStepLabel, getStepLight, STEPS, OFFICIAL_FLOW } from "@/lib/flowConfig";
@@ -207,6 +208,9 @@ export default function AdminDashboard() {
           </Button>
         </div>
       </div>
+
+      {/* Solicitações de acesso pendentes */}
+      <PendingApprovals adminEmail={member?.email} />
 
       {/* Relógio ao vivo + sessão */}
       <LiveClock sessionStart={sessionStart} />

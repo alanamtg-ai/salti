@@ -18,11 +18,13 @@ import RecurringDemands from '@/pages/RecurringDemands';
 import SearchDemands from '@/pages/SearchDemands';
 import ClientsPontuais from '@/pages/ClientsPontuais';
 import MyProfile from '@/pages/MyProfile';
+import PendingApproval from '@/pages/PendingApproval';
 import { useCurrentMember } from '@/lib/useCurrentMember';
 
 const RootPage = () => {
   const { member, isLoading } = useCurrentMember();
   if (isLoading) return null;
+  if (!member) return <PendingApproval />;
   const roles = Array.isArray(member?.role) ? member.role : (member?.role ? [member.role] : []);
   if (roles.includes('admin')) return <AdminDashboard />;
   if (roles.includes('cliente')) return <ClientDashboard />;

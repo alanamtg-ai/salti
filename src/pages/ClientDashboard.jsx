@@ -34,7 +34,7 @@ export default function ClientDashboard() {
   );
 
   // Admins e colaboradores veem tudo; clientes veem só as suas
-  const isClient = member?.role === "cliente";
+  const isClient = Array.isArray(member?.role) ? member.role.includes("cliente") : member?.role === "cliente";
   const clientFilter = (d) => !isClient || d.client_id === member?.client_id;
 
   // Demandas aguardando aprovação deste cliente
